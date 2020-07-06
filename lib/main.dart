@@ -72,8 +72,6 @@ class _MyHomePageState extends State<MyHomePage> {
       home: Scaffold(
         body: Center(
           child: Container(
-            width: 200,
-            height: 200,
             child: FlutterMap(
               options: MapOptions(
                 center: LatLng(45.5231, -122.6765),
