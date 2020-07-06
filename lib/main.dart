@@ -80,7 +80,7 @@ class _MyHomePageState extends State<MyHomePage> {
               layers: [
                 TileLayerOptions(
                     urlTemplate:
-                    'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+                    'https://opencache.statkart.no/gatekeeper/gk/gk.open_gmaps?layers=topo4&zoom={z}&x={x}&y={y}',
                     subdomains: ['a', 'b', 'c']),
               ],
             ),
