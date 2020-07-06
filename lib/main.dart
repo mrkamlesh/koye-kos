@@ -74,8 +74,8 @@ class _MyHomePageState extends State<MyHomePage> {
           child: Container(
             child: FlutterMap(
               options: MapOptions(
-                center: LatLng(45.5231, -122.6765),
-                zoom: 13.0,
+                center: LatLng(59.81, 10.44),
+                zoom: 12.0,
               ),
               layers: [
                 TileLayerOptions(
