@@ -80,8 +80,8 @@ class _MyHomePageState extends State<MyHomePage> {
               layers: [
                 TileLayerOptions(
                     urlTemplate:
-                    'https://opencache.statkart.no/gatekeeper/gk/gk.open_gmaps?layers=topo4&zoom={z}&x={x}&y={y}',
-                    subdomains: ['a', 'b', 'c']),
+                    'https://opencache{s}.statkart.no/gatekeeper/gk/gk.open_gmaps?layers=topo4&zoom={z}&x={x}&y={y}&format=image/jpeg',
+                    subdomains: ['', '2', '3']),  // loadbalancing; uses subdomains opencache[2/3].statkart.no
               ],
             ),
           ),
