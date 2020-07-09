@@ -100,11 +100,32 @@ class _CampPopupState extends State<CampPopup> {
             mainAxisSize: MainAxisSize.min,
             children: [
               image,
-              Text('Coordinates: ${_marker.point.latitude} / ${_marker.point.longitude}'),
+              _buildDescription(),
             ],
           ),
         ),
         onTap: () => print('clicked'),
+      ),
+    );
+  }
+
+  Container _buildDescription() {
+    return Container(
+      padding: EdgeInsets.all(8),
+      child: Column(
+        children: [
+          Text('Location: ${_marker.point.latitude.toStringAsFixed(4)}'
+              ' / ${_marker.point.longitude.toStringAsFixed(4)}'),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              Text('Rating: 4.8 (22)'),
+              Icon(Icons.star_border),  // TODO: place inside image?
+            ],
+          ),
+          Divider(),
+          Text("This is a sort description of the camping spot; it's amazing"),
+        ],
       ),
     );
   }
