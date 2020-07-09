@@ -36,6 +36,7 @@ class _HammockMapState extends State<HammockMap> {
 
   @override
   Widget build(BuildContext context) {
+    _popupLayerController.showPopupFor(_markers.first);  // for debugging
     return FlutterMap(
       options: MapOptions(
         center: MapInfo.defaultLatLng,
@@ -76,8 +77,6 @@ class _CampPopupState extends State<CampPopup> {
   // this should be supplied
   final Image image = Image.asset(
     'images/spot_1.jpg',
-    width: 180,
-    height: 135,
     fit: BoxFit.cover,
   );
 
@@ -86,10 +85,23 @@ class _CampPopupState extends State<CampPopup> {
   @override
   Widget build(BuildContext context) {
     return Card(
+      semanticContainer: true,
+      clipBehavior: Clip.antiAliasWithSaveLayer,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(4.0),
+      ),
+      elevation: 24,
       child: InkWell(
         child: Container(
-            child: image,
+          width: 180,
+          height: 135,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              image,
+            ],
           ),
+        ),
         onTap: () => print('clicked'),
       ),
     );
