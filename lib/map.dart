@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong/latlong.dart';
+import 'package:flutter_map_marker_popup/flutter_map_marker_popup.dart';
+
 
 class MapInfo {
   static final mapUrl = 'https://opencache{s}.statkart.no/'
@@ -12,19 +14,19 @@ class MapInfo {
 }
 
 
-class HammockMap extends StatelessWidget {
-
-  Image image = Image.asset(
-    'spot_1.jpg',
-    width: 20,
-    height: 20,
-    fit: BoxFit.cover,
-  );
+class HammockMap extends StatefulWidget {
   static final LatLng campPoint = LatLng(59.813833, 10.412977);
 
-  List<Marker> markers = <Marker> [
+  @override
+  _HammockMapState createState() => _HammockMapState();
+}
+
+class _HammockMapState extends State<HammockMap> {
+  final PopupController _popupLayerController = PopupController();
+
+  List<Marker> _markers = <Marker> [
     Marker(
-      point: campPoint,
+      point: HammockMap.campPoint,
       width: 40,
       height: 40,
       anchorPos: AnchorPos.align(AnchorAlign.top),
@@ -38,15 +40,58 @@ class HammockMap extends StatelessWidget {
       options: MapOptions(
         center: MapInfo.defaultLatLng,
         zoom: 12.0,
+        plugins: [
+          PopupMarkerPlugin()
+        ],
+        onTap: (_) => _popupLayerController.hidePopup(), // hides popup when map is tapped
+        interactive: true,
       ),
       layers: [
         TileLayerOptions(
             urlTemplate: MapInfo.mapUrl,
             subdomains: MapInfo.mapSubdomains),  // loadbalancing; uses subdomains opencache[2/3].statkart.no
-        MarkerLayerOptions(
-          markers: markers,
+        PopupMarkerLayerOptions(
+            markers: _markers,
+            popupSnap: PopupSnap.top,
+            popupController: _popupLayerController,
+            popupBuilder: (BuildContext _, Marker marker) => CampPopup(marker)
         ),
       ],
+    );
+  }
+}
+
+class CampPopup extends StatefulWidget {
+  final Marker marker;
+
+  CampPopup(this.marker, {Key key}) : super(key: key);
+
+  @override
+  _CampPopupState createState() => _CampPopupState(marker);
+}
+
+class _CampPopupState extends State<CampPopup> {
+  final Marker _marker;
+
+  // this should be supplied
+  final Image image = Image.asset(
+    'images/spot_1.jpg',
+    width: 180,
+    height: 135,
+    fit: BoxFit.cover,
+  );
+
+  _CampPopupState(this._marker);
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: InkWell(
+        child: Container(
+            child: image,
+          ),
+        onTap: () => print('clicked'),
+      ),
     );
   }
 }

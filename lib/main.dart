@@ -2,9 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:koye_kos/map.dart';
 
 
-void main() {
-  runApp(Application());
-}
+void main() => runApp(Application());
 
 class Application extends StatefulWidget {
   @override
