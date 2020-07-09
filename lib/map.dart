@@ -77,6 +77,8 @@ class _CampPopupState extends State<CampPopup> {
   // this should be supplied
   final Image image = Image.asset(
     'images/spot_1.jpg',
+    width: 240,
+    height: 160,
     fit: BoxFit.cover,
   );
 
@@ -93,12 +95,12 @@ class _CampPopupState extends State<CampPopup> {
       elevation: 24,
       child: InkWell(
         child: Container(
-          width: 180,
-          height: 135,
-          child: Row(
+          width: 240,
+          child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               image,
+              Text('Coordinates: ${_marker.point.latitude} / ${_marker.point.longitude}'),
             ],
           ),
         ),
