@@ -26,10 +26,13 @@ dependencies:
 
   cupertino_icons: ^0.1.3
 
-  # Added
+  # Firebase
+  firebase_core: ^0.4.0+9
   firebase_analytics: ^5.0.2
   firebase_auth: ^0.14.0+5
-  firebase_core: ^0.4.0+9
+  cloud_firestore: ^0.13.6
+
+  # Flutter map
   flutter_map: ^0.9.0
   flutter_map_marker_popup: ^0.1.4
 

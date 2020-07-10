@@ -5,6 +5,7 @@ import 'data.dart';
 import 'map.dart';
 
 // The logic of building the popup card, extract so it can easily be changed to another impl
+//
 class MapPopupImpl {
 
   static PopupMarkerLayerOptions buildPopupOptions({
@@ -24,8 +25,8 @@ class MapPopupImpl {
         }
     );
   }
-
-  static Widget buildPopup({@required CampLocation campLocation}) {
+  // NOTE: anti-pattern to have functions build widgets
+  static Widget buildPopup({@required Camp campLocation}) {
     return Card(
       semanticContainer: true,
       clipBehavior: Clip.antiAliasWithSaveLayer,
@@ -58,7 +59,7 @@ class MapPopupImpl {
     );
   }
 
-  static Widget _buildDescription(CampLocation campLocation) {
+  static Widget _buildDescription(Camp campLocation) {
     return Container(
       padding: EdgeInsets.all(8),
       child: Column(

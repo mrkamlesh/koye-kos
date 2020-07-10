@@ -17,6 +17,7 @@ class MapInfo {
 }
 
 class HammockMap extends StatefulWidget {
+
   @override
   _HammockMapState createState() => _HammockMapState();
 }
@@ -25,12 +26,13 @@ class _HammockMapState extends State<HammockMap> {
   final PopupController _popupLayerController = PopupController();
 
   // simulate async call
-  final List<CampMarker> _campMarkers = getCampLocations()
+  final List<CampMarker> _campMarkers = getCampLocationsDummy()
       .map((location) => CampMarker(location)).toList();
 
   @override
   Widget build(BuildContext context) {
     _popupLayerController.showPopupFor(_campMarkers.first);  // for debugging
+    getCamps();
 
     return FlutterMap(
       options: MapOptions(
@@ -57,7 +59,7 @@ class _HammockMapState extends State<HammockMap> {
 }
 
 class CampMarker extends Marker {
-  final CampLocation campLocation;
+  final Camp campLocation;
 
   CampMarker(this.campLocation) :
         super(
@@ -70,7 +72,7 @@ class CampMarker extends Marker {
 }
 
 class CampMarkerPopup extends StatefulWidget {
-  final CampLocation _campLocation;
+  final Camp _campLocation;
 
   CampMarkerPopup(this._campLocation, {Key key}) : super(key: key);
 
@@ -79,7 +81,7 @@ class CampMarkerPopup extends StatefulWidget {
 }
 
 class _CampMarkerPopupState extends State<CampMarkerPopup> {
-  final CampLocation _campLocation;
+  final Camp _campLocation;
 
   _CampMarkerPopupState(this._campLocation);
 
