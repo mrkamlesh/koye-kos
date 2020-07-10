@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "77263031436",
+    "firebase_url": "https://koye-kos.firebaseio.com",
+    "project_id": "koye-kos",
+    "storage_bucket": "koye-kos.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:77263031436:android:0c43e06a811e5ca03ebfa9",
+        "android_client_info": {
+          "package_name": "com.developments.samu.koye_kos"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "77263031436-d5039c9vcp4qihjuego1lf9cmjt23gos.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCuPFpCt4n5IyQv9BMeIEArqmqfgFFV8qA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "77263031436-d5039c9vcp4qihjuego1lf9cmjt23gos.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
