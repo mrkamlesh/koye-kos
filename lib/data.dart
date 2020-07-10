@@ -32,7 +32,7 @@ void getCamps() {
 }
 
 // Simulate network call to get and build map data
-List<Camp> getCampLocationsDummy() {
+List<Camp> getCampDummy() {
   final String image_path = 'images/spot_1_small.jpg';
   final LatLng campPoint = LatLng(59.813833, 10.412977);
   final LatLng campPoint2 = LatLng(59.833833, 10.402977);
