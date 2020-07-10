@@ -13,9 +13,43 @@ class MapInfo {
   static final LatLng defaultLatLng = LatLng(59.81, 10.44);
 }
 
+class CampLocation {
+  final String image_path;
+  final LatLng point;
+  final double score;
+  final int ratings;
+  final String description;
+
+  CampLocation(this.image_path, this.point, this.score, this.ratings, this.description);
+}
+
+List<CampLocation> getCampLocations() {
+  final String image_path = 'images/spot_1.jpg';
+  final LatLng campPoint = LatLng(59.813833, 10.412977);
+  final LatLng campPoint2 = LatLng(59.833833, 10.402977);
+  final double score = 4.7;
+  final int ratings = 11;
+  final String description = 'This is a description of the camp, looks good!';
+
+  return [
+    CampLocation(
+        image_path,
+        campPoint,
+        score,
+        ratings,
+        description
+    ),
+    CampLocation(
+        image_path,
+        campPoint2,
+        score,
+        ratings,
+        description
+    ),
+  ];
+}
 
 class HammockMap extends StatefulWidget {
-  static final LatLng campPoint = LatLng(59.813833, 10.412977);
 
   @override
   _HammockMapState createState() => _HammockMapState();
@@ -24,19 +58,21 @@ class HammockMap extends StatefulWidget {
 class _HammockMapState extends State<HammockMap> {
   final PopupController _popupLayerController = PopupController();
 
-  List<Marker> _markers = <Marker> [
-    Marker(
-      point: HammockMap.campPoint,
-      width: 40,
-      height: 40,
-      anchorPos: AnchorPos.align(AnchorAlign.top),
-      builder: (context) => Icon(Icons.location_on, size: 40),
-    ),
-  ];
+  // simulate async call
+  final List<CampLocation> _campLocations = getCampLocations();
+
+  // helper method to build flutter_map Markers from CampLocations
+  List<CampMarker> _buildMarkers(List<CampLocation> campLocations) {
+    return campLocations.map((location) {
+      return CampMarker(
+        location
+      );
+    }).toList();
+  }
 
   @override
   Widget build(BuildContext context) {
-    _popupLayerController.showPopupFor(_markers.first);  // for debugging
+    _popupLayerController.showPopupFor(_buildMarkers(_campLocations).first);  // for debugging
     return FlutterMap(
       options: MapOptions(
         center: MapInfo.defaultLatLng,
@@ -52,37 +88,56 @@ class _HammockMapState extends State<HammockMap> {
             urlTemplate: MapInfo.mapUrl,
             subdomains: MapInfo.mapSubdomains),  // loadbalancing; uses subdomains opencache[2/3].statkart.no
         PopupMarkerLayerOptions(
-            markers: _markers,
+            markers: _buildMarkers(_campLocations),
             popupSnap: PopupSnap.top,
             popupController: _popupLayerController,
-            popupBuilder: (BuildContext _, Marker marker) => CampPopup(marker)
+            popupBuilder: (BuildContext _, Marker marker) {
+              if (marker is CampMarker) {
+                return CampMarkerPopup(marker.campLocation);
+              }
+              return Card(child: const Text('Not a monument'));
+            }
         ),
       ],
     );
   }
 }
 
-class CampPopup extends StatefulWidget {
-  final Marker marker;
+class CampMarker extends Marker {
+  final CampLocation campLocation;
 
-  CampPopup(this.marker, {Key key}) : super(key: key);
-
-  @override
-  _CampPopupState createState() => _CampPopupState(marker);
+  CampMarker(this.campLocation) :
+      super(
+          point: campLocation.point,
+          width: 40,
+          height: 40,
+          anchorPos: AnchorPos.align(AnchorAlign.top),
+          builder: (context) => Icon(Icons.location_on, size: 40)
+      );
 }
 
-class _CampPopupState extends State<CampPopup> {
-  final Marker _marker;
+class CampMarkerPopup extends StatefulWidget {
+  final CampLocation _campLocation;
 
-  // this should be supplied
-  final Image image = Image.asset(
-    'images/spot_1.jpg',
-    width: 240,
-    height: 160,
-    fit: BoxFit.cover,
-  );
+  CampMarkerPopup(this._campLocation, {Key key}) : super(key: key);
 
-  _CampPopupState(this._marker);
+  @override
+  _CampMarkerPopupState createState() => _CampMarkerPopupState(_campLocation);
+}
+
+class _CampMarkerPopupState extends State<CampMarkerPopup> {
+  final CampLocation _campLocation;
+
+  _CampMarkerPopupState(this._campLocation);
+
+  Image _buildImage(String path) {
+    return Image.asset(
+      path,
+      width: 240,
+      height: 160,
+      fit: BoxFit.cover,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -99,7 +154,7 @@ class _CampPopupState extends State<CampPopup> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              image,
+              _buildImage(_campLocation.image_path),
               _buildDescription(),
             ],
           ),
@@ -114,8 +169,8 @@ class _CampPopupState extends State<CampPopup> {
       padding: EdgeInsets.all(8),
       child: Column(
         children: [
-          Text('Location: ${_marker.point.latitude.toStringAsFixed(4)}'
-              ' / ${_marker.point.longitude.toStringAsFixed(4)}'),
+          Text('Location: ${_campLocation.point.latitude.toStringAsFixed(4)}'
+              ' / ${_campLocation.point.longitude.toStringAsFixed(4)}'),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
@@ -124,7 +179,7 @@ class _CampPopupState extends State<CampPopup> {
             ],
           ),
           Divider(),
-          Text("This is a sort description of the camping spot; it's amazing"),
+          Text("This is a short description of the camping spot; it's amazing"),
         ],
       ),
     );
