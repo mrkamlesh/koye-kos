@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_map_marker_popup/flutter_map_marker_popup.dart';
+import 'data.dart';
 import 'map.dart';
 
 // The logic of building the popup card, extract so it can easily be changed to another impl
