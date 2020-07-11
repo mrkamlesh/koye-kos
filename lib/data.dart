@@ -13,11 +13,20 @@ class Camp {
   Camp(this.image_path, this.point, this.score, this.ratings, this.description);
 
   Camp.fromJson(Map<String, dynamic> json)
-      : image_path = json['image_path'],
-        point = json['point'],
+      : image_path = json['path'],
+        point = (json['location'] as GeoPoint).toLatLng(),
         score = json['score'],
         ratings = json['ratings'],
         description = json['description'];
+
+  @override
+  String toString() {
+    return "[Camp ($point $score $ratings $description ${image_path.substring(0, 10)})]";
+  }
+}
+
+extension GeoPointLatLngHelper on GeoPoint {
+  LatLng toLatLng() => LatLng(this.latitude, this.longitude);
 }
 
 void getCamps() {
