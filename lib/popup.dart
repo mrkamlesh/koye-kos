@@ -3,22 +3,13 @@ import 'package:flutter/material.dart';
 import 'data.dart';
 
 
-class CampMarkerPopup extends StatefulWidget {
+class CampMarkerPopup extends StatelessWidget {
   final Camp _camp;
 
   CampMarkerPopup(this._camp);
 
   @override
-  _CampMarkerPopupState createState() => _CampMarkerPopupState(_camp);
-}
-
-class _CampMarkerPopupState extends State<CampMarkerPopup> {
-  final Camp _camp;
-  _CampMarkerPopupState(this._camp);
-
-  @override
   Widget build(BuildContext context) {
-    print('build card');
     return Card(
       semanticContainer: true,
       clipBehavior: Clip.antiAliasWithSaveLayer,
@@ -32,7 +23,7 @@ class _CampMarkerPopupState extends State<CampMarkerPopup> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              _buildImage(_camp.imagePath),
+              _buildImage(_camp.imageUrl),
               Container(
                 padding: EdgeInsets.all(8),
                 child: CampDescriptionWidget(camp: _camp),
@@ -68,21 +59,19 @@ class CampDescriptionWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    print('building desc');
     return Column(
       children: [
-        Text('Location: ${_camp.point.latitude.toStringAsFixed(4)}'
-            ' / ${_camp.point.longitude.toStringAsFixed(4)}'),
+        Text('Location: ${_camp.location.latitude.toStringAsFixed(4)}'
+            ' / ${_camp.location.longitude.toStringAsFixed(4)}'),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
-            Text('Rating: 4.8 (22)'),
+            Text('Rating: ${_camp.score} (${_camp.ratings})'),
             Icon(Icons.star_border), // TODO: place inside image?
           ],
         ),
         Divider(),
-        Text(
-            "This is a short description of the camping spot; it's amazing"),
+        Text(_camp.description),
       ],
     );
   }
