@@ -2,11 +2,12 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_map/flutter_map.dart';
-import 'package:koye_kos/popup.dart';
 import 'package:latlong/latlong.dart';
 import 'package:flutter_map_marker_popup/flutter_map_marker_popup.dart';
 
 import 'data.dart';
+import 'popup.dart';
+
 
 // Static fields to help set up the map
 class MapInfo {
@@ -32,7 +33,6 @@ class _HammockMapState extends State<HammockMap> {
     asyncInit();
   }
 
-  // FIXME: widgets are not rebuilt!!!
   void asyncInit() async {
     Firestore.instance
         .collection('camps')
@@ -40,9 +40,9 @@ class _HammockMapState extends State<HammockMap> {
         .then((QuerySnapshot querySnapshot) {
       setState(() {
         print('setstate');
-        _camps.addAll(querySnapshot.documents
+        _camps = querySnapshot.documents
             .map((document) => Camp.fromJson(document.data))
-            .toList());
+            .toList();
       });
     }
     )
@@ -51,13 +51,11 @@ class _HammockMapState extends State<HammockMap> {
 
   @override
   Widget build(BuildContext context) {
-    print('building map ${_camps.isNotEmpty ? _camps.first : 'empty list'}');
 
     var campMarkers = _camps.map((camp) => CampMarker(camp)).toList();
     if (campMarkers.isNotEmpty) {
       _popupController.showPopupFor(campMarkers.first); // for debugging
     }
-
 
     return FlutterMap(
       options: MapOptions(
@@ -81,11 +79,10 @@ class _HammockMapState extends State<HammockMap> {
             popupSnap: PopupSnap.top,
             popupController: _popupController,
             popupBuilder: (BuildContext _, Marker marker) {
-              print('popupbuilder');
               if (marker is CampMarker) {
                 return CampMarkerPopup(marker.camp);
               } else {
-                return Card(child: const Text('Not a monument'));
+                return Card(child: const Text('Marker not implemented'));
               }
             }
         ),
@@ -99,7 +96,7 @@ class CampMarker extends Marker {
 
   CampMarker(this.camp)
       : super(
-      point: camp.point,
+      point: camp.location,
       width: 40,
       height: 40,
       anchorPos: AnchorPos.align(AnchorAlign.top),
