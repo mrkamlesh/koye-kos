@@ -4,16 +4,16 @@ import 'package:firebase_core/firebase_core.dart';
 
 // pojo to camp location, future: add from.json constructor
 class Camp {
-  final String image_path;
+  final String imagePath;  // TODO: give sane names/structure to firebase and local fields
   final LatLng point;
   final double score;
   final int ratings;
   final String description;
 
-  Camp(this.image_path, this.point, this.score, this.ratings, this.description);
+  Camp(this.imagePath, this.point, this.score, this.ratings, this.description);
 
   Camp.fromJson(Map<String, dynamic> json)
-      : image_path = json['path'],
+      : imagePath = json['path'],
         point = (json['location'] as GeoPoint).toLatLng(),
         score = json['score'],
         ratings = json['ratings'],
@@ -21,7 +21,7 @@ class Camp {
 
   @override
   String toString() {
-    return "[Camp ($point $score $ratings $description ${image_path.substring(0, 10)})]";
+    return "[Camp ($point $score $ratings $description $imagePath)]";
   }
 }
 
