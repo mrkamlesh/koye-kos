@@ -40,7 +40,6 @@ android {
     }
 
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
         applicationId "com.developments.samu.koye_kos"
         minSdkVersion 21
         targetSdkVersion 30
