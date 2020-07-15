@@ -6,7 +6,7 @@ import 'package:koye_kos/db.dart';
 import 'package:latlong/latlong.dart';
 import 'package:flutter_map_marker_popup/flutter_map_marker_popup.dart';
 
-import 'data.dart';
+import 'models.dart';
 import 'popup.dart';
 
 // Static fields to help set up the map
@@ -25,24 +25,20 @@ class HammockMap extends StatefulWidget {
 
 class _HammockMapState extends State<HammockMap> {
   final PopupController _popupController = PopupController();
-  List<Camp> _camps = List();
+  Future<List<CampMarker>> _campMarkers = FirestoreService.instance.getCampMarkerFuture();
 
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<QuerySnapshot>(
-        stream: DatabaseService().getCampSnapshot(),
-        builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
-          print('Streambuilder invoked');
+    return FutureBuilder<List<CampMarker>>(
+        future: _campMarkers,
+        builder: (BuildContext context, AsyncSnapshot<List<CampMarker>> snapshot) {
           if (snapshot.hasError) // todo: show map without markers
             return Text('Error: ${snapshot.error}');
           switch (snapshot.connectionState) {
             case ConnectionState.waiting:
               return Text('Loading camps...');
             default:
-              List<CampMarker> campMarkers = snapshot.data.documents
-                  .map((doc) => Camp.fromFirestore(doc))
-                  .map((Camp camp) => CampMarker(camp))
-                  .toList();
+              List<CampMarker> campMarkers = snapshot.data;
 
               return FlutterMap(
                 options: MapOptions(

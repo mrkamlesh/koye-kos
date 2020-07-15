@@ -1,10 +1,19 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:koye_kos/map.dart';
 
-class DatabaseService {
-  final Firestore _db = Firestore.instance;
+import 'models.dart';
 
-  Stream<QuerySnapshot> getCampSnapshot() {
+class FirestoreService {
+  FirestoreService._();
+  static final instance = FirestoreService._();
+
+  Future<List<CampMarker>> getCampMarkerFuture() {
     // use ('camps').snapshots for continuous connection with live updates
-    return _db.collection('camps').getDocuments().asStream();
+    return Firestore.instance.collection('camps').getDocuments()
+    .then((QuerySnapshot query) => query.documents
+        .map((DocumentSnapshot document) => Camp.fromFirestore(document))
+        .map((Camp camp) => CampMarker(camp))
+        .toList()
+    );
   }
 }
