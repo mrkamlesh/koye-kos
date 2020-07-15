@@ -10,12 +10,12 @@ class SignInWidget extends StatelessWidget {
     final _signedIn = user != null;
     return FlatButton(
       child: _signedIn ? Text('Log out') : Text('Log in'),
-      onPressed: () => _signedIn ? AuthService.signOut() : AuthService.signInWithGoogle(),
+      onPressed: () =>
+          _signedIn ? AuthService.signOut() : AuthService.signInWithGoogle(),
       textColor: Theme.of(context).buttonColor,
     );
   }
 }
-
 
 class AuthService {
   static final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -28,15 +28,13 @@ class AuthService {
   static void signInWithGoogle() async {
     final GoogleSignInAccount googleUser = await _googleSignIn.signIn();
     final GoogleSignInAuthentication googleAuth =
-    await googleUser.authentication;
+        await googleUser.authentication;
     final AuthCredential credential = GoogleAuthProvider.getCredential(
       accessToken: googleAuth.accessToken,
       idToken: googleAuth.idToken,
     );
     final FirebaseUser user =
         (await _auth.signInWithCredential(credential)).user;
-    assert(user.displayName != null);  // simple check sign in works
+    assert(user.displayName != null); // simple check sign in works
   }
 }
-
-
