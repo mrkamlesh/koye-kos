@@ -53,6 +53,7 @@ class _HammockMapState extends State<HammockMap> {
           PopupMarkerPlugin(),
         ],
         onTap: (_) => _popupController.hidePopup(),
+        onLongPress: (point) => simulateAddCamp(point),
         // hides popup when map is tapped
         interactive: true,
       ),
@@ -76,7 +77,32 @@ class _HammockMapState extends State<HammockMap> {
       ],
     );
   }
+
+  void simulateAddCamp(LatLng point) {
+    print(point);
+    Camp c = Camp(
+      imageUrl: 'images/spot_1_small.jpg',
+      location: point,
+      description: 'New added camp!'
+    );
+    FirestoreService.instance.addCamp(c);
+    // TODO: possible to add to list locally and not need to perform another GET?
+    initAsync();
+  }
 }
+
+class AddCampWidget extends StatelessWidget {
+  final LatLng _point;
+
+  AddCampWidget(LatLng this._point);
+
+  @override
+  Widget build(BuildContext context) {
+    print('building add camp widget');
+    return Container();
+  }
+}
+
 
 class CampMarker extends Marker {
   final Camp camp;

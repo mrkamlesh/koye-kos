@@ -1,30 +1,49 @@
+import 'dart:collection';
+
+import 'package:flutter/foundation.dart';
 import 'package:latlong/latlong.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class Camp {
+  final String id;
   final String imageUrl;
   final LatLng location;
   final double score;
   final int ratings;
   final String description;
 
-  Camp(
-      {this.imageUrl,
-      this.location,
+  Camp({this.id,
+      @required this.imageUrl,
+      @required this.location,
       this.score,
       this.ratings,
-      this.description});
+      @required this.description});
 
   // TODO: use cache (eg user offline)? otherwise drop factory keyword.
-  factory Camp.fromFirestore(DocumentSnapshot docuemnt) {
-    Map data = docuemnt.data;
+  factory Camp.fromFirestore(DocumentSnapshot document) {
+    Map data = document.data;
     LatLng location = (data['location'] as GeoPoint).toLatLng();
     return Camp(
+        id: document.documentID,
         imageUrl: data['image_url'],
         location: location,
-        score: data['score'],
-        ratings: data['ratings'],
+        score: data['score'] ?? 0,
+        ratings: data['ratings'] ?? 0,
         description: data['description']);
+  }
+
+  Map<String, dynamic> toFirestoreMap() {
+    HashMap<String, dynamic> map = HashMap();
+    map.addAll({
+      'imageUrl': imageUrl,
+      'location': location.toGeoPoint(),
+      'score': score,
+      'ratings': ratings,
+      'description': description
+    });
+    // TODO: how to do ids
+    if (id != null) map['documentID'] = id;
+    return map;
   }
 
   @override
@@ -34,7 +53,11 @@ class Camp {
 }
 
 extension GeoPointLatLngHelper on GeoPoint {
-  LatLng toLatLng() => LatLng(this.latitude, this.longitude);
+  LatLng toLatLng() => LatLng(latitude, longitude);
+}
+
+extension LatLngGeoPointHelper on LatLng {
+  GeoPoint toGeoPoint() => GeoPoint(latitude, longitude);
 }
 
 // Simulate network call to get and build map data

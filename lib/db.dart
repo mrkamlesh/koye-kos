@@ -22,4 +22,10 @@ class FirestoreService {
         (QuerySnapshot snapshot) => snapshot.documents
             .map((DocumentSnapshot document) => Camp.fromFirestore(document)));
   }
+
+  Future<void> addCamp(Camp camp) async {
+    print(camp.toFirestoreMap());
+    return await Firestore.instance.collection('camps')
+        .add(camp.toFirestoreMap());
+  }
 }
