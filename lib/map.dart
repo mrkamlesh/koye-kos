@@ -25,54 +25,56 @@ class HammockMap extends StatefulWidget {
 
 class _HammockMapState extends State<HammockMap> {
   final PopupController _popupController = PopupController();
-  Future<List<CampMarker>> _campMarkers = FirestoreService.instance.getCampMarkerFuture();
+  final List<CampMarker> _campMarkers = List();
+
+  @override
+  void initState() {
+    super.initState();
+    initAsync();
+  }
+
+  void initAsync() {
+    FirestoreService.instance
+        .getCampMarkerFuture()
+        .then((List<CampMarker> campMarkers) {
+      setState(() {
+        _campMarkers.addAll(campMarkers);
+      });
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<List<CampMarker>>(
-        future: _campMarkers,
-        builder: (BuildContext context, AsyncSnapshot<List<CampMarker>> snapshot) {
-          if (snapshot.hasError) // todo: show map without markers
-            return Text('Error: ${snapshot.error}');
-          switch (snapshot.connectionState) {
-            case ConnectionState.waiting:
-              return Text('Loading camps...');
-            default:
-              List<CampMarker> campMarkers = snapshot.data;
-
-              return FlutterMap(
-                options: MapOptions(
-                  center: MapInfo.defaultLatLng,
-                  zoom: 12.0,
-                  plugins: [
-                    PopupMarkerPlugin(),
-                  ],
-                  onTap: (_) => _popupController.hidePopup(),
-                  // hides popup when map is tapped
-                  interactive: true,
-                ),
-                layers: [
-                  TileLayerOptions(
-                      urlTemplate: MapInfo.mapUrl,
-                      subdomains: MapInfo
-                          .mapSubdomains // loadbalancing; uses subdomains opencache[2/3].statkart.no
-                      ),
-                  PopupMarkerLayerOptions(
-                      markers: campMarkers,
-                      popupSnap: PopupSnap.top,
-                      popupController: _popupController,
-                      popupBuilder: (BuildContext _, Marker marker) {
-                        if (marker is CampMarker) {
-                          return CampMarkerPopup(marker.camp);
-                        } else {
-                          return Card(
-                              child: const Text('Marker not implemented'));
-                        }
-                      }),
-                ],
-              );
-          }
-        });
+    return FlutterMap(
+      options: MapOptions(
+        center: MapInfo.defaultLatLng,
+        zoom: 12.0,
+        plugins: [
+          PopupMarkerPlugin(),
+        ],
+        onTap: (_) => _popupController.hidePopup(),
+        // hides popup when map is tapped
+        interactive: true,
+      ),
+      layers: [
+        TileLayerOptions(
+            urlTemplate: MapInfo.mapUrl,
+            subdomains: MapInfo
+                .mapSubdomains // loadbalancing; uses subdomains opencache[2/3].statkart.no
+            ),
+        PopupMarkerLayerOptions(
+            markers: _campMarkers,
+            popupSnap: PopupSnap.top,
+            popupController: _popupController,
+            popupBuilder: (BuildContext _, Marker marker) {
+              if (marker is CampMarker) {
+                return CampMarkerPopup(marker.camp);
+              } else {
+                return Card(child: const Text('Marker not implemented'));
+              }
+            }),
+      ],
+    );
   }
 }
 
