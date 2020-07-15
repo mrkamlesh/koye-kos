@@ -72,6 +72,7 @@ class CampDescriptionWidget extends StatelessWidget {
         ),
         Divider(),
         Text(_camp.description),
+        Text('By: ${_camp.creatorName}')
       ],
     );
   }

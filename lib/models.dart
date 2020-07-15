@@ -11,13 +11,18 @@ class Camp {
   final double score;
   final int ratings;
   final String description;
+  final String creatorId;
+  final String creatorName;
 
-  Camp({this.id,
+  Camp(
+      {this.id,
       @required this.imageUrl,
       @required this.location,
       this.score,
       this.ratings,
-      @required this.description});
+      @required this.description,
+      @required this.creatorId,
+      @required this.creatorName});
 
   // TODO: use cache (eg user offline)? otherwise drop factory keyword.
   factory Camp.fromFirestore(DocumentSnapshot document) {
@@ -29,7 +34,9 @@ class Camp {
         location: location,
         score: data['score'] ?? 0,
         ratings: data['ratings'] ?? 0,
-        description: data['description']);
+        description: data['description'],
+        creatorId: data['creator_id'],
+        creatorName: data['creator_name']);
   }
 
   Map<String, dynamic> toFirestoreMap() {
@@ -39,7 +46,9 @@ class Camp {
       'location': location.toGeoPoint(),
       'score': score,
       'ratings': ratings,
-      'description': description
+      'description': description,
+      'creator_id': creatorId,
+      'creator_name': creatorName
     });
     // TODO: how to do ids
     if (id != null) map['documentID'] = id;

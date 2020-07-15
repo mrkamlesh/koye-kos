@@ -1,10 +1,12 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:koye_kos/db.dart';
 import 'package:latlong/latlong.dart';
 import 'package:flutter_map_marker_popup/flutter_map_marker_popup.dart';
+import 'package:provider/provider.dart';
 
 import 'models.dart';
 import 'popup.dart';
@@ -45,6 +47,7 @@ class _HammockMapState extends State<HammockMap> {
 
   @override
   Widget build(BuildContext context) {
+    final user = Provider.of<FirebaseUser>(context);
     return FlutterMap(
       options: MapOptions(
         center: MapInfo.defaultLatLng,
@@ -53,7 +56,7 @@ class _HammockMapState extends State<HammockMap> {
           PopupMarkerPlugin(),
         ],
         onTap: (_) => _popupController.hidePopup(),
-        onLongPress: (point) => simulateAddCamp(point),
+        onLongPress: (point) => simulateAddCamp(point, user),
         // hides popup when map is tapped
         interactive: true,
       ),
@@ -78,15 +81,17 @@ class _HammockMapState extends State<HammockMap> {
     );
   }
 
-  void simulateAddCamp(LatLng point) {
+  void simulateAddCamp(LatLng point, FirebaseUser user) {
     print(point);
     Camp c = Camp(
-      imageUrl: 'images/spot_1_small.jpg',
-      location: point,
-      description: 'New added camp!'
-    );
+        imageUrl: 'images/spot_1_small.jpg',
+        location: point,
+        description: 'New added camp!',
+        creatorId: user.uid,
+        creatorName: user.displayName);
     FirestoreService.instance.addCamp(c);
     // TODO: possible to add to list locally and not need to perform another GET?
+    // or switch to stream but this will use more data.. would also handle when user deletes post
     initAsync();
   }
 }
@@ -102,7 +107,6 @@ class AddCampWidget extends StatelessWidget {
     return Container();
   }
 }
-
 
 class CampMarker extends Marker {
   final Camp camp;
