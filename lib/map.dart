@@ -39,7 +39,6 @@ class _HammockMapState extends State<HammockMap> {
         .getDocuments()
         .then((QuerySnapshot querySnapshot) {
       setState(() {
-        print('setstate');
         _camps = querySnapshot.documents
             .map((document) => Camp.fromJson(document.data))
             .toList();
