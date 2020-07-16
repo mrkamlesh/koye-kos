@@ -46,8 +46,19 @@ class _HammockMapState extends State<HammockMap> {
               PopupMarkerPlugin(),
             ],
             onTap: (_) => _popupController.hidePopup(),
-            onLongPress: (point) => Navigator.push(context,
-                MaterialPageRoute(builder: (context) => AddCampWidget(point))),
+            onLongPress: (point) {
+              Navigator.push(
+                  context,
+                  MaterialPageRoute<bool>(
+                      builder: (context) => AddCampScreen(point)))
+                  .then((bool campAdded) {
+                if (campAdded) {
+                  Scaffold.of(context)
+                    ..removeCurrentSnackBar()
+                    ..showSnackBar(SnackBar(content: Text('Camp added!')));
+                }
+              });
+            },
             // hides popup when map is tapped
             interactive: true,
           ),
@@ -56,7 +67,7 @@ class _HammockMapState extends State<HammockMap> {
                 urlTemplate: MapInfo.mapUrl,
                 subdomains: MapInfo
                     .mapSubdomains // loadbalancing; uses subdomains opencache[2/3].statkart.no
-                ),
+            ),
             PopupMarkerLayerOptions(
                 markers: snapshot.data ?? List(),
                 popupSnap: PopupSnap.top,
@@ -73,25 +84,12 @@ class _HammockMapState extends State<HammockMap> {
       },
     );
   }
-
-  void simulateAddCamp(LatLng point, FirebaseUser user) {
-    print('simulateAddCamp: $point');
-    Camp c = Camp(
-        imageUrl: 'images/spot_1_small.jpg',
-        location: point,
-        description: 'New added camp!',
-        creatorId: user.uid,
-        creatorName: user.displayName);
-    FirestoreService.instance.addCamp(c);
-    // TODO: possible to add to list locally and not need to perform another GET?
-    // or switch to stream but this will use more data.. would also handle when user deletes post
-  }
 }
 
-class AddCampWidget extends StatelessWidget {
-  final LatLng _point;
+class AddCampScreen extends StatelessWidget {
+  final LatLng location;
 
-  AddCampWidget(LatLng this._point);
+  AddCampScreen(LatLng this.location);
 
   @override
   Widget build(BuildContext context) {
@@ -99,14 +97,14 @@ class AddCampWidget extends StatelessWidget {
       appBar: AppBar(
         title: Text('Add camp'),
       ),
-      body: CampForm(_point),
+      body: CampForm(location),
     );
   }
 }
 
 class CampForm extends StatefulWidget {
-  final LatLng _point;
-  CampForm(this._point);
+  final LatLng _location;
+  CampForm(this._location);
 
   @override
   _CampFormState createState() => _CampFormState();
@@ -114,8 +112,13 @@ class CampForm extends StatefulWidget {
 
 class _CampFormState extends State<CampForm> {
   final _formKey = GlobalKey<FormState>();
+  final descriptionController = TextEditingController();
+
   @override
   Widget build(BuildContext context) {
+    final firestoreService = Provider.of<FirestoreService>(context);
+    final user = Provider.of<FirebaseUser>(context);
+
     return Form(
       key: _formKey,
       child: Padding(
@@ -125,12 +128,13 @@ class _CampFormState extends State<CampForm> {
             Align(
               alignment: Alignment.centerLeft,
               child: Text(
-                'Location: ${widget._point.latitude.toStringAsFixed(4)}, ${widget._point.longitude.toStringAsFixed(4)}',
+                'Location: ${widget._location.latitude.toStringAsFixed(4)}, ${widget._location.longitude.toStringAsFixed(4)}',
               ),
             ),
             Padding(
               padding: const EdgeInsets.only(top: 8.0),
               child: TextFormField(
+                controller: descriptionController,
                 keyboardType: TextInputType.multiline,
                 minLines: 1,
                 maxLines: 5,
@@ -142,8 +146,8 @@ class _CampFormState extends State<CampForm> {
                       borderSide: BorderSide(),
                     )),
                 validator: (value) {
-                  if (value.isEmpty) {
-                    return 'Please enter a description!';
+                  if (value.length < 0) {  // PROD: change to meaningful value
+                    return 'Please enter short a description!';
                   }
                   return null;
                 },
@@ -154,9 +158,16 @@ class _CampFormState extends State<CampForm> {
               child: RaisedButton(
                 onPressed: () {
                   if (_formKey.currentState.validate()) {
-                    Scaffold.of(context)
-                        .showSnackBar(SnackBar(content: Text('Camp added!')));
-                    Navigator.pop(context);
+                    print('camp added');
+                    Camp newCamp = Camp(
+                      imageUrl: 'nan',
+                      description: descriptionController.text,
+                      location: widget._location,
+                      creatorName: user.displayName,
+                      creatorId: user.uid,
+                    );
+                    firestoreService.addCamp(newCamp);
+                    Navigator.pop(context, true);
                   }
                 },
                 child: const Text('Add camp'),
@@ -166,6 +177,12 @@ class _CampFormState extends State<CampForm> {
         ),
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    descriptionController.dispose();
   }
 }
 
