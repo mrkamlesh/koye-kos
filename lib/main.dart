@@ -38,11 +38,7 @@ class _ApplicationState extends State<Application> {
               SignInWidget(),
             ],
           ),
-          body: Center(
-            child: Container(
-              child: HammockMap(),
-            ),
-          ),
+          body: HammockMap(),
         ),
       ),
     );

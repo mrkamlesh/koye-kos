@@ -46,7 +46,8 @@ class _HammockMapState extends State<HammockMap> {
               PopupMarkerPlugin(),
             ],
             onTap: (_) => _popupController.hidePopup(),
-            onLongPress: (point) => simulateAddCamp(point, user),
+            onLongPress: (point) => Navigator.push(context,
+                MaterialPageRoute(builder: (context) => AddCampWidget(point))),
             // hides popup when map is tapped
             interactive: true,
           ),
@@ -55,7 +56,7 @@ class _HammockMapState extends State<HammockMap> {
                 urlTemplate: MapInfo.mapUrl,
                 subdomains: MapInfo
                     .mapSubdomains // loadbalancing; uses subdomains opencache[2/3].statkart.no
-            ),
+                ),
             PopupMarkerLayerOptions(
                 markers: snapshot.data ?? List(),
                 popupSnap: PopupSnap.top,
@@ -94,8 +95,77 @@ class AddCampWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    print('building add camp widget');
-    return Container();
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Add camp'),
+      ),
+      body: CampForm(_point),
+    );
+  }
+}
+
+class CampForm extends StatefulWidget {
+  final LatLng _point;
+  CampForm(this._point);
+
+  @override
+  _CampFormState createState() => _CampFormState();
+}
+
+class _CampFormState extends State<CampForm> {
+  final _formKey = GlobalKey<FormState>();
+  @override
+  Widget build(BuildContext context) {
+    return Form(
+      key: _formKey,
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          children: [
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                'Location: ${widget._point.latitude.toStringAsFixed(4)}, ${widget._point.longitude.toStringAsFixed(4)}',
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.only(top: 8.0),
+              child: TextFormField(
+                keyboardType: TextInputType.multiline,
+                minLines: 1,
+                maxLines: 5,
+                decoration: InputDecoration(
+                    hintText: 'Enter a short camp description',
+                    labelText: 'Description',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: BorderSide(),
+                    )),
+                validator: (value) {
+                  if (value.isEmpty) {
+                    return 'Please enter a description!';
+                  }
+                  return null;
+                },
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.only(top: 16.0),
+              child: RaisedButton(
+                onPressed: () {
+                  if (_formKey.currentState.validate()) {
+                    Scaffold.of(context)
+                        .showSnackBar(SnackBar(content: Text('Camp added!')));
+                    Navigator.pop(context);
+                  }
+                },
+                child: const Text('Add camp'),
+              ),
+            )
+          ],
+        ),
+      ),
+    );
   }
 }
 
