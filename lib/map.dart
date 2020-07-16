@@ -1,3 +1,5 @@
+import 'dart:collection';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -27,62 +29,52 @@ class HammockMap extends StatefulWidget {
 
 class _HammockMapState extends State<HammockMap> {
   final PopupController _popupController = PopupController();
-  final List<CampMarker> _campMarkers = List();
-
-  @override
-  void initState() {
-    super.initState();
-    initAsync();
-  }
-
-  void initAsync() {
-    FirestoreService.instance
-        .getCampMarkerFuture()
-        .then((List<CampMarker> campMarkers) {
-      setState(() {
-        _campMarkers.addAll(campMarkers);
-      });
-    });
-  }
 
   @override
   Widget build(BuildContext context) {
     final user = Provider.of<FirebaseUser>(context);
-    return FlutterMap(
-      options: MapOptions(
-        center: MapInfo.defaultLatLng,
-        zoom: 12.0,
-        plugins: [
-          PopupMarkerPlugin(),
-        ],
-        onTap: (_) => _popupController.hidePopup(),
-        onLongPress: (point) => simulateAddCamp(point, user),
-        // hides popup when map is tapped
-        interactive: true,
-      ),
-      layers: [
-        TileLayerOptions(
-            urlTemplate: MapInfo.mapUrl,
-            subdomains: MapInfo
-                .mapSubdomains // loadbalancing; uses subdomains opencache[2/3].statkart.no
+    final firestoreService = Provider.of<FirestoreService>(context);
+
+    return StreamBuilder(
+      stream: firestoreService.getCampMarkerStream(),
+      builder: (context, snapshot) {
+        return FlutterMap(
+          options: MapOptions(
+            center: MapInfo.defaultLatLng,
+            zoom: 12.0,
+            plugins: [
+              PopupMarkerPlugin(),
+            ],
+            onTap: (_) => _popupController.hidePopup(),
+            onLongPress: (point) => simulateAddCamp(point, user),
+            // hides popup when map is tapped
+            interactive: true,
+          ),
+          layers: [
+            TileLayerOptions(
+                urlTemplate: MapInfo.mapUrl,
+                subdomains: MapInfo
+                    .mapSubdomains // loadbalancing; uses subdomains opencache[2/3].statkart.no
             ),
-        PopupMarkerLayerOptions(
-            markers: _campMarkers,
-            popupSnap: PopupSnap.top,
-            popupController: _popupController,
-            popupBuilder: (BuildContext _, Marker marker) {
-              if (marker is CampMarker) {
-                return CampMarkerPopup(marker.camp);
-              } else {
-                return Card(child: const Text('Marker not implemented'));
-              }
-            }),
-      ],
+            PopupMarkerLayerOptions(
+                markers: snapshot.data ?? List(),
+                popupSnap: PopupSnap.top,
+                popupController: _popupController,
+                popupBuilder: (BuildContext _, Marker marker) {
+                  if (marker is CampMarker) {
+                    return CampMarkerPopup(marker.camp);
+                  } else {
+                    return Card(child: const Text('Marker not implemented'));
+                  }
+                }),
+          ],
+        );
+      },
     );
   }
 
   void simulateAddCamp(LatLng point, FirebaseUser user) {
-    print(point);
+    print('simulateAddCamp: $point');
     Camp c = Camp(
         imageUrl: 'images/spot_1_small.jpg',
         location: point,
@@ -92,7 +84,6 @@ class _HammockMapState extends State<HammockMap> {
     FirestoreService.instance.addCamp(c);
     // TODO: possible to add to list locally and not need to perform another GET?
     // or switch to stream but this will use more data.. would also handle when user deletes post
-    initAsync();
   }
 }
 
