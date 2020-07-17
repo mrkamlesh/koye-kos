@@ -1,7 +1,9 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart' as Foundation;
 import 'package:flutter/material.dart';
+import 'package:koye_kos/db.dart';
+import 'package:provider/provider.dart';
 import 'models.dart';
-
 
 class CampMarkerPopup extends StatelessWidget {
   final Camp _camp;
@@ -10,6 +12,10 @@ class CampMarkerPopup extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final firestoreService = Provider.of<FirestoreService>(context);
+    final user = Provider.of<FirebaseUser>(
+        context); // uid should be provided automatically by the db, eventually
+
     return Card(
       semanticContainer: true,
       clipBehavior: Clip.antiAliasWithSaveLayer,
@@ -26,7 +32,38 @@ class CampMarkerPopup extends StatelessWidget {
               _buildImage(_camp.imageUrl),
               Container(
                 padding: EdgeInsets.all(8),
-                child: CampDescriptionWidget(camp: _camp),
+                child: Column(
+                  children: [
+                    Text(
+                        'Location: ${_camp.location.latitude.toStringAsFixed(4)}'
+                        ' / ${_camp.location.longitude.toStringAsFixed(4)}'),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        Text('Rating: ${_camp.score} (${_camp.ratings})'),
+                        StreamBuilder<bool>(
+                            stream: firestoreService.campFavoritedStream(
+                                user.uid, _camp.id),
+                            builder: (context, snapshot) {
+                              bool isFavorited = snapshot.data ?? false;
+                              return IconButton(
+                                icon: isFavorited
+                                    ? Icon(Icons.star)
+                                    : Icon(Icons.star_border),
+                                onPressed: () {
+                                  firestoreService.setFavorited(
+                                      user.uid, _camp.id,
+                                      favorited: !isFavorited);
+                                },
+                              );
+                            }),
+                      ],
+                    ),
+                    Divider(),
+                    Text(_camp.description),
+                    Text('By: ${_camp.creatorName}')
+                  ],
+                ),
               ),
             ],
           ),
@@ -42,38 +79,13 @@ class CampMarkerPopup extends StatelessWidget {
     // hack to show image. TODO: firebase firestore impl for image retrieval
     if (Foundation.kDebugMode) {
       _path = 'images/spot_1_small.jpg';
-    };
+    }
 
     return Image.asset(
       _path,
       width: 240,
       height: 160,
       fit: BoxFit.cover,
-    );
-  }
-}
-
-class CampDescriptionWidget extends StatelessWidget {
-  final Camp _camp;
-  CampDescriptionWidget({@required Camp camp,}) : _camp = camp;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Text('Location: ${_camp.location.latitude.toStringAsFixed(4)}'
-            ' / ${_camp.location.longitude.toStringAsFixed(4)}'),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: [
-            Text('Rating: ${_camp.score} (${_camp.ratings})'),
-            Icon(Icons.star_border), // TODO: place inside image?
-          ],
-        ),
-        Divider(),
-        Text(_camp.description),
-        Text('By: ${_camp.creatorName}')
-      ],
     );
   }
 }

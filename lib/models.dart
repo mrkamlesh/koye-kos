@@ -9,20 +9,21 @@ class Camp {
   final String imageUrl;
   final LatLng location;
   final double score;
-  final int ratings;
+  final int ratings;  // save as list of scores?
   final String description;
   final String creatorId;
   final String creatorName;
+  // time created?
 
   Camp(
       {this.id,
-      @required this.imageUrl,
-      @required this.location,
-      this.score,
-      this.ratings,
-      @required this.description,
-      @required this.creatorId,
-      @required this.creatorName});
+        @required this.imageUrl,
+        @required this.location,
+        this.score,
+        this.ratings,
+        @required this.description,
+        @required this.creatorId,
+        @required this.creatorName});
 
   // TODO: use cache (eg user offline)? otherwise drop factory keyword.
   factory Camp.fromFirestore(DocumentSnapshot document) {
@@ -42,7 +43,7 @@ class Camp {
   Map<String, dynamic> toFirestoreMap() {
     HashMap<String, dynamic> map = HashMap();
     map.addAll({
-      'imageUrl': imageUrl,
+      'image_url': imageUrl,
       'location': location.toGeoPoint(),
       'score': score,
       'ratings': ratings,
@@ -69,17 +70,46 @@ extension LatLngGeoPointHelper on LatLng {
   GeoPoint toGeoPoint() => GeoPoint(latitude, longitude);
 }
 
-// Simulate network call to get and build map data
-List<Camp> getCampDummy() {
-  final String image_path = 'images/spot_1_small.jpg';
-  final LatLng campPoint = LatLng(59.813833, 10.412977);
-  final LatLng campPoint2 = LatLng(59.833833, 10.402977);
-  final double score = 4.7;
-  final int ratings = 11;
-  final String description = 'This is a description of the camp, looks good!';
+class User {
+  final String id;
+  final String name;
+  final Set<String> campsCreated;
+  final Set<String> campsFavorited;
+  final Map<String, int> campsRated;
 
-  return [
-    /*Camp(image_path, campPoint, score, ratings, description),
-    Camp(image_path, campPoint2, score, ratings, description),*/
-  ];
+  User({
+    this.id,
+    this.name,
+    this.campsCreated,
+    this.campsFavorited,
+    this.campsRated});
+
+  factory User.fromFirestore(DocumentSnapshot document) {
+    Map data = document.data;
+    return User(
+      id: data['id'],
+      name: data['name'],
+      campsCreated: data['camps_created'],
+      campsFavorited: data['camps_favorited'],
+      campsRated: data['camps_rated'],
+    );
+  }
+
+  Map<String, dynamic> toFirestoreMap() {
+    HashMap<String, dynamic> map = HashMap();
+    map.addAll({
+      'id': id,
+      'name': name,
+      'camps_created': campsCreated?.toList(growable: false),
+      'camps_favorited': campsFavorited?.toList(growable: false),
+      'camps_rated': campsRated?.entries?.map((e) => {
+        'camp': e.key,
+        'ranting': e.value,
+      })?.toList(growable: false),
+    });
+    print(map);
+    return map;
+  }
 }
+
+

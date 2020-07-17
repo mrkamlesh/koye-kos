@@ -1,17 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:koye_kos/models.dart';
 import 'package:provider/provider.dart';
+
+import 'db.dart';
 
 class SignInWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final user = Provider.of<FirebaseUser>(context);
+    final firestoreService = Provider.of<FirestoreService>(context);
     final _signedIn = user != null;
     return FlatButton(
       child: _signedIn ? Text('Log out') : Text('Log in'),
-      onPressed: () =>
-          _signedIn ? AuthService.signOut() : AuthService.signInWithGoogle(),
+      onPressed: () {
+        return _signedIn
+            ? AuthService.signOut()
+            : AuthService.signInWithGoogle();
+      },
       textColor: Theme.of(context).buttonColor,
     );
   }
