@@ -11,9 +11,12 @@ class SignInWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     final user = Provider.of<FirebaseUser>(context);
     final firestoreService = Provider.of<FirestoreService>(context);
-    final _signedIn = user != null;
+    print('is anonomous: ${user?.isAnonymous}');
+    print('name ${user?.displayName}');
+    final _signedIn = user != null ? !user.isAnonymous : false;
+    print(_signedIn);
     return FlatButton(
-      child: _signedIn ? Text('Log out') : Text('Log in'),
+      child: _signedIn ? Text('Log out') : Text('Log in with Google'),
       onPressed: () {
         return _signedIn
             ? AuthService.signOut()
@@ -25,11 +28,22 @@ class SignInWidget extends StatelessWidget {
 }
 
 class AuthService {
+  AuthService._();
+  static final instance = AuthService._();
+
   static final FirebaseAuth _auth = FirebaseAuth.instance;
   static final GoogleSignIn _googleSignIn = GoogleSignIn();
 
   static void signOut() async {
-    await _auth.signOut();
+    await _auth.currentUser().then((value) {
+      value.unlinkFromProvider(value.providerId);
+    });
+    /*await _auth.signOut();
+    await _auth.signInAnonymously();*/
+  }
+
+  static void signInAnonymously() async {
+    await _auth.signInAnonymously();
   }
 
   static void signInWithGoogle() async {
@@ -40,8 +54,14 @@ class AuthService {
       accessToken: googleAuth.accessToken,
       idToken: googleAuth.idToken,
     );
-    final FirebaseUser user =
-        (await _auth.signInWithCredential(credential)).user;
-    assert(user.displayName != null); // simple check sign in works
+    _auth.currentUser().then((FirebaseUser user) {
+      user.linkWithCredential(credential).then((AuthResult result) {
+        print('linked user');
+        print(result.user.displayName);
+        //assert(result.user.displayName != null); // simple check sign in works
+      });
+      print(user);
+    });
+
   }
 }

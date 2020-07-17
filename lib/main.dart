@@ -20,6 +20,12 @@ class _ApplicationState extends State<Application> {
 
   @override
   Widget build(BuildContext context) {
+    FirebaseAuth.instance.currentUser().then((value) {
+      if (value == null) {
+        AuthService.signInAnonymously();
+      }
+    });
+
     return MultiProvider(
       providers: [
         StreamProvider<FirebaseUser>(
@@ -35,7 +41,7 @@ class _ApplicationState extends State<Application> {
           appBar: AppBar(
             title: Text('Køye Kos'),
             actions: [
-              SignInWidget(),
+             /* SignInWidget(),*/
             ],
           ),
           body: HammockMap(),
