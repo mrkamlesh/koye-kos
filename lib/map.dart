@@ -50,9 +50,6 @@ class _HammockMapState extends State<HammockMap> {
             onTap: (_) {
               _popupController.hidePopup();
               _bottomSheetController?.close();
-              setState(() {
-                _longpressPoint = null;
-              });
             },
             onLongPress: (point) {
               setState(() {
@@ -83,17 +80,15 @@ class _HammockMapState extends State<HammockMap> {
                                 textColor: Colors.white,
                                 child: Text('Add camp'),
                                 onPressed: () {
-                                  Navigator.pop(context);
+                                  //Navigator.pop(context);  // removes bottomsheet
                                   Navigator.push(
-                                      sheetContext,
-                                      MaterialPageRoute<bool>(
-                                          builder: (context) =>
-                                              AddCampScreen(point)))
+                                          sheetContext,
+                                          MaterialPageRoute<bool>(
+                                              builder: (context) =>
+                                                  AddCampScreen(point)))
                                       .then((bool campAdded) {
                                     if (campAdded) {
-                                      setState(() {
-                                        _longpressPoint = null;
-                                      });
+                                      Navigator.pop(context);
                                       Scaffold.of(context)
                                         ..removeCurrentSnackBar()
                                         ..showSnackBar(SnackBar(
@@ -106,6 +101,11 @@ class _HammockMapState extends State<HammockMap> {
                   );
                 },
               );
+              _bottomSheetController.closed.then((_) {
+                setState(() {
+                  _longpressPoint = null;
+                });
+              });
             },
             // hides popup when map is tapped
             interactive: true,
@@ -115,7 +115,7 @@ class _HammockMapState extends State<HammockMap> {
                 urlTemplate: MapInfo.mapUrl,
                 subdomains: MapInfo
                     .mapSubdomains // loadbalancing; uses subdomains opencache[2/3].statkart.no
-            ),
+                ),
             PopupMarkerLayerOptions(
                 markers: snapshot.data ?? List(),
                 popupSnap: PopupSnap.top,
@@ -126,8 +126,7 @@ class _HammockMapState extends State<HammockMap> {
                   } else {
                     return Card(child: const Text('Marker not implemented'));
                   }
-                }
-            ),
+                }),
             MarkerLayerOptions(
               markers: [
                 if (_longpressPoint != null) createMarker(_longpressPoint),
@@ -256,11 +255,11 @@ class CampMarker extends Marker {
 
   CampMarker(this.camp)
       : super(
-      point: camp.location,
-      width: 40,
-      height: 40,
-      anchorPos: AnchorPos.align(AnchorAlign.top),
-      builder: (context) => Icon(Icons.location_on, size: 40));
+            point: camp.location,
+            width: 40,
+            height: 40,
+            anchorPos: AnchorPos.align(AnchorAlign.top),
+            builder: (context) => Icon(Icons.location_on, size: 40));
 }
 
 Marker createMarker(LatLng point) {
@@ -270,8 +269,8 @@ Marker createMarker(LatLng point) {
       height: 45,
       anchorPos: AnchorPos.align(AnchorAlign.top),
       builder: (context) => Icon(
-        Icons.location_on,
-        size: 45,
-        color: Colors.red,
-      ));
+            Icons.location_on,
+            size: 45,
+            color: Colors.red,
+          ));
 }
