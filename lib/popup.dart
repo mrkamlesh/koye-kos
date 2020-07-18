@@ -80,10 +80,10 @@ class CampMarkerPopup extends StatelessWidget {
 
   static Widget _buildImage(String path) {
     return FutureBuilder(
-        future: FirebaseStorage.instance.ref().child(path).getDownloadURL(),
+        future: FirebaseStorage.instance.ref().child(path).getData(1000000),
         builder: (context, snapshot) {
           if (snapshot.hasData) {
-            return Image.network(
+            return Image.memory(
               snapshot.data,
               fit: BoxFit.cover,
             );
