@@ -12,6 +12,7 @@ import 'package:provider/provider.dart';
 
 import 'models.dart';
 import 'popup.dart';
+import 'utils.dart';
 
 // Static fields to help set up the map
 class MapInfo {
@@ -45,19 +46,60 @@ class _HammockMapState extends State<HammockMap> {
             plugins: [
               PopupMarkerPlugin(),
             ],
-            onTap: (_) => _popupController.hidePopup(),
+            onTap: (_) {
+              _popupController.hidePopup();
+              // TODO: hide bottom sheet
+            },
             onLongPress: (point) {
-              Navigator.push(
-                  context,
-                  MaterialPageRoute<bool>(
-                      builder: (context) => AddCampScreen(point)))
-                  .then((bool campAdded) {
-                if (campAdded) {
-                  Scaffold.of(context)
-                    ..removeCurrentSnackBar()
-                    ..showSnackBar(SnackBar(content: Text('Camp added!')));
-                }
-              });
+              PersistentBottomSheetController controller =
+              showBottomSheet<void>(
+                context: context,
+                backgroundColor: Colors.transparent,
+                builder: (BuildContext sheetContext) {
+                  return Card(
+                    semanticContainer: true,
+                    clipBehavior: Clip.antiAliasWithSaveLayer,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8.0),
+                    ),
+                    elevation: 24,
+                    child: InkWell(
+                      child: Container(
+                        child: ListTile(
+                            leading: Icon(Icons.location_on),
+                            title: Text(point.toReadableString(
+                                precision: 4, separator: ', ')),
+                            trailing: FlatButton(
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(18.0),
+                                ),
+                                color: Colors.blue,
+                                textColor: Colors.white,
+                                child: Text('Add camp'),
+                                onPressed: () {
+                                  Navigator.pop(context);
+                                  Navigator.push(
+                                      sheetContext,
+                                      MaterialPageRoute<bool>(
+                                          builder: (context) =>
+                                              AddCampScreen(point)))
+                                      .then((bool campAdded) {
+                                    if (campAdded) {
+                                      Scaffold.of(context)
+                                        ..removeCurrentSnackBar()
+                                        ..showSnackBar(
+                                            SnackBar(
+                                                content: Text('Camp added!')));
+                                    }
+                                  });
+
+                                }
+                            )),
+                      ),
+                    ),
+                  );
+                },
+              );
             },
             // hides popup when map is tapped
             interactive: true,
@@ -146,7 +188,8 @@ class _CampFormState extends State<CampForm> {
                       borderSide: BorderSide(),
                     )),
                 validator: (value) {
-                  if (value.length < 0) {  // PROD: change to meaningful value
+                  if (value.length < 0) {
+                    // PROD: change to meaningful value
                     return 'Please enter short a description!';
                   }
                   return null;
@@ -166,7 +209,7 @@ class _CampFormState extends State<CampForm> {
                       creatorName: user.displayName,
                       creatorId: user.uid,
                     );
-                    firestoreService.addCamp(newCamp);
+                    //firestoreService.addCamp(newCamp);
                     Navigator.pop(context, true);
                   }
                 },
@@ -191,9 +234,9 @@ class CampMarker extends Marker {
 
   CampMarker(this.camp)
       : super(
-            point: camp.location,
-            width: 40,
-            height: 40,
-            anchorPos: AnchorPos.align(AnchorAlign.top),
-            builder: (context) => Icon(Icons.location_on, size: 40));
+      point: camp.location,
+      width: 40,
+      height: 40,
+      anchorPos: AnchorPos.align(AnchorAlign.top),
+      builder: (context) => Icon(Icons.location_on, size: 40));
 }

@@ -3,6 +3,7 @@ import 'dart:collection';
 import 'package:flutter/foundation.dart';
 import 'package:latlong/latlong.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'utils.dart';
 
 class Camp {
   final String id;
@@ -60,14 +61,6 @@ class Camp {
   String toString() {
     return "[Camp ($location $score $ratings $description $imageUrl)]";
   }
-}
-
-extension GeoPointLatLngHelper on GeoPoint {
-  LatLng toLatLng() => LatLng(latitude, longitude);
-}
-
-extension LatLngGeoPointHelper on LatLng {
-  GeoPoint toGeoPoint() => GeoPoint(latitude, longitude);
 }
 
 class User {
