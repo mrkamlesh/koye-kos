@@ -36,14 +36,18 @@ class _HammockMapState extends State<HammockMap> {
   @override
   Widget build(BuildContext context) {
     final firestoreService = Provider.of<FirestoreService>(context);
-
     return StreamBuilder(
       stream: firestoreService.getCampMarkerStream(),
       builder: (context, snapshot) {
         return FlutterMap(
           options: MapOptions(
             center: MapInfo.defaultLatLng,
-            zoom: 12.0,
+            zoom: 4.0,
+            minZoom: 4.0,
+            maxZoom: 18.0,
+            swPanBoundary: LatLng(58, 4.0),
+            nePanBoundary: LatLng(71.0, 31.0),
+            interactive: true,
             plugins: [
               PopupMarkerPlugin(),
             ],
@@ -108,7 +112,6 @@ class _HammockMapState extends State<HammockMap> {
               });
             },
             // hides popup when map is tapped
-            interactive: true,
           ),
           layers: [
             TileLayerOptions(
