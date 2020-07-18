@@ -16,8 +16,6 @@ class Application extends StatefulWidget {
 }
 
 class _ApplicationState extends State<Application> {
-
-
   @override
   Widget build(BuildContext context) {
     FirebaseAuth.instance.currentUser().then((value) {
@@ -29,7 +27,8 @@ class _ApplicationState extends State<Application> {
     return MultiProvider(
       providers: [
         StreamProvider<FirebaseUser>(
-            create: (_) => FirebaseAuth.instance.onAuthStateChanged
+          create: (_) => FirebaseAuth.instance.onAuthStateChanged,
+          lazy: false,
         ),
         Provider<FirestoreService>(
           create: (_) => FirestoreService.instance,
@@ -41,7 +40,7 @@ class _ApplicationState extends State<Application> {
           appBar: AppBar(
             title: Text('Køye Kos'),
             actions: [
-             /* SignInWidget(),*/
+              /* SignInWidget(),*/
             ],
           ),
           body: HammockMap(),
