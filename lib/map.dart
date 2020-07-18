@@ -31,6 +31,7 @@ class HammockMap extends StatefulWidget {
 class _HammockMapState extends State<HammockMap> {
   final PopupController _popupController = PopupController();
   LatLng _longpressPoint;
+  PersistentBottomSheetController _bottomSheetController;
 
   @override
   Widget build(BuildContext context) {
@@ -48,7 +49,7 @@ class _HammockMapState extends State<HammockMap> {
             ],
             onTap: (_) {
               _popupController.hidePopup();
-              // TODO: hide bottom sheet
+              _bottomSheetController?.close();
               setState(() {
                 _longpressPoint = null;
               });
@@ -57,8 +58,7 @@ class _HammockMapState extends State<HammockMap> {
               setState(() {
                 _longpressPoint = point;
               });
-              PersistentBottomSheetController controller =
-                  showBottomSheet<void>(
+              _bottomSheetController = showBottomSheet<void>(
                 context: context,
                 backgroundColor: Colors.transparent,
                 builder: (BuildContext sheetContext) {
@@ -72,7 +72,7 @@ class _HammockMapState extends State<HammockMap> {
                     child: InkWell(
                       child: Container(
                         child: ListTile(
-                            leading: Icon(Icons.location_on),
+                            leading: Icon(Icons.location_on, color: Colors.red),
                             title: Text(point.toReadableString(
                                 precision: 4, separator: ', ')),
                             trailing: FlatButton(
