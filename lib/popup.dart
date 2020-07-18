@@ -1,4 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/foundation.dart' as Foundation;
 import 'package:flutter/material.dart';
 import 'package:koye_kos/db.dart';
@@ -29,14 +30,18 @@ class CampMarkerPopup extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              _buildImage(_camp.imageUrl),
+              SizedBox(
+                width: 240,
+                height: 160,
+                child: _buildImage(_camp.imageUrl),
+              ),
               Container(
                 padding: EdgeInsets.all(8),
                 child: Column(
                   children: [
                     Text(
                         'Location: ${_camp.location.latitude.toStringAsFixed(4)}'
-                        ' / ${_camp.location.longitude.toStringAsFixed(4)}'),
+                            ' / ${_camp.location.longitude.toStringAsFixed(4)}'),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
@@ -74,18 +79,30 @@ class CampMarkerPopup extends StatelessWidget {
   }
 
   static Widget _buildImage(String path) {
-    var _path = path;
-
-    // hack to show image. TODO: firebase firestore impl for image retrieval
-    if (Foundation.kDebugMode) {
-      _path = 'images/spot_1_small.jpg';
-    }
-
-    return Image.asset(
-      _path,
-      width: 240,
-      height: 160,
-      fit: BoxFit.cover,
-    );
+    return FutureBuilder(
+        future: FirebaseStorage.instance.ref().child(path).getDownloadURL(),
+        builder: (context, snapshot) {
+          if (snapshot.hasData) {
+            return Image.network(
+              snapshot.data,
+              fit: BoxFit.cover,
+            );
+          } else if (snapshot.hasError) {
+            return Text('Error loading image: ${snapshot.error}');
+          } else {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                CircularProgressIndicator(),
+                Padding(
+                  padding: const EdgeInsets.only(top: 8.0),
+                  child: Text('Loading image...'),
+                ),
+              ],
+            ),
+          );
+          }
+        });
   }
 }

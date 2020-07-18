@@ -225,7 +225,7 @@ class _CampFormState extends State<CampForm> {
                   if (_formKey.currentState.validate()) {
                     print('camp added');
                     Camp newCamp = Camp(
-                      imageUrl: 'nan',
+                      imageUrl: 'spot_1_small.jpg',
                       description: descriptionController.text,
                       location: widget._location,
                       creatorName: user.displayName,

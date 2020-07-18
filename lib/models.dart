@@ -7,7 +7,7 @@ import 'utils.dart';
 
 class Camp {
   final String id;
-  final String imageUrl;
+  final String imageUrl;  // TODO: how to organize this in firebase storage
   final LatLng location;
   final double score;
   final int ratings;  // save as list of scores?
