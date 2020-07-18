@@ -30,10 +30,10 @@ class HammockMap extends StatefulWidget {
 
 class _HammockMapState extends State<HammockMap> {
   final PopupController _popupController = PopupController();
+  LatLng _longpressPoint;
 
   @override
   Widget build(BuildContext context) {
-    final user = Provider.of<FirebaseUser>(context);
     final firestoreService = Provider.of<FirestoreService>(context);
 
     return StreamBuilder(
@@ -49,10 +49,16 @@ class _HammockMapState extends State<HammockMap> {
             onTap: (_) {
               _popupController.hidePopup();
               // TODO: hide bottom sheet
+              setState(() {
+                _longpressPoint = null;
+              });
             },
             onLongPress: (point) {
+              setState(() {
+                _longpressPoint = point;
+              });
               PersistentBottomSheetController controller =
-              showBottomSheet<void>(
+                  showBottomSheet<void>(
                 context: context,
                 backgroundColor: Colors.transparent,
                 builder: (BuildContext sheetContext) {
@@ -79,22 +85,22 @@ class _HammockMapState extends State<HammockMap> {
                                 onPressed: () {
                                   Navigator.pop(context);
                                   Navigator.push(
-                                      sheetContext,
-                                      MaterialPageRoute<bool>(
-                                          builder: (context) =>
-                                              AddCampScreen(point)))
+                                          sheetContext,
+                                          MaterialPageRoute<bool>(
+                                              builder: (context) =>
+                                                  AddCampScreen(point)))
                                       .then((bool campAdded) {
                                     if (campAdded) {
+                                      setState(() {
+                                        _longpressPoint = null;
+                                      });
                                       Scaffold.of(context)
                                         ..removeCurrentSnackBar()
-                                        ..showSnackBar(
-                                            SnackBar(
-                                                content: Text('Camp added!')));
+                                        ..showSnackBar(SnackBar(
+                                            content: Text('Camp added!')));
                                     }
                                   });
-
-                                }
-                            )),
+                                })),
                       ),
                     ),
                   );
@@ -109,7 +115,7 @@ class _HammockMapState extends State<HammockMap> {
                 urlTemplate: MapInfo.mapUrl,
                 subdomains: MapInfo
                     .mapSubdomains // loadbalancing; uses subdomains opencache[2/3].statkart.no
-            ),
+                ),
             PopupMarkerLayerOptions(
                 markers: snapshot.data ?? List(),
                 popupSnap: PopupSnap.top,
@@ -121,6 +127,11 @@ class _HammockMapState extends State<HammockMap> {
                     return Card(child: const Text('Marker not implemented'));
                   }
                 }),
+            MarkerLayerOptions(
+              markers: [
+                if (_longpressPoint != null) createMarker(_longpressPoint),
+              ],
+            ),
           ],
         );
       },
@@ -131,7 +142,7 @@ class _HammockMapState extends State<HammockMap> {
 class AddCampScreen extends StatelessWidget {
   final LatLng location;
 
-  AddCampScreen(LatLng this.location);
+  AddCampScreen(this.location);
 
   @override
   Widget build(BuildContext context) {
@@ -234,9 +245,22 @@ class CampMarker extends Marker {
 
   CampMarker(this.camp)
       : super(
-      point: camp.location,
-      width: 40,
-      height: 40,
+            point: camp.location,
+            width: 40,
+            height: 40,
+            anchorPos: AnchorPos.align(AnchorAlign.top),
+            builder: (context) => Icon(Icons.location_on, size: 40));
+}
+
+Marker createMarker(LatLng point) {
+  return Marker(
+      point: point,
+      width: 45,
+      height: 45,
       anchorPos: AnchorPos.align(AnchorAlign.top),
-      builder: (context) => Icon(Icons.location_on, size: 40));
+      builder: (context) => Icon(
+            Icons.location_on,
+            size: 45,
+            color: Colors.red,
+          ));
 }
