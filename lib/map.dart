@@ -129,7 +129,7 @@ class _HammockMapState extends State<HammockMap> {
                                 builder: (context) =>
                                     AddCampScreen(point)))
                             .then((bool campAdded) {
-                          if (campAdded) {
+                          if (campAdded ?? false) {
                             Navigator.pop(context);
                             Scaffold.of(context)
                               ..removeCurrentSnackBar()
