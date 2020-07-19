@@ -1,8 +1,11 @@
+import 'dart:io';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:koye_kos/models.dart';
 import 'package:provider/provider.dart';
+import 'package:latlong/latlong.dart';
 
 import 'db.dart';
 
@@ -33,6 +36,16 @@ class CampForm extends StatefulWidget {
 class _CampFormState extends State<CampForm> {
   final _formKey = GlobalKey<FormState>();
   final descriptionController = TextEditingController();
+  final picker = ImagePicker();
+  File _image;
+
+  Future getImage() async {
+    // Could throw error if no camera available!
+    final pickedFile = await picker.getImage(source: ImageSource.camera);
+    setState(() {
+      _image = File(pickedFile.path);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -47,53 +60,59 @@ class _CampFormState extends State<CampForm> {
           children: [
             Align(
               alignment: Alignment.centerLeft,
+              child: Padding(
+                padding: const EdgeInsets.only(left: 4.0),
+                child: Text(
+                  'Location: ${widget._location.latitude.toStringAsFixed(4)}, ${widget._location.longitude.toStringAsFixed(4)}',
+                ),
+              ),
+            ),
+            SizedBox(height: 8),
+            _buildImageView(),
+            SizedBox(height: 8),
+            TextFormField(
+              controller: descriptionController,
+              keyboardType: TextInputType.multiline,
+              minLines: 1,
+              maxLines: 5,
+              decoration: InputDecoration(
+                  hintText: 'Enter a short camp description',
+                  labelText: 'Description',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide(),
+                  )),
+              validator: (value) {
+                if (value.length < 0) {
+                  // PROD: change to meaningful value
+                  return 'Please enter short a description!';
+                }
+                return null;
+              },
+            ),
+            SizedBox(height: 8),
+            RaisedButton(
               child: Text(
-                'Location: ${widget._location.latitude.toStringAsFixed(4)}, ${widget._location.longitude.toStringAsFixed(4)}',
+                'Add camp',
+                style:
+                    TextStyle(color: Theme.of(context).colorScheme.onPrimary),
               ),
+              color: Theme.of(context).primaryColor,
+              onPressed: () {
+                if (_formKey.currentState.validate()) {
+                  print('camp added');
+                  Camp newCamp = Camp(
+                    imageUrl: 'spot_1_small.jpg',
+                    description: descriptionController.text,
+                    location: widget._location,
+                    creatorName: user.displayName,
+                    creatorId: user.uid,
+                  );
+                  firestoreService.addCamp(newCamp);
+                  Navigator.pop(context, true);
+                }
+              },
             ),
-            Padding(
-              padding: const EdgeInsets.only(top: 8.0),
-              child: TextFormField(
-                controller: descriptionController,
-                keyboardType: TextInputType.multiline,
-                minLines: 1,
-                maxLines: 5,
-                decoration: InputDecoration(
-                    hintText: 'Enter a short camp description',
-                    labelText: 'Description',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide(),
-                    )),
-                validator: (value) {
-                  if (value.length < 0) {
-                    // PROD: change to meaningful value
-                    return 'Please enter short a description!';
-                  }
-                  return null;
-                },
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.only(top: 16.0),
-              child: RaisedButton(
-                onPressed: () {
-                  if (_formKey.currentState.validate()) {
-                    print('camp added');
-                    Camp newCamp = Camp(
-                      imageUrl: 'spot_1_small.jpg',
-                      description: descriptionController.text,
-                      location: widget._location,
-                      creatorName: user.displayName,
-                      creatorId: user.uid,
-                    );
-                    //firestoreService.addCamp(newCamp);
-                    Navigator.pop(context, true);
-                  }
-                },
-                child: const Text('Add camp'),
-              ),
-            )
           ],
         ),
       ),
@@ -104,5 +123,28 @@ class _CampFormState extends State<CampForm> {
   void dispose() {
     super.dispose();
     descriptionController.dispose();
+  }
+
+  Widget _buildImageView() {
+    if (_image == null) {
+      return OutlineButton.icon(
+        borderSide: BorderSide(color: Theme.of(context).primaryColor),
+        highlightedBorderColor:
+            Theme.of(context).colorScheme.onSurface.withOpacity(0.12),
+        icon: const Icon(Icons.add, size: 18),
+        label: Text('Add picture'),
+        onPressed: () => getImage(),
+      );
+    } else {
+      return SizedBox(
+        width: 160,
+        height: 160,
+        child: Image.file(
+          // TODO: load image faster / show loading animation
+          _image,
+          fit: BoxFit.cover,
+        ),
+      );
+    }
   }
 }
