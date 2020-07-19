@@ -41,6 +41,8 @@ dependencies:
   flutter_map: ^0.10.1
   flutter_map_marker_popup: ^0.1.4
 
+  # Misc
+  image_picker: ^0.6.7+4
 
 dev_dependencies:
   flutter_test:
