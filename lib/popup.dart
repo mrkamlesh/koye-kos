@@ -33,7 +33,7 @@ class CampMarkerPopup extends StatelessWidget {
               SizedBox(
                 width: 240,
                 height: 160,
-                child: _buildImage(_camp.imageUrl),
+                child: _buildImage(_camp.imageUrl),  // FIXME: seems to be rebuilt on map pan
               ),
               Container(
                 padding: EdgeInsets.all(8),

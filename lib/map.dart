@@ -43,7 +43,7 @@ class _HammockMapState extends State<HammockMap> {
         return FlutterMap(
           options: MapOptions(
             center: MapInfo.defaultLatLng,
-            zoom: 4.0,
+            zoom: 12.0,
             minZoom: 4.0,
             maxZoom: 18.0,
             swPanBoundary: LatLng(58, 4.0),
@@ -142,7 +142,7 @@ class _HammockMapState extends State<HammockMap> {
           ),
         );
       },
-    )
+    );
   }
 }
 
