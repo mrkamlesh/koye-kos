@@ -53,6 +53,8 @@ class _HammockMapState extends State<HammockMap> {
             nePanBoundary: LatLng(71.0, 31.0),
             interactive: true,
             onTap: (_) {
+              // FIXME: use stateful widget eg to control visibility.
+              // This crashes when detailController is open.
               _pointDetailController?.close();
               _markerDetailController?.close();
             },
@@ -60,8 +62,12 @@ class _HammockMapState extends State<HammockMap> {
               setState(() {
                 _longpressPoint = point;
               });
-              _pointDetailController =
-                  _createPointDetailBottomSheet(context, point);
+              _pointDetailController = showBottomSheet<void>(
+                  context: context,
+                  backgroundColor: Colors.transparent,
+                  builder: (BuildContext sheetContext) {
+                    return PointBottomSheet(point);
+                  });
               _pointDetailController.closed.then((_) {
                 setState(() {
                   _longpressPoint = null;
@@ -77,12 +83,16 @@ class _HammockMapState extends State<HammockMap> {
                 ),
             MarkerLayerOptions(
               markers: [
-                if (_longpressPoint != null) createMarker(_longpressPoint),
+                if (_longpressPoint != null) createLongpressMarker(_longpressPoint),
                 if (snapshot.hasData)
                   ...snapshot.data.map((Camp camp) {
                     return CampMarker(camp, () {
-                      _markerDetailController = _createMarkerBottomSheet(
-                          context, camp, user, firestoreService);
+                      _markerDetailController = showBottomSheet<void>(
+                          context: context,
+                          backgroundColor: Colors.transparent,
+                          builder: (BuildContext sheetContext) {
+                            return MarkerBottomSheet(camp);
+                          });
                     });
                   }),
               ],
@@ -92,140 +102,94 @@ class _HammockMapState extends State<HammockMap> {
       },
     );
   }
+}
 
-  PersistentBottomSheetController _createPointDetailBottomSheet(
-      BuildContext context, LatLng point) {
-    return showBottomSheet<void>(
-      context: context,
-      backgroundColor: Colors.transparent,
-      builder: (BuildContext sheetContext) {
-        return Card(
-          semanticContainer: true,
-          clipBehavior: Clip.antiAliasWithSaveLayer,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8.0),
-          ),
-          elevation: 24,
-          child: InkWell(
-            child: Container(
-              child: ListTile(
-                  leading: Icon(Icons.location_on, color: Colors.red),
-                  title: Text(
-                      point.toReadableString(precision: 4, separator: ', ')),
-                  trailing: FlatButton(
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(18.0),
-                      ),
-                      color: Colors.blue,
-                      textColor: Colors.white,
-                      child: Text('Add camp'),
-                      onPressed: () {
-                        //Navigator.pop(context);  // removes bottomsheet
-                        Navigator.push(
-                                sheetContext,
-                                MaterialPageRoute<bool>(
-                                    builder: (context) => AddCampScreen(point)))
-                            .then((bool campAdded) {
-                          if (campAdded ?? false) {
-                            Navigator.pop(context);
-                            Scaffold.of(context)
-                              ..removeCurrentSnackBar()
-                              ..showSnackBar(
-                                  SnackBar(content: Text('Camp added!')));
-                          }
-                        });
-                      })),
+class MarkerBottomSheet extends StatelessWidget {
+  final Camp _camp;
+  MarkerBottomSheet(this._camp);
+
+  @override
+  Widget build(BuildContext context) {
+    final firestoreService = Provider.of<FirestoreService>(context);
+    final user = Provider.of<FirebaseUser>(context);
+
+    return Card(
+      semanticContainer: true,
+      clipBehavior: Clip.antiAliasWithSaveLayer,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(8.0),
+      ),
+      elevation: 24,
+      child: InkWell(
+        onTap: () {
+          Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => CampDetailScreen(
+                    _camp), // Probably should use some provider approach here?
+              ));
+        },
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              height: 120,
+              child: ListView(
+                scrollDirection: Axis.horizontal,
+                children: [
+                  _buildImage(_camp.imageUrl),
+                  SizedBox(width: 4),
+                  _buildImage(_camp.imageUrl), // Fake some more images
+                  SizedBox(width: 4),
+                  _buildImage(_camp.imageUrl),
+                ],
+              ),
             ),
-          ),
-        );
-      },
-    );
-  }
-
-  PersistentBottomSheetController _createMarkerBottomSheet(BuildContext context,
-      Camp camp, FirebaseUser user, FirestoreService firestoreService) {
-    return showBottomSheet<void>(
-      context: context,
-      backgroundColor: Colors.transparent,
-      builder: (BuildContext sheetContext) {
-        return Card(
-          semanticContainer: true,
-          clipBehavior: Clip.antiAliasWithSaveLayer,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8.0),
-          ),
-          elevation: 24,
-          child: InkWell(
-            onTap: () {
-              Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => CampDetailScreen(
-                        camp), // Probably should use some provider approach here?
-                  ));
-            },
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
+            Padding(
+              padding: const EdgeInsets.only(top: 8.0),
+              child: Text(
+                  'Location: ${_camp.location.toReadableString(precision: 4, separator: ', ')}'),
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                Container(
-                  height: 120,
-                  child: ListView(
-                    scrollDirection: Axis.horizontal,
-                    children: [
-                      _buildImage(camp.imageUrl),
-                      SizedBox(width: 4),
-                      _buildImage(camp.imageUrl),
-                      SizedBox(width: 4),
-                      _buildImage(camp.imageUrl),
-                    ],
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.only(top: 8.0),
-                  child: Text(
-                      'Location: ${camp.location.toReadableString(precision: 4, separator: ', ')}'),
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    Text('Rating: ${camp.score} (${camp.ratings})'),
-                    StreamBuilder<bool>(
-                        stream: firestoreService.campFavoritedStream(
-                            user.uid, camp.id),
-                        builder: (context, snapshot) {
-                          bool isFavorited = snapshot.data ?? false;
-                          return IconButton(
-                            icon: isFavorited
-                                ? Icon(Icons.star)
-                                : Icon(Icons.star_border),
-                            onPressed: () {
-                              firestoreService.setFavorited(user.uid, camp.id,
-                                  favorited: !isFavorited);
-                            },
-                          );
-                        }),
-                  ],
-                ),
-                Divider(),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                  child: Align(
-                    alignment: Alignment.centerLeft,
-                    child: Text(camp.description),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.only(top: 8.0, bottom: 8.0),
-                  child: Text('By: ${camp.creatorName}'),
-                )
+                Text('Rating: ${_camp.score} (${_camp.ratings})'),
+                StreamBuilder<bool>(
+                    stream: firestoreService.campFavoritedStream(
+                        user.uid, _camp.id),
+                    builder: (context, snapshot) {
+                      bool isFavorited = snapshot.data ?? false;
+                      return IconButton(
+                        icon: isFavorited
+                            ? Icon(Icons.star)
+                            : Icon(Icons.star_border),
+                        onPressed: () {
+                          firestoreService.setFavorited(user.uid, _camp.id,
+                              favorited: !isFavorited);
+                        },
+                      );
+                    }),
               ],
             ),
-          ),
-        );
-      },
+            Divider(),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8.0),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Text(_camp.description),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.only(top: 8.0, bottom: 8.0),
+              child: Text('By: ${_camp.creatorName}'),
+            )
+          ],
+        ),
+      ),
     );
+    ;
   }
-
+  
   static Widget _buildImage(String path) {
     return FutureBuilder(
         future: FirebaseStorage.instance.ref().child(path).getData(1000000),
@@ -255,6 +219,54 @@ class _HammockMapState extends State<HammockMap> {
   }
 }
 
+class PointBottomSheet extends StatelessWidget {
+  final LatLng _point;
+  PointBottomSheet(this._point);
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      semanticContainer: true,
+      clipBehavior: Clip.antiAliasWithSaveLayer,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(8.0),
+      ),
+      elevation: 24,
+      child: InkWell(
+        child: Container(
+          child: ListTile(
+              leading: Icon(Icons.location_on, color: Colors.red),
+              title:
+                  Text(_point.toReadableString(precision: 4, separator: ', ')),
+              trailing: FlatButton(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(18.0),
+                  ),
+                  color: Colors.blue,
+                  textColor: Colors.white,
+                  child: Text('Add camp'),
+                  onPressed: () {
+                    //Navigator.pop(context);  // removes bottomsheet
+                    Navigator.push(
+                            context,
+                            MaterialPageRoute<bool>(
+                                builder: (context) => AddCampScreen(_point)))
+                        .then((bool campAdded) {
+                      if (campAdded ?? false) {
+                        Navigator.pop(context);
+                        Scaffold.of(context)
+                          ..removeCurrentSnackBar()
+                          ..showSnackBar(
+                              SnackBar(content: Text('Camp added!')));
+                      }
+                    });
+                  })),
+        ),
+      ),
+    );
+  }
+}
+
 class CampMarker extends Marker {
   final Camp camp;
   final Function _callback;
@@ -274,7 +286,7 @@ class CampMarker extends Marker {
         );
 }
 
-Marker createMarker(LatLng point) {
+Marker createLongpressMarker(LatLng point) {
   return Marker(
       point: point,
       width: 45,
