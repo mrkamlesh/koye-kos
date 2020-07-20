@@ -2,6 +2,7 @@ import 'dart:collection';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_map/flutter_map.dart';
@@ -30,16 +31,18 @@ class HammockMap extends StatefulWidget {
 }
 
 class _HammockMapState extends State<HammockMap> {
-  final PopupController _popupController = PopupController();
   LatLng _longpressPoint;
-  PersistentBottomSheetController _bottomSheetController;
+  PersistentBottomSheetController _markerDetailController;
+  PersistentBottomSheetController _pointDetailController;
 
   @override
   Widget build(BuildContext context) {
     final firestoreService = Provider.of<FirestoreService>(context);
+    final user = Provider.of<FirebaseUser>(context);
+
     return StreamBuilder(
-      stream: firestoreService.getCampMarkerStream(),
-      builder: (context, snapshot) {
+      stream: firestoreService.getCampStream(),
+      builder: (BuildContext context, AsyncSnapshot<List<Camp>> snapshot) {
         return FlutterMap(
           options: MapOptions(
             center: MapInfo.defaultLatLng,
@@ -49,19 +52,17 @@ class _HammockMapState extends State<HammockMap> {
             swPanBoundary: LatLng(58, 4.0),
             nePanBoundary: LatLng(71.0, 31.0),
             interactive: true,
-            plugins: [
-              PopupMarkerPlugin(),
-            ],
             onTap: (_) {
-              _popupController.hidePopup();
-              _bottomSheetController?.close();
+              _pointDetailController?.close();
+              _markerDetailController?.close();
             },
             onLongPress: (point) {
               setState(() {
                 _longpressPoint = point;
               });
-              _bottomSheetController = _createBottomSheet(context, point);
-              _bottomSheetController.closed.then((_) {
+              _pointDetailController =
+                  _createPointDetailBottomSheet(context, point);
+              _pointDetailController.closed.then((_) {
                 setState(() {
                   _longpressPoint = null;
                 });
@@ -74,20 +75,16 @@ class _HammockMapState extends State<HammockMap> {
                 subdomains: MapInfo
                     .mapSubdomains // loadbalancing; uses subdomains opencache[2/3].statkart.no
                 ),
-            PopupMarkerLayerOptions(
-                markers: snapshot.data ?? List(),
-                popupSnap: PopupSnap.top,
-                popupController: _popupController,
-                popupBuilder: (BuildContext _, Marker marker) {
-                  if (marker is CampMarker) {
-                    return CampMarkerPopup(marker.camp);
-                  } else {
-                    return Card(child: const Text('Marker not implemented'));
-                  }
-                }),
             MarkerLayerOptions(
               markers: [
                 if (_longpressPoint != null) createMarker(_longpressPoint),
+                if (snapshot.hasData)
+                  ...snapshot.data.map((Camp camp) {
+                    return CampMarker(camp, () {
+                      _markerDetailController = _createMarkerBottomSheet(
+                          context, camp, user, firestoreService);
+                    });
+                  }),
               ],
             ),
           ],
@@ -96,7 +93,8 @@ class _HammockMapState extends State<HammockMap> {
     );
   }
 
-  PersistentBottomSheetController _createBottomSheet(BuildContext context, LatLng point) {
+  PersistentBottomSheetController _createPointDetailBottomSheet(
+      BuildContext context, LatLng point) {
     return showBottomSheet<void>(
       context: context,
       backgroundColor: Colors.transparent,
@@ -112,8 +110,8 @@ class _HammockMapState extends State<HammockMap> {
             child: Container(
               child: ListTile(
                   leading: Icon(Icons.location_on, color: Colors.red),
-                  title: Text(point.toReadableString(
-                      precision: 4, separator: ', ')),
+                  title: Text(
+                      point.toReadableString(precision: 4, separator: ', ')),
                   trailing: FlatButton(
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(18.0),
@@ -124,17 +122,16 @@ class _HammockMapState extends State<HammockMap> {
                       onPressed: () {
                         //Navigator.pop(context);  // removes bottomsheet
                         Navigator.push(
-                            sheetContext,
-                            MaterialPageRoute<bool>(
-                                builder: (context) =>
-                                    AddCampScreen(point)))
+                                sheetContext,
+                                MaterialPageRoute<bool>(
+                                    builder: (context) => AddCampScreen(point)))
                             .then((bool campAdded) {
                           if (campAdded ?? false) {
                             Navigator.pop(context);
                             Scaffold.of(context)
                               ..removeCurrentSnackBar()
-                              ..showSnackBar(SnackBar(
-                                  content: Text('Camp added!')));
+                              ..showSnackBar(
+                                  SnackBar(content: Text('Camp added!')));
                           }
                         });
                       })),
@@ -144,18 +141,137 @@ class _HammockMapState extends State<HammockMap> {
       },
     );
   }
+
+  PersistentBottomSheetController _createMarkerBottomSheet(BuildContext context,
+      Camp camp, FirebaseUser user, FirestoreService firestoreService) {
+    return showBottomSheet<void>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (BuildContext sheetContext) {
+        return Card(
+          semanticContainer: true,
+          clipBehavior: Clip.antiAliasWithSaveLayer,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8.0),
+          ),
+          elevation: 24,
+          child: InkWell(
+            onTap: () {
+              Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => CampDetailScreen(
+                        camp), // Probably should use some provider approach here?
+                  ));
+            },
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  height: 120,
+                  child: ListView(
+                    scrollDirection: Axis.horizontal,
+                    children: [
+                      _buildImage(camp.imageUrl),
+                      SizedBox(width: 4),
+                      _buildImage(camp.imageUrl),
+                      SizedBox(width: 4),
+                      _buildImage(camp.imageUrl),
+                    ],
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(top: 8.0),
+                  child: Text(
+                      'Location: ${camp.location.toReadableString(precision: 4, separator: ', ')}'),
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    Text('Rating: ${camp.score} (${camp.ratings})'),
+                    StreamBuilder<bool>(
+                        stream: firestoreService.campFavoritedStream(
+                            user.uid, camp.id),
+                        builder: (context, snapshot) {
+                          bool isFavorited = snapshot.data ?? false;
+                          return IconButton(
+                            icon: isFavorited
+                                ? Icon(Icons.star)
+                                : Icon(Icons.star_border),
+                            onPressed: () {
+                              firestoreService.setFavorited(user.uid, camp.id,
+                                  favorited: !isFavorited);
+                            },
+                          );
+                        }),
+                  ],
+                ),
+                Divider(),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(camp.description),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(top: 8.0, bottom: 8.0),
+                  child: Text('By: ${camp.creatorName}'),
+                )
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  static Widget _buildImage(String path) {
+    return FutureBuilder(
+        future: FirebaseStorage.instance.ref().child(path).getData(1000000),
+        builder: (context, snapshot) {
+          if (snapshot.hasData) {
+            return Image.memory(
+              snapshot.data,
+              fit: BoxFit.cover,
+            );
+          } else if (snapshot.hasError) {
+            return Text('Error loading image: ${snapshot.error}');
+          } else {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  CircularProgressIndicator(),
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8.0),
+                    child: Text('Loading image...'),
+                  ),
+                ],
+              ),
+            );
+          }
+        });
+  }
 }
 
 class CampMarker extends Marker {
   final Camp camp;
+  final Function _callback;
 
-  CampMarker(this.camp)
+  CampMarker(this.camp, this._callback)
       : super(
-            point: camp.location,
-            width: 40,
-            height: 40,
-            anchorPos: AnchorPos.align(AnchorAlign.top),
-            builder: (context) => Icon(Icons.location_on, size: 40));
+          point: camp.location,
+          width: 40,
+          height: 40,
+          anchorPos: AnchorPos.align(AnchorAlign.top),
+          builder: (context) => Container(
+            child: GestureDetector(
+              onTap: () => _callback(),
+              child: Icon(Icons.location_on, size: 40),
+            ),
+          ),
+        );
 }
 
 Marker createMarker(LatLng point) {

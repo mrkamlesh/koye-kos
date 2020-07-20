@@ -7,22 +7,22 @@ class FirestoreService {
   FirestoreService._();
   static final instance = FirestoreService._();
 
-/*  Stream<List<Camp>> getCampStream() {
+  Stream<List<Camp>> getCampStream() {
     // use ('camps').snapshots for continuous connection with live updates
     return Firestore.instance.collection('camps').snapshots().map(
             (QuerySnapshot snapshot) => snapshot.documents
             .map((DocumentSnapshot document) => Camp.fromFirestore(document))
             .toList());
-  }*/
+  }
 
-  Stream<List<CampMarker>> getCampMarkerStream() {
+/*  Stream<List<CampMarker>> getCampMarkerStream() {
     // use ('camps').snapshots for continuous connection with live updates
     return Firestore.instance.collection('camps').snapshots().map(
             (QuerySnapshot snapshot) => snapshot.documents
             .map((DocumentSnapshot document) => Camp.fromFirestore(document))
             .map((Camp camp) => CampMarker(camp))
             .toList());
-  }
+  }*/
 
   Future<void> addCamp(Camp camp) async {
     return await Firestore.instance
@@ -39,12 +39,13 @@ class FirestoreService {
         .updateData(camp.toFirestoreMap());
   }*/
 
-/*  Future<void> deleteCamp(Camp camp) async {
+  Future<void> deleteCamp(Camp camp) async {
     // compute new score
     return await Firestore.instance
+        .collection('camps')
         .document(camp.id)
         .delete();
-  }*/
+  }
 
 /*  Future<void> addUser(User user) async {
     return await Firestore.instance
