@@ -14,11 +14,11 @@ class MapInfo {
       'gatekeeper/gk/gk.open_gmaps?'
       'layers=topo4&zoom={z}&x={x}&y={y}&format=image/jpeg';
   static final mapSubdomains = ['', '2', '3'];
-  static final LatLng center = LatLng(59.81, 10.44);  // default center
-  static final zoom = 12.0;  // default zoom level
-  static final minZoom = 4.0;  // map zoom limits
+  static final LatLng center = LatLng(59.81, 10.44); // default center
+  static final zoom = 12.0; // default zoom level
+  static final minZoom = 4.0; // map zoom limits
   static final maxZoom = 18.0;
-  static final swPanBoundary = LatLng(58, 4.0);  // map pan boundaries
+  static final swPanBoundary = LatLng(58, 4.0); // map pan boundaries
   static final nePanBoundary = LatLng(71.0, 31.0);
 }
 
@@ -33,6 +33,7 @@ class _HammockMapState extends State<HammockMap> {
   PersistentBottomSheetController _pointDetailController;
   // used to control sheetController states (since only one can be shown/closed at a time)
   bool isShowingPointDetail = false;
+  bool isShowingMarkerDetail = false;
 
   @override
   Widget build(BuildContext context) {
@@ -52,15 +53,17 @@ class _HammockMapState extends State<HammockMap> {
             interactive: true,
             onTap: (_) {
               // If bottomSheet is not showing, the controller would throw exception if trying to close it
-              if (isShowingPointDetail)
-                _pointDetailController?.close();
-              else
-                _markerDetailController?.close();
+              print(isShowingPointDetail);
+              print(isShowingMarkerDetail);
+
+              if (isShowingPointDetail | isShowingMarkerDetail)
+                Navigator.pop(context);
             },
             onLongPress: (point) {
               setState(() {
                 _longpressPoint = point;
                 isShowingPointDetail = true;
+                isShowingMarkerDetail = false;
               });
               _pointDetailController = showBottomSheet<void>(
                   context: context,
@@ -91,9 +94,12 @@ class _HammockMapState extends State<HammockMap> {
                   if (snapshot.hasData)
                     ...snapshot.data.map((Camp camp) {
                       return CampMarker(camp, () {
+                        if (isShowingPointDetail) Navigator.pop(context);
+
                         setState(() {
                           _longpressPoint = null;
                           isShowingPointDetail = false;
+                          isShowingMarkerDetail = true;
                         });
                         _markerDetailController = showBottomSheet<void>(
                             context: context,
@@ -101,6 +107,11 @@ class _HammockMapState extends State<HammockMap> {
                             builder: (_) {
                               return MarkerBottomSheet(camp);
                             });
+                        _markerDetailController.closed.then((value) {
+                          setState(() {
+                            isShowingMarkerDetail = false;
+                          });
+                        });
                       });
                     }),
                 ],
