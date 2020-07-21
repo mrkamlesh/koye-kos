@@ -56,46 +56,83 @@ class MarkerBottomSheet extends StatelessWidget {
               ),
             ),
             Padding(
-              padding: const EdgeInsets.only(top: 8.0),
-              child: Text(
-                  'Location: ${_camp.location.toReadableString(precision: 4, separator: ', ')}'),
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                Text('Rating: ${_camp.score} (${_camp.ratings})'),
-                StreamBuilder<bool>(
-                    stream: firestoreService.campFavoritedStream(
-                        user.uid, _camp.id),
-                    builder: (context, snapshot) {
-                      bool isFavorited = snapshot.data ?? false;
-                      return IconButton(
-                        icon: isFavorited
-                            ? Icon(Icons.star)
-                            : Icon(Icons.star_border),
-                        onPressed: () {
-                          firestoreService.setFavorited(user.uid, _camp.id,
-                              favorited: !isFavorited);
-                        },
-                      );
-                    }),
-              ],
-            ),
-            Divider(),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8.0),
-              child: Align(
-                alignment: Alignment.centerLeft,
-                child: Text(_camp.description),
+              padding: const EdgeInsets.all(8.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      RatingViewWidget(
+                          score: _camp.score, ratings: _camp.ratings),
+                      StreamBuilder<bool>(
+                          stream: firestoreService.campFavoritedStream(
+                              user.uid, _camp.id),
+                          builder: (context, snapshot) {
+                            bool isFavorited = snapshot.data ?? false;
+                            return IconButton(
+                              icon: isFavorited
+                                  ? Icon(Icons.favorite,
+                                      color: Colors.redAccent)
+                                  : Icon(Icons.favorite_border),
+                              onPressed: () {
+                                firestoreService.setFavorited(
+                                    user.uid, _camp.id,
+                                    favorited: !isFavorited);
+                              },
+                            );
+                          }),
+                    ],
+                  ),
+                  Text(_camp.description),
+                  Divider(),
+                  Text('By: ${_camp.creatorName ?? 'Anonymous'}'),
+                ],
               ),
-            ),
-            Padding(
-              padding: const EdgeInsets.only(top: 8.0, bottom: 8.0),
-              child: Text('By: ${_camp.creatorName}'),
             )
           ],
         ),
       ),
+    );
+  }
+}
+
+class RatingViewWidget extends StatelessWidget {
+  final double score;
+  final int ratings;
+  final int stars;
+
+  RatingViewWidget({this.score, this.ratings, this.stars = 5});
+
+  IconData getStarIcon(double score, int index) {
+    if (score > index) {
+      return Icons.star;
+    } else if (score.ceil() == index) {
+      return Icons.star_half;
+    } else {
+      return Icons.star_border;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(right: 4.0),
+          child: Text('$score'),
+        ),
+        ...[for (var i = 1; i <= stars; i += 1) i].map<Icon>((star) {
+          return Icon(
+            getStarIcon(score, star),
+            color: Colors.amberAccent,
+          );
+        }).toList(),
+        Padding(
+          padding: const EdgeInsets.only(left: 4.0),
+          child: Text('($ratings)'),
+        ),
+      ],
     );
   }
 }
@@ -145,7 +182,7 @@ class PointBottomSheet extends StatelessWidget {
           child: ListTile(
               leading: Icon(Icons.location_on, color: Colors.red),
               title:
-              Text(_point.toReadableString(precision: 4, separator: ', ')),
+                  Text(_point.toReadableString(precision: 4, separator: ', ')),
               trailing: FlatButton(
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(18.0),
@@ -156,9 +193,9 @@ class PointBottomSheet extends StatelessWidget {
                   onPressed: () {
                     //Navigator.pop(context);  // removes bottomsheet
                     Navigator.push(
-                        context,
-                        MaterialPageRoute<bool>(
-                            builder: (context) => AddCampScreen(_point)))
+                            context,
+                            MaterialPageRoute<bool>(
+                                builder: (context) => AddCampScreen(_point)))
                         .then((bool campAdded) {
                       if (campAdded ?? false) {
                         Navigator.pop(context);
