@@ -82,6 +82,7 @@ class _HammockMapState extends State<HammockMap> {
                   if (snapshot.hasData)
                     ...snapshot.data.map((Camp camp) {
                       return CampMarker(camp, () {
+                        // TODO: change marker icon to red when tapped
                         setState(() {
                           _longpressPoint = null;
                         });
