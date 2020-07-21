@@ -10,11 +10,10 @@ import 'models.dart';
 import 'utils.dart';
 
 class MarkerBottomSheet extends StatelessWidget {
-  final Camp _camp;
-  MarkerBottomSheet(this._camp);
 
   @override
   Widget build(BuildContext context) {
+    final camp = Provider.of<Camp>(context);
     return Card(
       clipBehavior: Clip.antiAliasWithSaveLayer,  // for rounded corners
       shape: RoundedRectangleBorder(
@@ -26,9 +25,14 @@ class MarkerBottomSheet extends StatelessWidget {
           Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (_) => CampDetailScreen(
-                    _camp), // Probably should use some provider approach here?
-              ));
+                builder: (_) => Provider<Camp>.value(
+                  value: camp,
+                  builder: (context, child) {
+                    return CampDetailScreen();
+                  },
+                ),
+              ),
+          );
         },
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -37,15 +41,15 @@ class MarkerBottomSheet extends StatelessWidget {
               height: 120,  // restrict image height
               child: ListView.builder(
                 scrollDirection: Axis.horizontal,
-                itemCount: _camp.imageUrls.length,
+                itemCount: camp.imageUrls.length,
                 itemBuilder: (context, index) {
-                  bool last = _camp.imageUrls.length == index + 1;
+                  bool last = camp.imageUrls.length == index + 1;
                   return Container(
                     // insert right padding to all but the last list item
                     padding: !last ? EdgeInsets.only(right: 2) : null,
                     child: SizedBox(
                       width: 120,
-                      child: MarkerImage(_camp.imageUrls[index]),
+                      child: MarkerImage(camp.imageUrls[index]),
                     ),
                   );
                 },
@@ -60,13 +64,13 @@ class MarkerBottomSheet extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
                       RatingViewWidget(
-                          score: _camp.score, ratings: _camp.ratings),
-                      FavoriteWidget(_camp.id),
+                          score: camp.score, ratings: camp.ratings),
+                      FavoriteWidget(),
                     ],
                   ),
-                  Text(_camp.description),
+                  Text(camp.description),
                   Divider(),
-                  Text('By: ${_camp.creatorName ?? 'Anonymous'}'),
+                  Text('By: ${camp.creatorName ?? 'Anonymous'}'),
                 ],
               ),
             )
@@ -78,17 +82,14 @@ class MarkerBottomSheet extends StatelessWidget {
 }
 
 class FavoriteWidget extends StatelessWidget {
-  final String _campId;
-
-  FavoriteWidget(this._campId);
-
   @override
   Widget build(BuildContext context) {
     final firestoreService = Provider.of<FirestoreService>(context);
     final user = Provider.of<FirebaseUser>(context);
+    final camp = Provider.of<Camp>(context);
 
     return StreamBuilder<bool>(
-        stream: firestoreService.campFavoritedStream(user.uid, _campId),
+        stream: firestoreService.campFavoritedStream(user.uid, camp.id),
         builder: (BuildContext context, AsyncSnapshot<bool> snapshot) {
           bool isFavorited = snapshot.data ?? false;
           return IconButton(
@@ -96,7 +97,7 @@ class FavoriteWidget extends StatelessWidget {
                 ? Icon(Icons.favorite, color: Colors.redAccent)
                 : Icon(Icons.favorite_border),
             onPressed: () {
-              firestoreService.setFavorited(user.uid, _campId,
+              firestoreService.setFavorited(user.uid, camp.id,
                   favorited: !isFavorited);
             },
           );
@@ -146,7 +147,6 @@ class RatingViewWidget extends StatelessWidget {
 
 class MarkerImage extends StatelessWidget {
   final String _imagePath;
-
   MarkerImage(this._imagePath);
 
   @override

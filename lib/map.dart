@@ -33,7 +33,6 @@ class _HammockMapState extends State<HammockMap> {
   @override
   Widget build(BuildContext context) {
     final firestoreService = Provider.of<FirestoreService>(context);
-
     return StreamBuilder(
       stream: firestoreService.getCampStream(),
       builder: (BuildContext context, AsyncSnapshot<List<Camp>> snapshot) {
@@ -90,7 +89,12 @@ class _HammockMapState extends State<HammockMap> {
                             context: context,
                             backgroundColor: Colors.transparent,
                             builder: (_) {
-                              return MarkerBottomSheet(camp);
+                              return Provider<Camp>.value(
+                                value: camp,
+                                builder: (context, child) {
+                                  return MarkerBottomSheet();
+                                },
+                              );
                             });
                       });
                     }),
