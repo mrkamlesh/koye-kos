@@ -29,11 +29,6 @@ class HammockMap extends StatefulWidget {
 
 class _HammockMapState extends State<HammockMap> {
   LatLng _longpressPoint;
-  PersistentBottomSheetController _markerDetailController;
-  PersistentBottomSheetController _pointDetailController;
-  // used to control sheetController states (since only one can be shown/closed at a time)
-  bool isShowingPointDetail = false;
-  bool isShowingMarkerDetail = false;
 
   @override
   Widget build(BuildContext context) {
@@ -59,13 +54,12 @@ class _HammockMapState extends State<HammockMap> {
               setState(() {
                 _longpressPoint = point;
               });
-              _pointDetailController = showBottomSheet<void>(
+              showBottomSheet<void>(
                   context: context,
                   backgroundColor: Colors.transparent,
                   builder: (_) {
                     return PointBottomSheet(point);
-                  });
-              _pointDetailController.closed.then((_) {
+                  }).closed.then((_) {
                 setState(() {
                   // removed point marker when closing pointDetail
                   _longpressPoint = null;
@@ -91,7 +85,7 @@ class _HammockMapState extends State<HammockMap> {
                         setState(() {
                           _longpressPoint = null;
                         });
-                        _markerDetailController = showBottomSheet<void>(
+                        showBottomSheet<void>(
                             context: context,
                             backgroundColor: Colors.transparent,
                             builder: (_) {
