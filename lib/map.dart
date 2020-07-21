@@ -14,7 +14,12 @@ class MapInfo {
       'gatekeeper/gk/gk.open_gmaps?'
       'layers=topo4&zoom={z}&x={x}&y={y}&format=image/jpeg';
   static final mapSubdomains = ['', '2', '3'];
-  static final LatLng defaultLatLng = LatLng(59.81, 10.44);
+  static final LatLng center = LatLng(59.81, 10.44);  // default center
+  static final zoom = 12.0;  // default zoom level
+  static final minZoom = 4.0;  // map zoom limits
+  static final maxZoom = 18.0;
+  static final swPanBoundary = LatLng(58, 4.0);  // map pan boundaries
+  static final nePanBoundary = LatLng(71.0, 31.0);
 }
 
 class HammockMap extends StatefulWidget {
@@ -26,7 +31,8 @@ class _HammockMapState extends State<HammockMap> {
   LatLng _longpressPoint;
   PersistentBottomSheetController _markerDetailController;
   PersistentBottomSheetController _pointDetailController;
-  bool isShowingPointDetail = false;  // used to control sheetController states (since only one can be shown/closed at a time)
+  // used to control sheetController states (since only one can be shown/closed at a time)
+  bool isShowingPointDetail = false;
 
   @override
   Widget build(BuildContext context) {
@@ -37,17 +43,19 @@ class _HammockMapState extends State<HammockMap> {
       builder: (BuildContext context, AsyncSnapshot<List<Camp>> snapshot) {
         return FlutterMap(
           options: MapOptions(
-            center: MapInfo.defaultLatLng,
-            zoom: 12.0,
-            minZoom: 4.0,
-            maxZoom: 18.0,
-            swPanBoundary: LatLng(58, 4.0),
-            nePanBoundary: LatLng(71.0, 31.0),
+            center: MapInfo.center,
+            zoom: MapInfo.zoom,
+            minZoom: MapInfo.minZoom,
+            maxZoom: MapInfo.maxZoom,
+            swPanBoundary: MapInfo.swPanBoundary,
+            nePanBoundary: MapInfo.nePanBoundary,
             interactive: true,
             onTap: (_) {
               // If bottomSheet is not showing, the controller would throw exception if trying to close it
-              if (isShowingPointDetail) _pointDetailController?.close();
-              else _markerDetailController?.close();
+              if (isShowingPointDetail)
+                _pointDetailController?.close();
+              else
+                _markerDetailController?.close();
             },
             onLongPress: (point) {
               setState(() {
@@ -57,42 +65,46 @@ class _HammockMapState extends State<HammockMap> {
               _pointDetailController = showBottomSheet<void>(
                   context: context,
                   backgroundColor: Colors.transparent,
-                  builder: (BuildContext sheetContext) {
+                  builder: (_) {
                     return PointBottomSheet(point);
                   });
               _pointDetailController.closed.then((_) {
                 setState(() {
-                  _longpressPoint = null;  // removed point marker when closing pointDetail
+                  _longpressPoint =
+                      null; // removed point marker when closing pointDetail
                 });
               });
             },
           ),
-          layers: [
-            TileLayerOptions(
-                urlTemplate: MapInfo.mapUrl,
-                subdomains: MapInfo
-                    .mapSubdomains // loadbalancing; uses subdomains opencache[2/3].statkart.no
-                ),
-            MarkerLayerOptions(
-              markers: [
-                if (_longpressPoint != null)
-                  createLongpressMarker(_longpressPoint),
-                if (snapshot.hasData)
-                  ...snapshot.data.map((Camp camp) {
-                    return CampMarker(camp, () {
-                      setState(() {
-                        _longpressPoint = null;
-                        isShowingPointDetail = false;
+          children: [
+            TileLayerWidget(
+                options: TileLayerOptions(
+                    urlTemplate: MapInfo.mapUrl,
+                    subdomains: MapInfo
+                        .mapSubdomains // loadbalancing; uses subdomains opencache[2/3].statkart.no
+                    )),
+            MarkerLayerWidget(
+              options: MarkerLayerOptions(
+                markers: [
+                  if (_longpressPoint != null)
+                    createLongpressMarker(_longpressPoint),
+                  if (snapshot.hasData)
+                    ...snapshot.data.map((Camp camp) {
+                      return CampMarker(camp, () {
+                        setState(() {
+                          _longpressPoint = null;
+                          isShowingPointDetail = false;
+                        });
+                        _markerDetailController = showBottomSheet<void>(
+                            context: context,
+                            backgroundColor: Colors.transparent,
+                            builder: (_) {
+                              return MarkerBottomSheet(camp);
+                            });
                       });
-                      _markerDetailController = showBottomSheet<void>(
-                          context: context,
-                          backgroundColor: Colors.transparent,
-                          builder: (BuildContext sheetContext) {
-                            return MarkerBottomSheet(camp);
-                          });
-                    });
-                  }),
-              ],
+                    }),
+                ],
+              ),
             ),
           ],
         );
