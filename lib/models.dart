@@ -7,7 +7,7 @@ import 'utils.dart';
 
 class Camp {
   final String id;
-  final String imageUrl;  // TODO: how to organize this in firebase storage
+  final List<String> imageUrls;
   final LatLng location;
   final double score;
   final int ratings;  // save as list of scores?
@@ -18,7 +18,7 @@ class Camp {
 
   Camp(
       {this.id,
-        @required this.imageUrl,
+        @required this.imageUrls,
         @required this.location,
         this.score,
         this.ratings,
@@ -32,7 +32,7 @@ class Camp {
     LatLng location = (data['location'] as GeoPoint).toLatLng();
     return Camp(
         id: document.documentID,
-        imageUrl: data['image_url'],
+        imageUrls: List.from(data['image_urls']),
         location: location,
         score: data['score'] ?? 0,
         ratings: data['ratings'] ?? 0,
@@ -44,7 +44,7 @@ class Camp {
   Map<String, dynamic> toFirestoreMap() {
     HashMap<String, dynamic> map = HashMap();
     map.addAll({
-      'image_url': imageUrl,
+      'image_urls': imageUrls,
       'location': location.toGeoPoint(),
       'score': score,
       'ratings': ratings,
@@ -59,7 +59,7 @@ class Camp {
 
   @override
   String toString() {
-    return "[Camp ($location $score $ratings $description $imageUrl)]";
+    return "[Camp ($location $score $ratings $description $imageUrls)]";
   }
 }
 

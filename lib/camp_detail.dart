@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:koye_kos/db.dart';
 import 'package:provider/provider.dart';
+
+import 'db.dart';
 import 'models.dart';
 
 class CampDetailScreen extends StatelessWidget {
@@ -17,7 +18,7 @@ class CampDetailScreen extends StatelessWidget {
       body: Center(
         child: RaisedButton(
           child: Text('Delete camp',
-              style: TextStyle(color: Colors.white),
+            style: TextStyle(color: Colors.white),
           ),
           color: Colors.red,
           onPressed: () {
@@ -32,4 +33,3 @@ class CampDetailScreen extends StatelessWidget {
     );
   }
 }
-

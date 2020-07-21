@@ -3,11 +3,11 @@ import 'dart:io';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:koye_kos/models.dart';
 import 'package:provider/provider.dart';
 import 'package:latlong/latlong.dart';
 
 import 'db.dart';
+import 'models.dart';
 
 class AddCampScreen extends StatelessWidget {
   final LatLng location;
@@ -102,7 +102,7 @@ class _CampFormState extends State<CampForm> {
                 if (_formKey.currentState.validate()) {
                   print('camp added');
                   Camp newCamp = Camp(
-                    imageUrl: 'spot_1_small.jpg',
+                    imageUrls: ['spot_1_small.jpg', 'spot_1_small.jpg'],
                     description: descriptionController.text,
                     location: widget._location,
                     creatorName: user.displayName,

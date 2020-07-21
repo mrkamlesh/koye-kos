@@ -1,5 +1,7 @@
+import 'dart:typed_data';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:koye_kos/map.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 
 import 'models.dart';
 
@@ -13,6 +15,10 @@ class FirestoreService {
             (QuerySnapshot snapshot) => snapshot.documents
             .map((DocumentSnapshot document) => Camp.fromFirestore(document))
             .toList());
+  }
+
+  Future<Uint8List> getCampImage(String path) {
+    return FirebaseStorage.instance.ref().child(path).getData(1000000);
   }
 
 /*  Stream<List<CampMarker>> getCampMarkerStream() {
