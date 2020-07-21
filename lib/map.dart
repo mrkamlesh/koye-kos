@@ -34,11 +34,11 @@ class _HammockMapState extends State<HammockMap> {
   LatLng _longpressPoint;
   PersistentBottomSheetController _markerDetailController;
   PersistentBottomSheetController _pointDetailController;
+  bool isShowingPointDetail = false;  // used to control sheetController states (since only one can be shown/closed at a time)
 
   @override
   Widget build(BuildContext context) {
     final firestoreService = Provider.of<FirestoreService>(context);
-    final user = Provider.of<FirebaseUser>(context);
 
     return StreamBuilder(
       stream: firestoreService.getCampStream(),
@@ -53,14 +53,14 @@ class _HammockMapState extends State<HammockMap> {
             nePanBoundary: LatLng(71.0, 31.0),
             interactive: true,
             onTap: (_) {
-              // FIXME: use stateful widget eg to control visibility.
-              // This crashes when detailController is open.
-              _pointDetailController?.close();
-              _markerDetailController?.close();
+              // If bottomSheet is not showing, the controller would throw exception if trying to close it
+              if (isShowingPointDetail) _pointDetailController?.close();
+              else _markerDetailController?.close();
             },
             onLongPress: (point) {
               setState(() {
                 _longpressPoint = point;
+                isShowingPointDetail = true;
               });
               _pointDetailController = showBottomSheet<void>(
                   context: context,
@@ -70,7 +70,7 @@ class _HammockMapState extends State<HammockMap> {
                   });
               _pointDetailController.closed.then((_) {
                 setState(() {
-                  _longpressPoint = null;
+                  _longpressPoint = null;  // removed point marker when closing pointDetail
                 });
               });
             },
@@ -83,10 +83,15 @@ class _HammockMapState extends State<HammockMap> {
                 ),
             MarkerLayerOptions(
               markers: [
-                if (_longpressPoint != null) createLongpressMarker(_longpressPoint),
+                if (_longpressPoint != null)
+                  createLongpressMarker(_longpressPoint),
                 if (snapshot.hasData)
                   ...snapshot.data.map((Camp camp) {
                     return CampMarker(camp, () {
+                      setState(() {
+                        _longpressPoint = null;
+                        isShowingPointDetail = false;
+                      });
                       _markerDetailController = showBottomSheet<void>(
                           context: context,
                           backgroundColor: Colors.transparent,
@@ -187,9 +192,9 @@ class MarkerBottomSheet extends StatelessWidget {
         ),
       ),
     );
-    ;
   }
-  
+
+  // TODO: should probably be a stless widget, container for all images
   static Widget _buildImage(String path) {
     return FutureBuilder(
         future: FirebaseStorage.instance.ref().child(path).getData(1000000),
@@ -203,6 +208,7 @@ class MarkerBottomSheet extends StatelessWidget {
             return Text('Error loading image: ${snapshot.error}');
           } else {
             return Center(
+              // FIXME: not centered correctly, box is too small
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [

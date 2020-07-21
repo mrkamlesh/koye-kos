@@ -108,7 +108,7 @@ class _CampFormState extends State<CampForm> {
                     creatorName: user.displayName,
                     creatorId: user.uid,
                   );
-                  firestoreService.addCamp(newCamp);
+                  //firestoreService.addCamp(newCamp);
                   Navigator.pop(context, true);
                 }
               },
