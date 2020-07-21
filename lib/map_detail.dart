@@ -15,12 +15,8 @@ class MarkerBottomSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final firestoreService = Provider.of<FirestoreService>(context);
-    final user = Provider.of<FirebaseUser>(context);
-
     return Card(
-      semanticContainer: true,
-      clipBehavior: Clip.antiAliasWithSaveLayer,
+      clipBehavior: Clip.antiAliasWithSaveLayer,  // for rounded corners
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(8.0),
       ),
@@ -30,7 +26,7 @@ class MarkerBottomSheet extends StatelessWidget {
           Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => CampDetailScreen(
+                builder: (_) => CampDetailScreen(
                     _camp), // Probably should use some provider approach here?
               ));
         },
@@ -38,7 +34,7 @@ class MarkerBottomSheet extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-              height: 120,
+              height: 120,  // restrict image height
               child: ListView.builder(
                 scrollDirection: Axis.horizontal,
                 itemCount: _camp.imageUrls.length,
@@ -54,8 +50,8 @@ class MarkerBottomSheet extends StatelessWidget {
                   );
                 },
               ),
-            ),
-            Padding(
+            ), // Image view
+            Padding(  // Rest of camp description / rating view
               padding: const EdgeInsets.all(8.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -65,23 +61,7 @@ class MarkerBottomSheet extends StatelessWidget {
                     children: [
                       RatingViewWidget(
                           score: _camp.score, ratings: _camp.ratings),
-                      StreamBuilder<bool>(
-                          stream: firestoreService.campFavoritedStream(
-                              user.uid, _camp.id),
-                          builder: (context, snapshot) {
-                            bool isFavorited = snapshot.data ?? false;
-                            return IconButton(
-                              icon: isFavorited
-                                  ? Icon(Icons.favorite,
-                                      color: Colors.redAccent)
-                                  : Icon(Icons.favorite_border),
-                              onPressed: () {
-                                firestoreService.setFavorited(
-                                    user.uid, _camp.id,
-                                    favorited: !isFavorited);
-                              },
-                            );
-                          }),
+                      FavoriteWidget(_camp.id),
                     ],
                   ),
                   Text(_camp.description),
@@ -94,6 +74,33 @@ class MarkerBottomSheet extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+class FavoriteWidget extends StatelessWidget {
+  final String _campId;
+
+  FavoriteWidget(this._campId);
+
+  @override
+  Widget build(BuildContext context) {
+    final firestoreService = Provider.of<FirestoreService>(context);
+    final user = Provider.of<FirebaseUser>(context);
+
+    return StreamBuilder<bool>(
+        stream: firestoreService.campFavoritedStream(user.uid, _campId),
+        builder: (BuildContext context, AsyncSnapshot<bool> snapshot) {
+          bool isFavorited = snapshot.data ?? false;
+          return IconButton(
+            icon: isFavorited
+                ? Icon(Icons.favorite, color: Colors.redAccent)
+                : Icon(Icons.favorite_border),
+            onPressed: () {
+              firestoreService.setFavorited(user.uid, _campId,
+                  favorited: !isFavorited);
+            },
+          );
+        });
   }
 }
 
