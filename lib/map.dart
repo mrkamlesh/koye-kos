@@ -52,18 +52,12 @@ class _HammockMapState extends State<HammockMap> {
             nePanBoundary: MapInfo.nePanBoundary,
             interactive: true,
             onTap: (_) {
-              // If bottomSheet is not showing, the controller would throw exception if trying to close it
-              print(isShowingPointDetail);
-              print(isShowingMarkerDetail);
-
-              if (isShowingPointDetail | isShowingMarkerDetail)
-                Navigator.pop(context);
+              // Tapping the map should remove all other widgets
+              Navigator.popUntil(context, ModalRoute.withName('/'));
             },
             onLongPress: (point) {
               setState(() {
                 _longpressPoint = point;
-                isShowingPointDetail = true;
-                isShowingMarkerDetail = false;
               });
               _pointDetailController = showBottomSheet<void>(
                   context: context,
@@ -73,8 +67,8 @@ class _HammockMapState extends State<HammockMap> {
                   });
               _pointDetailController.closed.then((_) {
                 setState(() {
-                  _longpressPoint =
-                      null; // removed point marker when closing pointDetail
+                  // removed point marker when closing pointDetail
+                  _longpressPoint = null;
                 });
               });
             },
@@ -94,12 +88,8 @@ class _HammockMapState extends State<HammockMap> {
                   if (snapshot.hasData)
                     ...snapshot.data.map((Camp camp) {
                       return CampMarker(camp, () {
-                        if (isShowingPointDetail) Navigator.pop(context);
-
                         setState(() {
                           _longpressPoint = null;
-                          isShowingPointDetail = false;
-                          isShowingMarkerDetail = true;
                         });
                         _markerDetailController = showBottomSheet<void>(
                             context: context,
@@ -107,11 +97,6 @@ class _HammockMapState extends State<HammockMap> {
                             builder: (_) {
                               return MarkerBottomSheet(camp);
                             });
-                        _markerDetailController.closed.then((value) {
-                          setState(() {
-                            isShowingMarkerDetail = false;
-                          });
-                        });
                       });
                     }),
                 ],

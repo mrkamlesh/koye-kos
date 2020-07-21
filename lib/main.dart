@@ -35,16 +35,24 @@ class _ApplicationState extends State<Application> {
       ],
       child: MaterialApp(
         title: 'Køye Kos',
-        home: Scaffold(
-          appBar: AppBar(
-            title: Text('Køye Kos'),
-            actions: [
-              /* SignInWidget(),*/
-            ],
-          ),
-          body: HammockMap(),
-        ),
+        initialRoute: '/',
+        routes: {
+          '/': (context) => Home(),
+        },
       ),
     );
   }
 }
+
+class Home extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Køye Kos'),
+      ),
+      body: HammockMap(),
+    );
+  }
+}
+
