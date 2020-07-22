@@ -100,16 +100,23 @@ class _CampFormState extends State<CampForm> {
               color: Theme.of(context).primaryColor,
               onPressed: () {
                 if (_formKey.currentState.validate()) {
-                  print('camp added');
+                  // TODO: pass data to addCamp method
                   Camp newCamp = Camp(
-                    imageUrls: ['spot_1_small.jpg', 'spot_1_small.jpg'],
+                    imageUrls: <String>[],
                     description: descriptionController.text,
                     location: widget._location,
                     creatorName: user.displayName,
                     creatorId: user.uid,
                   );
-                  //firestoreService.addCamp(newCamp);
-                  Navigator.pop(context, true);
+                  // TODO: show progress indicator
+                  firestoreService.addCamp(newCamp, _image)
+                  .then((bool uploadSuccessful) {
+                    if (uploadSuccessful) Navigator.pop(context, true);
+                    else Scaffold.of(context)
+                      ..removeCurrentSnackBar()
+                      ..showSnackBar(
+                          SnackBar(content: Text('Error uploading camp.')));
+                  });
                 }
               },
             ),

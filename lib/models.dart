@@ -18,7 +18,7 @@ class Camp {
 
   Camp(
       {this.id,
-        @required this.imageUrls,
+        this.imageUrls,
         @required this.location,
         this.score,
         this.ratings,
@@ -26,13 +26,12 @@ class Camp {
         @required this.creatorId,
         @required this.creatorName});
 
-  // TODO: use cache (eg user offline)? otherwise drop factory keyword.
   factory Camp.fromFirestore(DocumentSnapshot document) {
     Map data = document.data;
     LatLng location = (data['location'] as GeoPoint).toLatLng();
     return Camp(
         id: document.documentID,
-        imageUrls: List.from(data['image_urls']),
+        imageUrls: List<String>.from(data['image_urls']),
         location: location,
         score: data['score'] ?? 0,
         ratings: data['ratings'] ?? 0,

@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -12,7 +13,7 @@ class FirestoreService {
   Stream<List<Camp>> getCampStream() {
     // use ('camps').snapshots for continuous connection with live updates
     return Firestore.instance.collection('camps').snapshots().map(
-            (QuerySnapshot snapshot) => snapshot.documents
+        (QuerySnapshot snapshot) => snapshot.documents
             .map((DocumentSnapshot document) => Camp.fromFirestore(document))
             .toList());
   }
@@ -21,19 +22,35 @@ class FirestoreService {
     return FirebaseStorage.instance.ref().child(path).getData(1000000);
   }
 
-/*  Stream<List<CampMarker>> getCampMarkerStream() {
-    // use ('camps').snapshots for continuous connection with live updates
-    return Firestore.instance.collection('camps').snapshots().map(
-            (QuerySnapshot snapshot) => snapshot.documents
-            .map((DocumentSnapshot document) => Camp.fromFirestore(document))
-            .map((Camp camp) => CampMarker(camp))
-            .toList());
-  }*/
+  Future<bool> addCamp(Camp camp, File image) async {
+    // Get a reference to new camp
+    DocumentReference campRef =
+        Firestore.instance.collection('camps').document();
 
-  Future<void> addCamp(Camp camp) async {
-    return await Firestore.instance
-        .collection('camps')
-        .add(camp.toFirestoreMap());
+    // Upload images to firestorage, path (camps/camp_id/time_id). Time id can later be used to sort images by upload date
+    String imageFileName = DateTime.now().toUtc().toString();
+    return FirebaseStorage.instance
+        .ref()
+        .child('camps/${campRef.documentID}/$imageFileName')
+        .putFile(image)
+        .onComplete
+        .then((value) {
+      print('Image upload complete!');
+      return true;
+    }).catchError((_) {
+      print('Error uploading camp!');
+      // TODO: do not upload images below
+      return false;
+    });
+
+    // add image names
+    camp.imageUrls.add(imageFileName);
+    campRef.setData(camp.toFirestoreMap()).then((value) {
+      print('Uploaded camp complete!');
+    }).catchError((_) {
+      print('Error uploading image!');
+      // TODO: delete camp above? notify user that upload failed somehow.
+    });
   }
 
 /*  // TODO: business logic to update ratings + score
@@ -67,10 +84,10 @@ class FirestoreService {
         .map((DocumentSnapshot documentSnapshot) => documentSnapshot.exists);
   }
 
-  Future<void> setFavorited(String userId, String campId, {favorited = true}) async {
+  Future<void> setFavorited(String userId, String campId,
+      {favorited = true}) async {
     DocumentReference ref = await Firestore.instance
         .document('camps_favorited/${userId}_${campId}');
     favorited ? ref.setData({}) : ref.delete();
   }
-
 }
