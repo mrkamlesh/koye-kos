@@ -1,3 +1,4 @@
+import 'dart:ffi';
 import 'dart:io';
 
 import 'package:firebase_auth/firebase_auth.dart';
@@ -8,6 +9,7 @@ import 'package:latlong/latlong.dart';
 
 import 'db.dart';
 import 'models.dart';
+import 'utils.dart';
 
 class AddCampScreen extends StatelessWidget {
   final LatLng location;
@@ -18,7 +20,8 @@ class AddCampScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Add camp'),
+        title: Text(
+            'Add camp (${location.toReadableString(precision: 4, separator: ', ')})'),
       ),
       body: CampForm(location),
     );
@@ -37,13 +40,29 @@ class _CampFormState extends State<CampForm> {
   final _formKey = GlobalKey<FormState>();
   final descriptionController = TextEditingController();
   final picker = ImagePicker();
-  File _image;
+  final List<File> _images = [];
+
+  @override
+  void initState() {
+    super.initState();
+    getImage();
+  }
 
   Future getImage() async {
     // Could throw error if no camera available!
-    final pickedFile = await picker.getImage(source: ImageSource.camera);
+    final pickedFile = await picker.getImage(
+        source: ImageSource.camera,
+        /* maxHeight: 800,
+        maxWidth: 800,*/
+        imageQuality: 40);
     setState(() {
-      _image = File(pickedFile.path);
+      _images.add(File(pickedFile.path));
+    });
+  }
+
+  void deleteImage(int index) {
+    setState(() {
+      _images.removeAt(index);
     });
   }
 
@@ -58,17 +77,19 @@ class _CampFormState extends State<CampForm> {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            Align(
-              alignment: Alignment.centerLeft,
-              child: Padding(
-                padding: const EdgeInsets.only(left: 4.0),
-                child: Text(
-                  'Location: ${widget._location.latitude.toStringAsFixed(4)}, ${widget._location.longitude.toStringAsFixed(4)}',
-                ),
-              ),
+            SizedBox(height: 8),
+            Center(
+              child: ImageList(_images, getImage, deleteImage),
             ),
             SizedBox(height: 8),
-            _buildImageView(),
+            OutlineButton.icon(
+              borderSide: BorderSide(color: Theme.of(context).primaryColor),
+              highlightedBorderColor:
+                  Theme.of(context).colorScheme.onSurface.withOpacity(0.12),
+              icon: const Icon(Icons.add, size: 18),
+              label: Text('Add picture'),
+              onPressed: () => getImage(),
+            ),
             SizedBox(height: 8),
             TextFormField(
               controller: descriptionController,
@@ -109,13 +130,16 @@ class _CampFormState extends State<CampForm> {
                     creatorId: user.uid,
                   );
                   // TODO: show progress indicator
-                  firestoreService.addCamp(newCamp, [_image])
-                  .then((bool uploadSuccessful) {
-                    if (uploadSuccessful) Navigator.pop(context, true);
-                    else Scaffold.of(context)
-                      ..removeCurrentSnackBar()
-                      ..showSnackBar(
-                          SnackBar(content: Text('Error uploading camp.')));
+                  firestoreService
+                      .addCamp(newCamp, _images)
+                      .then((bool uploadSuccessful) {
+                    if (uploadSuccessful)
+                      Navigator.pop(context, true);
+                    else
+                      Scaffold.of(context)
+                        ..removeCurrentSnackBar()
+                        ..showSnackBar(
+                            SnackBar(content: Text('Error uploading camp.')));
                   });
                 }
               },
@@ -131,27 +155,66 @@ class _CampFormState extends State<CampForm> {
     super.dispose();
     descriptionController.dispose();
   }
+}
 
-  Widget _buildImageView() {
-    if (_image == null) {
-      return OutlineButton.icon(
-        borderSide: BorderSide(color: Theme.of(context).primaryColor),
-        highlightedBorderColor:
-            Theme.of(context).colorScheme.onSurface.withOpacity(0.12),
-        icon: const Icon(Icons.add, size: 18),
-        label: Text('Add picture'),
-        onPressed: () => getImage(),
-      );
-    } else {
-      return SizedBox(
-        width: 160,
-        height: 160,
-        child: Image.file(
-          // TODO: load image faster / show loading animation
-          _image,
-          fit: BoxFit.cover,
-        ),
-      );
-    }
+class ImageList extends StatelessWidget {
+  final List<File> _images;
+  final Function _addCallback;
+  final Function(int) _deleteCallback;
+
+  ImageList(this._images, this._addCallback, this._deleteCallback);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 180,
+      child: ListView.builder(
+          // TODO: animate adding new picture?
+          shrinkWrap: true,
+          scrollDirection: Axis.horizontal,
+          itemCount: _images.length + 1,
+          itemBuilder: (context, index) {
+            bool last = _images.length == index;
+            return Container(
+              width: 200,
+              padding: !last ? EdgeInsets.only(right: 2) : null,
+              child: _images.length - index > 0
+                  ? Stack(
+                      fit: StackFit.expand,
+                      children: [
+                        Image.file(
+                          _images[index],
+                          fit: BoxFit.cover,
+                        ),
+                        Positioned(
+                          right: 0,
+                          top: 0,
+                          child: IconButton(
+                            icon: Icon(
+                              Icons.close,
+                              color: Colors.white,
+                            ),
+                            onPressed: () => _deleteCallback(index),
+                          ),
+                        )
+                      ],
+                    )
+                  : Padding(
+                      padding: const EdgeInsets.all(1.0),
+                      child: Container(
+                        child: OutlineButton(
+                            child: Icon(Icons.add),
+                            borderSide: BorderSide(
+                                color: Theme.of(context).primaryColor),
+                            onPressed: () => _addCallback(),
+                            highlightedBorderColor: Theme.of(context)
+                                .colorScheme
+                                .onSurface
+                                .withOpacity(0.12)),
+                      ),
+                    ),
+            );
+          }),
+    );
   }
 }
