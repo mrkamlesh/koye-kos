@@ -13,7 +13,7 @@ class FirestoreService {
   Stream<List<Camp>> getCampStream() {
     // use ('camps').snapshots for continuous connection with live updates
     return Firestore.instance.collection('camps').snapshots().map(
-        (QuerySnapshot snapshot) => snapshot.documents
+            (QuerySnapshot snapshot) => snapshot.documents
             .map((DocumentSnapshot document) => Camp.fromFirestore(document))
             .toList());
   }
@@ -22,34 +22,42 @@ class FirestoreService {
     return FirebaseStorage.instance.ref().child(path).getData(1000000);
   }
 
-  Future<bool> addCamp(Camp camp, File image) async {
+  // TODO: adding a camp should be possible to do offline, as many users could be!
+  Future<bool> addCamp(Camp camp, List<File> images) async {
     // Get a reference to new camp
     DocumentReference campRef =
-        Firestore.instance.collection('camps').document();
+    Firestore.instance.collection('camps').document();
 
-    // Upload images to firestorage, path (camps/camp_id/time_id). Time id can later be used to sort images by upload date
-    String imageFileName = DateTime.now().toUtc().toString();
-    return FirebaseStorage.instance
+    StorageReference imageStoreRef = FirebaseStorage.instance
         .ref()
-        .child('camps/${campRef.documentID}/$imageFileName')
-        .putFile(image)
-        .onComplete
-        .then((value) {
-      print('Image upload complete!');
-      return true;
-    }).catchError((_) {
-      print('Error uploading camp!');
-      // TODO: do not upload images below
-      return false;
+        .child('camps/${campRef.documentID}/');
+    final imageNames = <String>[];
+    // Upload images to firestorage, path (camps/camp_id/time_id). Time id can later be used to sort images by upload date
+    images.forEach((File image) {
+      String imageName = DateTime.now().toUtc().toString();
+      imageNames.add(imageName);
+      imageStoreRef
+          .child('$imageName')
+          .putFile(image)
+          .onComplete
+          .then((value) {
+        print('Image upload complete!');
+      }).catchError((_) {
+        print('Error uploading camp!');
+        // TODO: Revert uploads (?), notify user
+        return false;
+      });
     });
 
     // add image names
-    camp.imageUrls.add(imageFileName);
-    campRef.setData(camp.toFirestoreMap()).then((value) {
+    camp.imageUrls.addAll(imageNames);
+    return campRef.setData(camp.toFirestoreMap()).then((value) {
       print('Uploaded camp complete!');
+      return true;
     }).catchError((_) {
       print('Error uploading image!');
-      // TODO: delete camp above? notify user that upload failed somehow.
+      // TODO: handle upload failed
+      return false;
     });
   }
 

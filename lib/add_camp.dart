@@ -109,7 +109,7 @@ class _CampFormState extends State<CampForm> {
                     creatorId: user.uid,
                   );
                   // TODO: show progress indicator
-                  firestoreService.addCamp(newCamp, _image)
+                  firestoreService.addCamp(newCamp, [_image])
                   .then((bool uploadSuccessful) {
                     if (uploadSuccessful) Navigator.pop(context, true);
                     else Scaffold.of(context)
