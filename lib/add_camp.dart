@@ -74,75 +74,70 @@ class _CampFormState extends State<CampForm> {
     return Form(
       key: _formKey,
       child: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.only(top: 8.0),
         child: Column(
           children: [
-            SizedBox(height: 8),
-            Center(
-              child: ImageList(_images, getImage, deleteImage),
-            ),
-            SizedBox(height: 8),
-            OutlineButton.icon(
-              borderSide: BorderSide(color: Theme.of(context).primaryColor),
-              highlightedBorderColor:
-                  Theme.of(context).colorScheme.onSurface.withOpacity(0.12),
-              icon: const Icon(Icons.add, size: 18),
-              label: Text('Add picture'),
-              onPressed: () => getImage(),
-            ),
-            SizedBox(height: 8),
-            TextFormField(
-              controller: descriptionController,
-              keyboardType: TextInputType.multiline,
-              minLines: 1,
-              maxLines: 5,
-              decoration: InputDecoration(
-                  hintText: 'Enter a short camp description',
-                  labelText: 'Description',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide(),
-                  )),
-              validator: (value) {
-                if (value.length < 0) {
-                  // PROD: change to meaningful value
-                  return 'Please enter short a description!';
-                }
-                return null;
-              },
-            ),
-            SizedBox(height: 8),
-            RaisedButton(
-              child: Text(
-                'Add camp',
-                style:
-                    TextStyle(color: Theme.of(context).colorScheme.onPrimary),
+            ImageList(_images, getImage, deleteImage),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Column(
+                children: [
+                  SizedBox(height: 8),
+                  TextFormField(
+                    controller: descriptionController,
+                    keyboardType: TextInputType.multiline,
+                    minLines: 1,
+                    maxLines: 5,
+                    decoration: InputDecoration(
+                        hintText: 'Enter a short camp description',
+                        labelText: 'Description',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide(),
+                        )),
+                    validator: (value) {
+                      if (value.length < 0) {
+                        // PROD: change to meaningful value
+                        return 'Please enter short a description!';
+                      }
+                      return null;
+                    },
+                  ),
+                  SizedBox(height: 8),
+                  RaisedButton(
+                    child: Text(
+                      'Add camp',
+                      style: TextStyle(
+                          color: Theme.of(context).colorScheme.onPrimary),
+                    ),
+                    color: Theme.of(context).primaryColor,
+                    onPressed: () {
+                      if (_formKey.currentState.validate()) {
+                        // TODO: pass data to addCamp method
+                        Camp newCamp = Camp(
+                          imageUrls: <String>[],
+                          description: descriptionController.text,
+                          location: widget._location,
+                          creatorName: user.displayName,
+                          creatorId: user.uid,
+                        );
+                        // TODO: show progress indicator
+                        firestoreService
+                            .addCamp(newCamp, _images)
+                            .then((bool uploadSuccessful) {
+                          if (uploadSuccessful)
+                            Navigator.pop(context, true);
+                          else
+                            Scaffold.of(context)
+                              ..removeCurrentSnackBar()
+                              ..showSnackBar(SnackBar(
+                                  content: Text('Error uploading camp.')));
+                        });
+                      }
+                    },
+                  ),
+                ],
               ),
-              color: Theme.of(context).primaryColor,
-              onPressed: () {
-                if (_formKey.currentState.validate()) {
-                  // TODO: pass data to addCamp method
-                  Camp newCamp = Camp(
-                    imageUrls: <String>[],
-                    description: descriptionController.text,
-                    location: widget._location,
-                    creatorName: user.displayName,
-                    creatorId: user.uid,
-                  );
-                  // TODO: show progress indicator
-                  firestoreService
-                      .addCamp(newCamp, _images)
-                      .then((bool uploadSuccessful) {
-                    if (uploadSuccessful)
-                      Navigator.pop(context, true);
-                    else
-                      Scaffold.of(context)
-                        ..removeCurrentSnackBar()
-                        ..showSnackBar(
-                            SnackBar(content: Text('Error uploading camp.')));
-                  });
-                }
-              },
             ),
           ],
         ),
