@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -10,12 +12,11 @@ import 'models.dart';
 import 'utils.dart';
 
 class MarkerBottomSheet extends StatelessWidget {
-
   @override
   Widget build(BuildContext context) {
     final camp = Provider.of<Camp>(context);
     return Card(
-      clipBehavior: Clip.antiAliasWithSaveLayer,  // for rounded corners
+      clipBehavior: Clip.antiAliasWithSaveLayer, // for rounded corners
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(8.0),
       ),
@@ -23,22 +24,22 @@ class MarkerBottomSheet extends StatelessWidget {
       child: InkWell(
         onTap: () {
           Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => Provider<Camp>.value(
-                  value: camp,
-                  builder: (context, child) {
-                    return CampDetailScreen();
-                  },
-                ),
+            context,
+            MaterialPageRoute(
+              builder: (_) => Provider<Camp>.value(
+                value: camp,
+                builder: (context, child) {
+                  return CampDetailScreen();
+                },
               ),
+            ),
           );
         },
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-              height: 120,  // restrict image height
+              height: 120, // restrict image height
               child: ListView.builder(
                 scrollDirection: Axis.horizontal,
                 itemCount: camp.imageUrls.length,
@@ -55,7 +56,8 @@ class MarkerBottomSheet extends StatelessWidget {
                 },
               ),
             ), // Image view
-            Padding(  // Rest of camp description / rating view
+            Padding(
+              // Rest of camp description / rating view
               padding: const EdgeInsets.all(8.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -154,7 +156,7 @@ class MarkerImage extends StatelessWidget {
     final firestoreService = Provider.of<FirestoreService>(context);
     return FutureBuilder(
         future: firestoreService.getCampImage(_imagePath),
-        builder: (context, snapshot) {
+        builder: (_, AsyncSnapshot<Uint8List> snapshot) {
           if (snapshot.hasData) {
             return Image.memory(
               snapshot.data,

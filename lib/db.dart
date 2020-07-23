@@ -3,6 +3,8 @@ import 'dart:typed_data';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter/material.dart';
+import 'package:latlong/latlong.dart';
 
 import 'models.dart';
 
@@ -13,9 +15,12 @@ class FirestoreService {
   Stream<List<Camp>> getCampStream() {
     // use ('camps').snapshots for continuous connection with live updates
     return Firestore.instance.collection('camps').snapshots().map(
-            (QuerySnapshot snapshot) => snapshot.documents
+        (QuerySnapshot snapshot) => snapshot.documents
             .map((DocumentSnapshot document) => Camp.fromFirestore(document))
-            .toList());
+            .toList())
+    .handleError((onError) {
+      print('Error loading camps! $onError');
+    });
   }
 
   Future<Uint8List> getCampImage(String path) {
@@ -23,34 +28,43 @@ class FirestoreService {
   }
 
   // TODO: adding a camp should be possible to do offline, as many users could be!
-  Future<bool> addCamp(Camp camp, List<File> images) async {
+  Future<bool> addCamp(
+      {@required String description,
+      @required LatLng location,
+      @required String creatorId,
+      @required String creatorName,
+      @required List<File> images}) async {
+    // TODO: store paths in a static class
     // Get a reference to new camp
     DocumentReference campRef =
-    Firestore.instance.collection('camps').document();
-
-    StorageReference imageStoreRef = FirebaseStorage.instance
-        .ref()
-        .child('camps/${campRef.documentID}/');
+        Firestore.instance.collection('camps').document();
+    String imagesStorePath = 'camps/${campRef.documentID}';
+    StorageReference imageStoreRef =
+        FirebaseStorage.instance.ref().child(imagesStorePath);
     final imageNames = <String>[];
     // Upload images to firestorage, path (camps/camp_id/time_id). Time id can later be used to sort images by upload date
     images.forEach((File image) {
       String imageName = DateTime.now().toUtc().toString();
-      imageNames.add(imageName);
-      imageStoreRef
-          .child('$imageName')
-          .putFile(image)
-          .onComplete
-          .then((value) {
+      imageNames.add('$imagesStorePath/$imageName');
+      imageStoreRef.child('$imageName').putFile(image).onComplete.then((value) {
         print('Image upload complete!');
       }).catchError((_) {
         print('Error uploading camp!');
         // TODO: Revert uploads (?), notify user
+        campRef.delete();
+        imageStoreRef.delete();
         return false;
       });
     });
 
     // add image names
-    camp.imageUrls.addAll(imageNames);
+    Camp camp = Camp(
+        id: campRef.documentID,
+        imageUrls: imageNames,
+        location: location,
+        description: description,
+        creatorId: creatorId,
+        creatorName: creatorName);
     return campRef.setData(camp.toFirestoreMap()).then((value) {
       print('Uploaded camp complete!');
       return true;
@@ -93,7 +107,7 @@ class FirestoreService {
   }
 
   Future<void> setFavorited(String userId, String campId,
-      {favorited = true}) async {
+      {bool favorited = true}) async {
     DocumentReference ref = await Firestore.instance
         .document('camps_favorited/${userId}_${campId}');
     favorited ? ref.setData({}) : ref.delete();

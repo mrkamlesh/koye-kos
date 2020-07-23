@@ -17,8 +17,8 @@ class Camp {
   // time created?
 
   Camp(
-      {this.id,
-        this.imageUrls,
+      {@required this.id,
+        @required this.imageUrls,
         @required this.location,
         this.score,
         this.ratings,
@@ -31,28 +31,29 @@ class Camp {
     LatLng location = (data['location'] as GeoPoint).toLatLng();
     return Camp(
         id: document.documentID,
-        imageUrls: List<String>.from(data['image_urls']),
+        imageUrls: List<String>.from(data['image_urls'] as List),
         location: location,
-        score: data['score'] ?? 0,
-        ratings: data['ratings'] ?? 0,
-        description: data['description'],
-        creatorId: data['creator_id'],
-        creatorName: data['creator_name']);
+        score: data['score'] as double ?? 0.0,
+        ratings: data['ratings'] as int ?? 0,
+        description: data['description'] as String,
+        creatorId: data['creator_id'] as String,
+        creatorName: data['creator_name'] as String);
   }
 
   Map<String, dynamic> toFirestoreMap() {
     HashMap<String, dynamic> map = HashMap();
+    // Note: id is left out since it is already saved as the documents name in firestore
     map.addAll({
-      'image_urls': imageUrls,
-      'location': location.toGeoPoint(),
-      'score': score,
-      'ratings': ratings,
-      'description': description,
-      'creator_id': creatorId,
-      'creator_name': creatorName
+      'image_urls': imageUrls,  // can't be empty
+      'location': location.toGeoPoint(), // can't be empty
+      'description': description,  // can't be empty
+      'creator_id': creatorId, // can't be empty
+      'creator_name': creatorName  // can't be empty
     });
-    // TODO: how to do ids
-    if (id != null) map['documentID'] = id;
+    // These can be null; do not save null values.
+    if (score != null) map['score'] = score;
+    if (ratings != null) map['ratings'] = score;
+
     return map;
   }
 
