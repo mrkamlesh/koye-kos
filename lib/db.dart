@@ -14,11 +14,13 @@ class FirestoreService {
 
   Stream<List<Camp>> getCampStream() {
     // use ('camps').snapshots for continuous connection with live updates
-    return Firestore.instance.collection('camps').snapshots().map(
-        (QuerySnapshot snapshot) => snapshot.documents
+    return Firestore.instance
+        .collection('camps')
+        .snapshots()
+        .map((QuerySnapshot snapshot) => snapshot.documents
             .map((DocumentSnapshot document) => Camp.fromFirestore(document))
             .toList())
-    .handleError((onError) {
+        .handleError((onError) {
       print('Error loading camps! $onError');
     });
   }
@@ -41,26 +43,32 @@ class FirestoreService {
     String imagesStorePath = 'camps/${campRef.documentID}';
     StorageReference imageStoreRef =
         FirebaseStorage.instance.ref().child(imagesStorePath);
-    final imageNames = <String>[];
+    final imageUrls = <String>[];
+
     // Upload images to firestorage, path (camps/camp_id/time_id). Time id can later be used to sort images by upload date
-    images.forEach((File image) {
+    await Future.forEach(images, ((File image) async {
       String imageName = DateTime.now().toUtc().toString();
-      imageNames.add('$imagesStorePath/$imageName');
-      imageStoreRef.child('$imageName').putFile(image).onComplete.then((value) {
+      await imageStoreRef
+          .child('$imageName')
+          .putFile(image)
+          .onComplete
+          .then((value) async {
         print('Image upload complete!');
+        await value.ref.getDownloadURL().then((value) {
+          imageUrls.add(value.toString());
+        });
       }).catchError((_) {
         print('Error uploading camp!');
-        // TODO: Revert uploads (?), notify user
         campRef.delete();
         imageStoreRef.delete();
         return false;
       });
-    });
+    }));
 
     // add image names
     Camp camp = Camp(
         id: campRef.documentID,
-        imageUrls: imageNames,
+        imageUrls: imageUrls,
         location: location,
         description: description,
         creatorId: creatorId,

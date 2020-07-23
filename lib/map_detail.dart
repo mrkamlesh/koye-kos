@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -50,7 +51,7 @@ class MarkerBottomSheet extends StatelessWidget {
                     padding: !last ? EdgeInsets.only(right: 2) : null,
                     child: SizedBox(
                       width: 120,
-                      child: MarkerImage(camp.imageUrls[index]),
+                      child: MarkerCachedImage(camp.imageUrls[index]),
                     ),
                   );
                 },
@@ -147,29 +148,23 @@ class RatingViewWidget extends StatelessWidget {
   }
 }
 
-class MarkerImage extends StatelessWidget {
-  final String _imagePath;
-  MarkerImage(this._imagePath);
+class MarkerCachedImage extends StatelessWidget {
+  final String _imageUrl;
+  MarkerCachedImage(this._imageUrl);
 
   @override
   Widget build(BuildContext context) {
-    final firestoreService = Provider.of<FirestoreService>(context);
-    return FutureBuilder(
-        future: firestoreService.getCampImage(_imagePath),
-        builder: (_, AsyncSnapshot<Uint8List> snapshot) {
-          if (snapshot.hasData) {
-            return Image.memory(
-              snapshot.data,
-              fit: BoxFit.cover,
-            );
-          } else if (snapshot.hasError) {
-            return Text('Error loading image');
-          } else {
-            return Center(
-              child: CircularProgressIndicator(),
-            );
-          }
-        });
+    return CachedNetworkImage(
+      imageUrl: _imageUrl,
+      fit: BoxFit.cover,
+      placeholder: (context, url) {
+        return Container(
+          padding: EdgeInsets.all(8),
+          child: CircularProgressIndicator(),
+        );
+      },
+      errorWidget: (context, url, error) => Icon(Icons.error),
+    );
   }
 }
 
@@ -191,7 +186,7 @@ class PointBottomSheet extends StatelessWidget {
           child: ListTile(
               leading: Icon(Icons.location_on, color: Colors.red),
               title:
-                  Text(_point.toReadableString(precision: 4, separator: ', ')),
+              Text(_point.toReadableString(precision: 4, separator: ', ')),
               trailing: FlatButton(
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(18.0),
@@ -202,9 +197,9 @@ class PointBottomSheet extends StatelessWidget {
                   onPressed: () {
                     //Navigator.pop(context);  // removes bottomsheet
                     Navigator.push(
-                            context,
-                            MaterialPageRoute<bool>(
-                                builder: (context) => AddCampScreen(_point)))
+                        context,
+                        MaterialPageRoute<bool>(
+                            builder: (context) => AddCampScreen(_point)))
                         .then((bool campAdded) {
                       if (campAdded ?? false) {
                         Navigator.pop(context);
