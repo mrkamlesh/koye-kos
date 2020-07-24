@@ -93,11 +93,17 @@ class FirestoreService {
   }*/
 
   Future<void> deleteCamp(Camp camp) async {
+    print('Delete: ${camp.id}');
     // compute new score
-    return await Firestore.instance
-        .collection('camps')
-        .document(camp.id)
-        .delete();
+    Firestore.instance.collection('camps').document(camp.id).delete();
+
+    /*
+    Firebase storage does not support client side deletion of buckets..
+    TODO: use cloud function to delete folder, triggered on camp deletion.
+    FirebaseStorage.instance
+        .ref()
+        .child('camps/${camp.id}/')
+        .delete();*/
   }
 
 /*  Future<void> addUser(User user) async {
