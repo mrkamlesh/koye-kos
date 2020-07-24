@@ -39,6 +39,7 @@ class CampForm extends StatefulWidget {
 
 class _CampFormState extends State<CampForm> {
   final _formKey = GlobalKey<FormState>();
+  final _listKey = GlobalKey<AnimatedListState>();
   final descriptionController = TextEditingController();
   final picker = ImagePicker();
   final List<File> _images = [];
@@ -56,15 +57,14 @@ class _CampFormState extends State<CampForm> {
         /* maxHeight: 800,
         maxWidth: 800,*/
         imageQuality: 40);
-    setState(() {
-      _images.add(File(pickedFile.path));
-    });
+    _images.add(File(pickedFile.path));
+    _listKey.currentState.insertItem(_images.length - 1);
   }
 
   void deleteImage(int index) {
-    setState(() {
-      _images.removeAt(index);
-    });
+    _images.removeAt(index);
+    _listKey.currentState
+        .removeItem(index, (context, animation) => SizedBox.shrink());
   }
 
   @override
@@ -78,7 +78,7 @@ class _CampFormState extends State<CampForm> {
         padding: const EdgeInsets.only(top: 8.0),
         child: Column(
           children: [
-            ImageList(_images, getImage, deleteImage),
+            ImageList(_listKey, _images, getImage, deleteImage),
             Padding(
               padding: const EdgeInsets.all(8.0),
               child: Column(
@@ -150,52 +150,61 @@ class _CampFormState extends State<CampForm> {
 }
 
 class ImageList extends StatelessWidget {
+  final GlobalKey<AnimatedListState> _listKey;
+  final ScrollController _controller = ScrollController();
   final List<File> _images;
   final Function _addCallback;
   final Function(int) _deleteCallback;
 
-  ImageList(this._images, this._addCallback, this._deleteCallback);
+  ImageList(
+      this._listKey, this._images, this._addCallback, this._deleteCallback);
 
   @override
   Widget build(BuildContext context) {
     return Container(
       height: 180,
-      child: ListView.builder(
+      child: AnimatedList(
+          key: _listKey,
+          controller: _controller,
           scrollDirection: Axis.horizontal,
-          itemCount: _images.length + 1, // add extra for 'add image' button
-          addAutomaticKeepAlives:
-              true, // cache images so they don't have to be rebuilt
-          shrinkWrap:
-              false, // if true, list wil be centered when only 1 items is added
-          itemBuilder: (context, index) {
+          initialItemCount:
+              _images.length + 1, // add extra for 'add image' button
+          /* addAutomaticKeepAlives:
+              true, // cache images so they don't have to be rebuilt*/
+          shrinkWrap: false, // if true, list wil be centered when only 1 items is added
+          itemBuilder: (context, index, animation) {
             bool isButtonIndex = _images.length == index;
             if (!isButtonIndex) {
               final File image = _images[index];
-              return Dismissible(
-                key: Key(image.toString()),
-                direction: DismissDirection.up,
-                onDismissed: (direction) {
-                  _deleteCallback(index);
-                },
-                child: Container(
-                  width: 200,
-                  padding: !isButtonIndex ? EdgeInsets.only(right: 2) : null,
-                  child: Stack(
-                    fit: StackFit.expand,
-                    children: [
-                      CampImage(image),
-                      Positioned(
-                        right: 0,
-                        top: 0,
-                        child: IconButton(
-                          icon: Icon(
-                            Icons.close,
-                            color: Colors.white,
+              return SizeTransition(
+                axis: Axis.horizontal,
+                sizeFactor: animation,
+                child: Dismissible(
+                  key: Key(image.toString()),
+                  direction: DismissDirection.up,
+                  onDismissed: (direction) {
+                    _deleteCallback(index);
+                  },
+                  child: Container(
+                    width: 200,
+                    padding: EdgeInsets.only(right: 2),
+                    child: Stack(
+                      fit: StackFit.expand,
+                      children: [
+                        CampImage(image),
+                        Positioned(
+                          right: 0,
+                          top: 0,
+                          child: IconButton(
+                            icon: Icon(
+                              Icons.close,
+                              color: Colors.white,
+                            ),
+                            onPressed: () => _deleteCallback(index),
                           ),
-                          onPressed: () => _deleteCallback(index),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
               );
