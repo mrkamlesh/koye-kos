@@ -116,11 +116,11 @@ class _CampFormState extends State<CampForm> {
                       if (_formKey.currentState.validate()) {
                         firestoreService
                             .addCamp(
-                            description: descriptionController.text,
-                            location: widget._location,
-                            creatorId: user.uid,
-                            creatorName: user.displayName,
-                            images: _images)
+                                description: descriptionController.text,
+                                location: widget._location,
+                                creatorId: user.uid,
+                                creatorName: user.displayName,
+                                images: _images)
                             .then((bool uploadSuccessful) {
                           if (uploadSuccessful)
                             Navigator.pop(context, true);
@@ -162,9 +162,11 @@ class ImageList extends StatelessWidget {
       height: 180,
       child: ListView.builder(
           scrollDirection: Axis.horizontal,
-          itemCount: _images.length + 1,  // add extra for 'add image' button
-          addAutomaticKeepAlives: true,  // cache images so they don't have to be rebuilt
-          shrinkWrap: false,  // if true, list wil be centered when only 1 items is added
+          itemCount: _images.length + 1, // add extra for 'add image' button
+          addAutomaticKeepAlives:
+              true, // cache images so they don't have to be rebuilt
+          shrinkWrap:
+              false, // if true, list wil be centered when only 1 items is added
           itemBuilder: (context, index) {
             bool isButtonIndex = _images.length == index;
             if (!isButtonIndex) {
@@ -198,26 +200,21 @@ class ImageList extends StatelessWidget {
                 ),
               );
             } else {
-              return Padding(
-                padding: const EdgeInsets.all(1.0),
-                child: Container(
-                  child: OutlineButton(
-                      child: Icon(Icons.add),
-                      borderSide:
-                      BorderSide(color: Theme
-                          .of(context)
-                          .primaryColor),
-                      onPressed: () => _addCallback(),
-                      highlightedBorderColor: Theme
-                          .of(context)
-                          .colorScheme
-                          .onSurface
-                          .withOpacity(0.12)),
-                ),
+              return Container(
+                width: 200,
+                padding: EdgeInsets.all(1),
+                child: OutlineButton(
+                    child: Icon(Icons.add),
+                    borderSide:
+                        BorderSide(color: Theme.of(context).primaryColor),
+                    onPressed: () => _addCallback(),
+                    highlightedBorderColor: Theme.of(context)
+                        .colorScheme
+                        .onSurface
+                        .withOpacity(0.12)),
               );
             }
-          }
-      ),
+          }),
     );
   }
 }
