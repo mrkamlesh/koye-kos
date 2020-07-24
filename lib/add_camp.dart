@@ -151,16 +151,10 @@ class _CampFormState extends State<CampForm> {
                             location: widget._location,
                             creatorId: user.uid,
                             creatorName: user.displayName,
-                            images: _images)
-                            .then((bool uploadSuccessful) {
-                          if (uploadSuccessful)
-                            Navigator.pop(context, true);
-                          else
-                            Scaffold.of(context)
-                              ..removeCurrentSnackBar()
-                              ..showSnackBar(SnackBar(
-                                  content: Text('Error uploading camp.')));
-                        });
+                            images: _images);
+
+                        // FIXME: Failing silently
+                        Navigator.pop(context, true);
                       }
                     },
                   ),
