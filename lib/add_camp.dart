@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:latlong/latlong.dart';
@@ -52,24 +53,49 @@ class _CampFormState extends State<CampForm> {
 
   Future getImage() async {
     // Could throw error if no camera available!
-    final pickedFile = await picker.getImage(
+    picker.getImage(
         source: ImageSource.camera,
-        /* maxHeight: 800,
-        maxWidth: 800,*/
-        imageQuality: 40);
-    _images.add(File(pickedFile.path));
-    _listKey.currentState.insertItem(_images.length - 1);
+        imageQuality: 40)
+        .then((PickedFile file) {
+      if (file != null) return ImageCropper.cropImage(  // TODO: fix transition here
+          sourcePath: file.path,
+          compressFormat: ImageCompressFormat.jpg,  // default
+          compressQuality: 80,  // default 90
+          aspectRatio: CropAspectRatio(ratioX: 4, ratioY: 3),
+          androidUiSettings: AndroidUiSettings(
+            toolbarTitle: 'Crop image',
+            toolbarColor: Theme.of(context).primaryColor,
+            toolbarWidgetColor: Colors.white,
+            lockAspectRatio: true,
+            hideBottomControls: true,
+          ),
+          iosUiSettings: IOSUiSettings(
+            aspectRatioPickerButtonHidden: true,
+            aspectRatioLockEnabled: true,
+            title: 'Crop image',
+          )
+      );
+    }).then((File file) {
+      if (file == null) return;
+      _images.add(file);
+      _listKey.currentState.insertItem(_images.length - 1);
+    }).catchError((error) {
+      Scaffold.of(context)
+        ..removeCurrentSnackBar()
+        ..showSnackBar(SnackBar(content: Text('Could not add image: $error'),
+        ));
+    });
   }
 
   void deleteImage(int index, {bool animate = false}) {
     final image = _images.removeAt(index);
-      _listKey.currentState.removeItem(index, (context, animation) {
-        return animate ? SizeTransition(
-          axis: Axis.horizontal,
-          sizeFactor: animation,
-          child: CampImage(image, key: Key(image.toString())),
-        ) : SizedBox.shrink();
-      });
+    _listKey.currentState.removeItem(index, (context, animation) {
+      return animate ? SizeTransition(
+        axis: Axis.horizontal,
+        sizeFactor: animation,
+        child: CampImage(image, key: Key(image.toString())),
+      ) : SizedBox.shrink();
+    });
   }
 
   @override
@@ -121,11 +147,11 @@ class _CampFormState extends State<CampForm> {
                       if (_formKey.currentState.validate()) {
                         firestoreService
                             .addCamp(
-                                description: descriptionController.text,
-                                location: widget._location,
-                                creatorId: user.uid,
-                                creatorName: user.displayName,
-                                images: _images)
+                            description: descriptionController.text,
+                            location: widget._location,
+                            creatorId: user.uid,
+                            creatorName: user.displayName,
+                            images: _images)
                             .then((bool uploadSuccessful) {
                           if (uploadSuccessful)
                             Navigator.pop(context, true);
@@ -167,16 +193,14 @@ class ImageList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 180,
+      height: 210,
       child: AnimatedList(
           key: _listKey,
           controller: _controller,
           scrollDirection: Axis.horizontal,
           initialItemCount: 1, // add extra for 'add image' button
-          /* addAutomaticKeepAlives:
-              true, // cache images so they don't have to be rebuilt*/
           shrinkWrap:
-              false, // if true, list wil be centered when only 1 items is added
+          true, // if true, list wil be centered when only 1 items is added
           itemBuilder: (context, index, animation) {
             bool isButtonIndex = _images.length == index;
             if (!isButtonIndex) {
@@ -192,7 +216,7 @@ class ImageList extends StatelessWidget {
                     _deleteCallback(index);
                   },
                   child: Container(
-                    width: 200,
+                    width: 280,
                     padding: EdgeInsets.only(right: 2),
                     child: Stack(
                       fit: StackFit.expand,
@@ -216,12 +240,12 @@ class ImageList extends StatelessWidget {
               );
             } else {
               return Container(
-                width: 200,
+                width: 280,
                 padding: EdgeInsets.all(1),
                 child: OutlineButton(
                     child: Icon(Icons.add),
                     borderSide:
-                        BorderSide(color: Theme.of(context).primaryColor),
+                    BorderSide(color: Theme.of(context).primaryColor),
                     onPressed: () => _addCallback(),
                     highlightedBorderColor: Theme.of(context)
                         .colorScheme
