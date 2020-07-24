@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:latlong/latlong.dart';
+import 'package:transparent_image/transparent_image.dart';
 
 import 'db.dart';
 import 'models.dart';
@@ -160,7 +161,7 @@ class ImageList extends StatelessWidget {
     return Container(
       height: 180,
       child: ListView.builder(
-          // TODO: animate adding new picture?
+          addAutomaticKeepAlives: true,
           shrinkWrap: true,
           scrollDirection: Axis.horizontal,
           itemCount: _images.length + 1,
@@ -173,10 +174,7 @@ class ImageList extends StatelessWidget {
                   ? Stack(
                       fit: StackFit.expand,
                       children: [
-                        Image.file(
-                          _images[index],
-                          fit: BoxFit.cover,
-                        ),
+                        CampImage(_images[index]),
                         Positioned(
                           right: 0,
                           top: 0,
@@ -206,6 +204,32 @@ class ImageList extends StatelessWidget {
                     ),
             );
           }),
+    );
+  }
+}
+
+class CampImage extends StatefulWidget {
+  final File _image;
+  CampImage(this._image);
+
+  @override
+  _CampImageState createState() => _CampImageState(_image);
+}
+
+class _CampImageState extends State<CampImage>
+    with AutomaticKeepAliveClientMixin {
+  final File _image;
+  _CampImageState(this._image);
+
+  @override
+  bool get wantKeepAlive => true;
+
+  @override
+  Widget build(BuildContext context) {
+    return FadeInImage(
+      image: FileImage(_image),
+      placeholder: MemoryImage(kTransparentImage),
+      fit: BoxFit.cover,
     );
   }
 }
