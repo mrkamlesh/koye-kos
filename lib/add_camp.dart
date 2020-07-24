@@ -61,10 +61,15 @@ class _CampFormState extends State<CampForm> {
     _listKey.currentState.insertItem(_images.length - 1);
   }
 
-  void deleteImage(int index) {
-    _images.removeAt(index);
-    _listKey.currentState
-        .removeItem(index, (context, animation) => SizedBox.shrink());
+  void deleteImage(int index, {bool animate = false}) {
+    final image = _images.removeAt(index);
+      _listKey.currentState.removeItem(index, (context, animation) {
+        return animate ? SizeTransition(
+          axis: Axis.horizontal,
+          sizeFactor: animation,
+          child: CampImage(image, key: Key(image.toString())),
+        ) : SizedBox.shrink();
+      });
   }
 
   @override
@@ -154,7 +159,7 @@ class ImageList extends StatelessWidget {
   final ScrollController _controller = ScrollController();
   final List<File> _images;
   final Function _addCallback;
-  final Function(int) _deleteCallback;
+  final Function(int, {bool animate}) _deleteCallback;
 
   ImageList(
       this._listKey, this._images, this._addCallback, this._deleteCallback);
@@ -167,20 +172,21 @@ class ImageList extends StatelessWidget {
           key: _listKey,
           controller: _controller,
           scrollDirection: Axis.horizontal,
-          initialItemCount:
-              _images.length + 1, // add extra for 'add image' button
+          initialItemCount: 1, // add extra for 'add image' button
           /* addAutomaticKeepAlives:
               true, // cache images so they don't have to be rebuilt*/
-          shrinkWrap: false, // if true, list wil be centered when only 1 items is added
+          shrinkWrap:
+              false, // if true, list wil be centered when only 1 items is added
           itemBuilder: (context, index, animation) {
             bool isButtonIndex = _images.length == index;
             if (!isButtonIndex) {
               final File image = _images[index];
+              final Key key = Key(image.toString());
               return SizeTransition(
                 axis: Axis.horizontal,
                 sizeFactor: animation,
                 child: Dismissible(
-                  key: Key(image.toString()),
+                  key: key,
                   direction: DismissDirection.up,
                   onDismissed: (direction) {
                     _deleteCallback(index);
@@ -191,7 +197,7 @@ class ImageList extends StatelessWidget {
                     child: Stack(
                       fit: StackFit.expand,
                       children: [
-                        CampImage(image),
+                        CampImage(image, key: key),
                         Positioned(
                           right: 0,
                           top: 0,
@@ -200,7 +206,7 @@ class ImageList extends StatelessWidget {
                               Icons.close,
                               color: Colors.white,
                             ),
-                            onPressed: () => _deleteCallback(index),
+                            onPressed: () => _deleteCallback(index, animate: true),
                           ),
                         ),
                       ],
@@ -230,7 +236,7 @@ class ImageList extends StatelessWidget {
 
 class CampImage extends StatefulWidget {
   final File _image;
-  CampImage(this._image);
+  CampImage(this._image, {Key key}) : super(key: key);
 
   @override
   _CampImageState createState() => _CampImageState(_image);
