@@ -39,6 +39,15 @@ class _ApplicationState extends State<Application> {
         routes: {
           '/': (context) => Home(),
         },
+        theme: ThemeData.from(
+          colorScheme: const ColorScheme.light(),
+        ).copyWith(
+          pageTransitionsTheme: const PageTransitionsTheme(
+            builders: <TargetPlatform, PageTransitionsBuilder>{
+              TargetPlatform.android: ZoomPageTransitionsBuilder(),
+            },
+          ),
+        ),
       ),
     );
   }

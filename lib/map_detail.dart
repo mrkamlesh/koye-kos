@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 
+import 'package:animations/animations.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -12,74 +13,92 @@ import 'db.dart';
 import 'models.dart';
 import 'utils.dart';
 
+
+class _InkWellOverlay extends StatelessWidget {
+  const _InkWellOverlay({
+    this.openContainer,
+    this.width,
+    this.height,
+    this.child,
+  });
+
+  final VoidCallback openContainer;
+  final double width;
+  final double height;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: height,
+      width: width,
+      child: InkWell(
+        onTap: openContainer,
+        child: child,
+      ),
+    );
+  }
+}
+
 class MarkerBottomSheet extends StatelessWidget {
+  final VoidCallback openContainer;
+  MarkerBottomSheet({this.openContainer});
+
   @override
   Widget build(BuildContext context) {
     final camp = Provider.of<Camp>(context);
-    return Card(
-      clipBehavior: Clip.antiAliasWithSaveLayer, // for rounded corners
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(8.0),
-      ),
-      elevation: 24,
-      child: InkWell(
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => Provider<Camp>.value(
-                value: camp,
-                builder: (context, child) {
-                  return CampDetailScreen();
-                },
-              ),
-            ),
-          );
-        },
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              height: 120, // restrict image height
-              child: ListView.builder(
-                scrollDirection: Axis.horizontal,
-                itemCount: camp.imageUrls.length,
-                itemBuilder: (context, index) {
-                  bool last = camp.imageUrls.length == index + 1;
-                  return Container(
-                    // insert right padding to all but the last list item
-                    padding: !last ? EdgeInsets.only(right: 2) : null,
-                    child: SizedBox(
-                      width: 120,
-                      child: MarkerCachedImage(camp.imageUrls[index]),
+    return _InkWellOverlay(
+      openContainer: openContainer,
+      child: Card(
+          clipBehavior: Clip.antiAliasWithSaveLayer, // for rounded corners
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8.0),
+          ),
+          elevation: 24,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                height: 120, // restrict image height
+                child: ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: camp.imageUrls.length,
+                  itemBuilder: (context, index) {
+                    bool last = camp.imageUrls.length == index + 1;
+                    return Container(
+                      // insert right padding to all but the last list item
+                      padding: !last ? EdgeInsets.only(right: 2) : null,
+                      child: SizedBox(
+                        width: 120,
+                        child: MarkerCachedImage(camp.imageUrls[index]),
+                      ),
+                    );
+                  },
+                ),
+              ), // Image view
+              Padding(
+                // Rest of camp description / rating view
+                padding: const EdgeInsets.all(8.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      children: [
+                        RatingViewWidget(
+                            score: camp.score, ratings: camp.ratings),
+                        FavoriteWidget(),
+                      ],
                     ),
-                  );
-                },
-              ),
-            ), // Image view
-            Padding(
-              // Rest of camp description / rating view
-              padding: const EdgeInsets.all(8.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: [
-                      RatingViewWidget(
-                          score: camp.score, ratings: camp.ratings),
-                      FavoriteWidget(),
-                    ],
-                  ),
-                  Text(camp.description),
-                  Divider(),
-                  Text('By: ${camp.creatorName ?? 'Anonymous'}'),
-                ],
-              ),
-            )
-          ],
+                    Text(camp.description),
+                    Divider(),
+                    Text('By: ${camp.creatorName ?? 'Anonymous'}'),
+                  ],
+                ),
+              )
+            ],
+          ),
         ),
-      ),
     );
   }
 }

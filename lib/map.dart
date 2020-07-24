@@ -1,9 +1,11 @@
+import 'package:animations/animations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong/latlong.dart';
 import 'package:provider/provider.dart';
 
+import 'camp_detail.dart';
 import 'db.dart';
 import 'models.dart';
 import 'map_detail.dart';
@@ -29,6 +31,8 @@ class HammockMap extends StatefulWidget {
 
 class _HammockMapState extends State<HammockMap> {
   LatLng _longpressPoint;
+  ContainerTransitionType _transitionType = ContainerTransitionType.fade;
+  final GlobalKey<ScaffoldState> scaffoldKey = GlobalKey<ScaffoldState>();
 
   @override
   Widget build(BuildContext context) {
@@ -72,7 +76,7 @@ class _HammockMapState extends State<HammockMap> {
                     urlTemplate: MapInfo.mapUrl,
                     subdomains: MapInfo
                         .mapSubdomains // loadbalancing; uses subdomains opencache[2/3].statkart.no
-                    )),
+                )),
             MarkerLayerWidget(
               options: MarkerLayerOptions(
                 markers: [
@@ -88,13 +92,24 @@ class _HammockMapState extends State<HammockMap> {
                         showBottomSheet<void>(
                             context: context,
                             backgroundColor: Colors.transparent,
-                            builder: (_) {
+                            builder: (context) {
+                              // FIXME: TODO: This provider hell
                               return Provider<Camp>.value(
-                                value: camp,
-                                builder: (context, child) {
-                                  return MarkerBottomSheet();
-                                },
-                              );
+                                  value: camp,
+                                  builder: (context, child) {
+                                    return _OpenContainerWrapper(
+                                      transitionType: _transitionType,
+                                      closedBuilder: (BuildContext context,
+                                          VoidCallback openContainer) {
+                                        return Provider<Camp>.value(
+                                            value: camp,
+                                            builder: (context, child) {
+                                              return MarkerBottomSheet(
+                                                  openContainer: openContainer);
+                                            });
+                                      },
+                                    );
+                                  });
                             });
                       });
                     }),
@@ -108,23 +123,53 @@ class _HammockMapState extends State<HammockMap> {
   }
 }
 
+class _OpenContainerWrapper extends StatelessWidget {
+  const _OpenContainerWrapper({
+    this.closedBuilder,
+    this.transitionType,
+    this.onClosed,
+  });
+
+  final OpenContainerBuilder closedBuilder;
+  final ContainerTransitionType transitionType;
+  final ClosedCallback<bool> onClosed;
+
+  @override
+  Widget build(BuildContext context) {
+    final camp = Provider.of<Camp>(context);
+    return OpenContainer<bool>(
+      transitionType: transitionType,
+      openBuilder: (BuildContext context, VoidCallback _) {
+        return Provider<Camp>.value(
+            value: camp,
+            builder: (context, child) {
+              return CampDetailScreen();
+            });
+      },
+      onClosed: onClosed,
+      tappable: false,
+      closedBuilder: closedBuilder,
+    );
+  }
+}
+
 class CampMarker extends Marker {
   final Camp camp;
   final Function _callback;
 
   CampMarker(this.camp, this._callback)
       : super(
-          point: camp.location,
-          width: 40,
-          height: 40,
-          anchorPos: AnchorPos.align(AnchorAlign.top),
-          builder: (context) => Container(
-            child: GestureDetector(
-              onTap: () => _callback(),
-              child: Icon(Icons.location_on, size: 40),
-            ),
-          ),
-        );
+    point: camp.location,
+    width: 40,
+    height: 40,
+    anchorPos: AnchorPos.align(AnchorAlign.top),
+    builder: (context) => Container(
+      child: GestureDetector(
+        onTap: () => _callback(),
+        child: Icon(Icons.location_on, size: 40),
+      ),
+    ),
+  );
 }
 
 Marker createLongpressMarker(LatLng point) {
@@ -134,8 +179,8 @@ Marker createLongpressMarker(LatLng point) {
       height: 45,
       anchorPos: AnchorPos.align(AnchorAlign.top),
       builder: (context) => Icon(
-            Icons.location_on,
-            size: 45,
-            color: Colors.red,
-          ));
+        Icons.location_on,
+        size: 45,
+        color: Colors.red,
+      ));
 }

@@ -61,6 +61,5 @@ class AuthService {
       });
       print(user);
     });
-
   }
 }

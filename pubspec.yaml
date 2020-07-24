@@ -43,6 +43,7 @@ dependencies:
   cached_network_image: ^2.2.0+1
   transparent_image: ^1.0.0
   image_cropper: ^1.2.3
+  animations: ^1.1.1
 
   cupertino_icons: ^0.1.3
 
