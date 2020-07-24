@@ -218,18 +218,43 @@ class CampImage extends StatefulWidget {
 
 class _CampImageState extends State<CampImage>
     with AutomaticKeepAliveClientMixin {
-  final File _image;
-  _CampImageState(this._image);
+  FileImage _fileImage;
+  bool _loading = true;
+
+  _CampImageState(File file) {
+    _fileImage = FileImage(file);
+  }
 
   @override
   bool get wantKeepAlive => true;
 
   @override
+  void initState() {
+    super.initState();
+    _fileImage
+        .resolve(ImageConfiguration())
+        .addListener(ImageStreamListener((_, __) {
+      if (mounted) {
+        setState(() {
+          _loading = false;
+        });
+      }
+    }));
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return FadeInImage(
-      image: FileImage(_image),
-      placeholder: MemoryImage(kTransparentImage),
-      fit: BoxFit.cover,
-    );
+    super.build(context);
+    if (_loading) {
+      return Center(
+        child: CircularProgressIndicator(),
+      );
+    } else {
+      return FadeInImage(
+        image: _fileImage,
+        placeholder: MemoryImage(kTransparentImage),
+        fit: BoxFit.cover,
+      );
+    }
   }
 }
