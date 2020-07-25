@@ -7,37 +7,41 @@ import 'map_detail.dart';
 import 'models.dart';
 
 class CampDetailScreen extends StatelessWidget {
-  CampDetailScreen();
+  final Camp camp;
+  CampDetailScreen({this.camp});
 
   @override
   Widget build(BuildContext context) {
-    final camp = Provider.of<Camp>(context);
     final firestoreService = Provider.of<FirestoreService>(context);
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Camp'),
-      ),
-      body: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          ImageList(),
-          Center(
-            child: RaisedButton(
-              child: Text(
-                'Delete camp',
-                style: TextStyle(color: Colors.white),
-              ),
-              color: Colors.red,
-              onPressed: () {
-                firestoreService.deleteCamp(camp);
-                Navigator.pop(context);
-              },
+    return Provider<Camp>.value(
+        value: camp,
+        builder: (context, child) {
+          return Scaffold(
+            appBar: AppBar(
+              title: Text('Camp'),
             ),
-          ),
-        ],
-      ),
-    );
+            body: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                ImageList(),
+                Center(
+                  child: RaisedButton(
+                    child: Text(
+                      'Delete camp',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                    color: Colors.red,
+                    onPressed: () {
+                      firestoreService.deleteCamp(camp);
+                      Navigator.pop(context);
+                    },
+                  ),
+                ),
+              ],
+            ),
+          );
+        });
   }
 }
 
