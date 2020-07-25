@@ -93,12 +93,11 @@ class _HammockMapState extends State<HammockMap> {
                           backgroundColor: Colors.transparent,
                           builder: (context) {
                             return OpenContainer(
+                                /*transitionDuration: Duration(milliseconds: 4000),*/
                                 closedColor: Colors.transparent,
-                                closedShape: const RoundedRectangleBorder(
-                                  borderRadius:
-                                  BorderRadius.all(Radius.circular(0.0)),
-                                ),
+                                closedShape: const RoundedRectangleBorder(),
                                 closedElevation: 0,
+                                openElevation: 0,
                                 closedBuilder: (BuildContext context,
                                     VoidCallback openContainer) {
                                   return MarkerBottomSheet(camp: camp);
