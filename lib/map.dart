@@ -36,106 +36,134 @@ class _HammockMapState extends State<HammockMap> {
   @override
   Widget build(BuildContext context) {
     final firestoreService = Provider.of<FirestoreService>(context);
-    return StreamBuilder(
-      stream: firestoreService.getCampStream(),
-      builder: (BuildContext context, AsyncSnapshot<List<Camp>> snapshot) {
-        return FlutterMap(
-          options: MapOptions(
-            center: MapInfo.center,
-            zoom: MapInfo.zoom,
-            minZoom: MapInfo.minZoom,
-            maxZoom: MapInfo.maxZoom,
-            swPanBoundary: MapInfo.swPanBoundary,
-            nePanBoundary: MapInfo.nePanBoundary,
-            interactive: true,
-            onTap: (_) {
-              // Tapping the map should remove all other widgets
-              Navigator.popUntil(context, ModalRoute.withName('/'));
-            },
-            onLongPress: (point) {
-              setState(() {
-                _longpressPoint = point;
-              });
-              showBottomSheet<void>(
-                  context: context,
-                  backgroundColor: Colors.transparent,
-                  builder: (_) {
-                    return PointBottomSheet(point);
-                  }).closed.then((_) {
-                setState(() {
-                  // removed point marker when closing pointDetail
-                  _longpressPoint = null;
-                });
-              });
-            },
-          ),
-          children: [
-            TileLayerWidget(
-                options: TileLayerOptions(
-                    urlTemplate: MapInfo.mapUrl,
-                    subdomains: MapInfo
-                        .mapSubdomains // loadbalancing; uses subdomains opencache[2/3].statkart.no
+    return FlutterMap(
+      options: MapOptions(
+        center: MapInfo.center,
+        zoom: MapInfo.zoom,
+        minZoom: MapInfo.minZoom,
+        maxZoom: MapInfo.maxZoom,
+        swPanBoundary: MapInfo.swPanBoundary,
+        nePanBoundary: MapInfo.nePanBoundary,
+        interactive: true,
+        onTap: (_) {
+          // Tapping the map should remove all other widgets
+          Navigator.popUntil(context, ModalRoute.withName('/'));
+        },
+        onLongPress: (point) {
+          setState(() {
+            _longpressPoint = point;
+          });
+          showBottomSheet<void>(
+              context: context,
+              backgroundColor: Colors.transparent,
+              builder: (_) {
+                return PointBottomSheet(point);
+              }).closed.then((_) {
+            setState(() {
+              // removed point marker when closing pointDetail
+              _longpressPoint = null;
+            });
+          });
+        },
+      ),
+      children: [
+        // Map provider
+        TileLayerWidget(
+            options: TileLayerOptions(
+                urlTemplate: MapInfo.mapUrl,
+                subdomains: MapInfo
+                    .mapSubdomains // loadbalancing; uses subdomains opencache[2/3].statkart.no
                 )),
-            MarkerLayerWidget(
-              options: MarkerLayerOptions(
-                markers: [
-                  if (_longpressPoint != null)
-                    createLongpressMarker(_longpressPoint),
-                  if (snapshot.hasData)
-                    ...snapshot.data.map((Camp camp) {
-                      return CampMarker(camp, () {
-                        // TODO: change marker icon to red when tapped
-                        setState(() {
-                          _longpressPoint = null;
-                        });
-                        showBottomSheet<void>(
-                          context: context,
-                          backgroundColor: Colors.transparent,
-                          builder: (context) {
-                            return OpenContainer(
-                                closedColor: Colors.transparent,
-                                closedShape: const RoundedRectangleBorder(),
-                                closedElevation: 0,
-                                openElevation: 0,
-                                closedBuilder: (BuildContext context,
-                                    VoidCallback openContainer) {
-                                  return MarkerBottomSheet(camp: camp);
-                                },
-                                openBuilder:
-                                    (BuildContext context, VoidCallback _) {
-                                  return CampDetailScreen(camp: camp);
-                                });
-                          },
-                        );
-                      });
-                    }),
-                ],
-              ),
-            ),
-          ],
-        );
-      },
+        // Longpress marker
+        MarkerLayerWidget(
+          options: MarkerLayerOptions(markers: <Marker>[
+            if (_longpressPoint != null) createLongpressMarker(_longpressPoint),
+          ]),
+        ),
+        CampMarkerLayer(tapCallback: () {
+          setState(() {
+            _longpressPoint = null;
+          });
+        }),
+      ],
     );
+  }
+}
+
+class CampMarkerLayer extends StatefulWidget {
+  final Function tapCallback;
+  CampMarkerLayer({this.tapCallback});
+
+  @override
+  _CampMarkerLayerState createState() => _CampMarkerLayerState();
+}
+
+class _CampMarkerLayerState extends State<CampMarkerLayer> {
+  @override
+  Widget build(BuildContext context) {
+    final firestoreService = Provider.of<FirestoreService>(context);
+    return StreamBuilder(
+        stream: firestoreService.getCampStream(),
+        builder: (BuildContext context, AsyncSnapshot<List<Camp>> snapshot) {
+          print(snapshot.connectionState);
+          print(snapshot.hasData);
+          print(snapshot.data);
+
+          return MarkerLayerWidget(
+            options: MarkerLayerOptions(
+              markers: [
+                if (snapshot.hasData)
+                  ...snapshot.data.map((Camp camp) {
+                    return CampMarker(camp, tapCallback: () {
+                      widget.tapCallback();
+                      // TODO: change marker icon to red when tapped
+                      showBottomSheet<void>(
+                        context: context,
+                        backgroundColor: Colors.transparent,
+                        builder: (context) {
+                          return OpenContainer(
+                              closedColor: Colors.transparent,
+                              closedShape: const RoundedRectangleBorder(),
+                              closedElevation: 0,
+                              openElevation: 0,
+                              closedBuilder: (BuildContext context,
+                                  VoidCallback openContainer) {
+                                return MarkerBottomSheet(camp: camp);
+                              },
+                              openBuilder:
+                                  (BuildContext context, VoidCallback _) {
+                                return CampDetailScreen(camp: camp);
+                              });
+                        },
+                      );
+                    });
+                  }),
+              ],
+            ),
+          );
+        });
   }
 }
 
 class CampMarker extends Marker {
   final Camp camp;
-  final Function _callback;
+  final Function tapCallback;
 
-  CampMarker(this.camp, this._callback)
+  CampMarker(this.camp, {this.tapCallback})
       : super(
-    point: camp.location,
-    width: 40,
-    height: 40,
-    anchorPos: AnchorPos.align(AnchorAlign.top),
-    builder: (context) => Container(
-      child: GestureDetector(
-        onTap: () => _callback(),
-        child: Icon(Icons.location_on, size: 40),
-      ),
-    ),
-  );
+          point: camp.location,
+          width: 40,
+          height: 40,
+          anchorPos: AnchorPos.align(AnchorAlign.top),
+          builder: (context) => Container(
+            child: GestureDetector(
+              onTap: () {
+                tapCallback();
+              },
+              child: Icon(Icons.location_on, size: 40),
+            ),
+          ),
+        );
 }
 
 Marker createLongpressMarker(LatLng point) {
@@ -145,8 +173,8 @@ Marker createLongpressMarker(LatLng point) {
       height: 45,
       anchorPos: AnchorPos.align(AnchorAlign.top),
       builder: (context) => Icon(
-        Icons.location_on,
-        size: 45,
-        color: Colors.red,
-      ));
+            Icons.location_on,
+            size: 45,
+            color: Colors.red,
+          ));
 }
