@@ -29,48 +29,62 @@ class MarkerBottomSheet extends StatelessWidget {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Container(
-                  height: 120, // restrict image height
-                  child: ListView.builder(
-                    scrollDirection: Axis.horizontal,
-                    itemCount: camp.imageUrls.length,
-                    itemBuilder: (context, index) {
-                      bool last = camp.imageUrls.length == index + 1;
-                      return Container(
-                        // insert right padding to all but the last list item
-                        padding: !last ? EdgeInsets.only(right: 2) : null,
-                        child: SizedBox(
-                          width: 220,
-                          child: MarkerCachedImage(camp.imageUrls[index]),
-                        ),
-                      );
-                    },
-                  ),
-                ), // Image view
-                Padding(
-                  // Rest of camp description / rating view
-                  padding: const EdgeInsets.all(8.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceAround,
-                        children: [
-                          RatingViewWidget(
-                              score: camp.score, ratings: camp.ratings),
-                          FavoriteWidget(),
-                        ],
-                      ),
-                      Text(camp.description),
-                      Divider(),
-                      Text('By: ${camp.creatorName ?? 'Anonymous'}'),
-                    ],
-                  ),
-                )
+                ImageListSmall(), // Image view
+                CampDescription()
               ],
             ),
           );
         });
+  }
+}
+
+class CampDescription extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final camp = Provider.of<Camp>(context);
+
+    return Padding(
+      // Rest of camp description / rating view
+      padding: const EdgeInsets.all(8.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              RatingViewWidget(score: camp.score, ratings: camp.ratings),
+              FavoriteWidget(),
+            ],
+          ),
+          Text(camp.description),
+          Divider(),
+          Text('By: ${camp.creatorName ?? 'Anonymous'}'),
+        ],
+      ),
+    );
+  }
+}
+
+class ImageListSmall extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final camp = Provider.of<Camp>(context);
+    return Container(
+      height: 120, // restrict image height
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        itemCount: camp.imageUrls.length,
+        itemBuilder: (context, index) {
+          bool last = camp.imageUrls.length == index + 1;
+          return Container(
+            width: 220,
+            // insert right padding to all but the last list item
+            padding: !last ? EdgeInsets.only(right: 2) : null,
+            child: MarkerCachedImage(camp.imageUrls[index]),
+          );
+        },
+      ),
+    );
   }
 }
 
@@ -135,8 +149,8 @@ class MarkerCachedImage extends StatefulWidget {
   _MarkerCachedImageState createState() => _MarkerCachedImageState();
 }
 
-class _MarkerCachedImageState extends State<MarkerCachedImage> with AutomaticKeepAliveClientMixin{
-
+class _MarkerCachedImageState extends State<MarkerCachedImage>
+    with AutomaticKeepAliveClientMixin {
   @override
   Widget build(BuildContext context) {
     super.build(context);

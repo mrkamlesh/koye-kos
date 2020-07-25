@@ -93,7 +93,6 @@ class _HammockMapState extends State<HammockMap> {
                           backgroundColor: Colors.transparent,
                           builder: (context) {
                             return OpenContainer(
-                                /*transitionDuration: Duration(milliseconds: 4000),*/
                                 closedColor: Colors.transparent,
                                 closedShape: const RoundedRectangleBorder(),
                                 closedElevation: 0,

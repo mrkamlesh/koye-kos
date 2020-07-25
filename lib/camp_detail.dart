@@ -13,7 +13,6 @@ class CampDetailScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final firestoreService = Provider.of<FirestoreService>(context);
-
     return Provider<Camp>.value(
         value: camp,
         builder: (context, child) {
@@ -25,19 +24,8 @@ class CampDetailScreen extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 ImageList(),
-                Center(
-                  child: RaisedButton(
-                    child: Text(
-                      'Delete camp',
-                      style: TextStyle(color: Colors.white),
-                    ),
-                    color: Colors.red,
-                    onPressed: () {
-                      firestoreService.deleteCamp(camp);
-                      Navigator.pop(context);
-                    },
-                  ),
-                ),
+                CampInfo(),
+                DeleteCamp(),
               ],
             ),
           );
@@ -45,53 +33,72 @@ class CampDetailScreen extends StatelessWidget {
   }
 }
 
-class ImageList extends StatelessWidget {
+class DeleteCamp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final firestoreService = Provider.of<FirestoreService>(context);
-    final user = Provider.of<FirebaseUser>(context);
     final camp = Provider.of<Camp>(context);
-
-    return Column(
-      children: [
-        Container(
-          height: 200, // restrict image height
-          child: ListView.builder(
-            scrollDirection: Axis.horizontal,
-            itemCount: camp.imageUrls.length,
-            itemBuilder: (context, index) {
-              bool last = camp.imageUrls.length == index + 1;
-              return Container(
-                // insert right padding to all but the last list item
-                padding: !last ? EdgeInsets.only(right: 2) : null,
-                child: SizedBox(
-                  width: 340,
-                  child: MarkerCachedImage(camp.imageUrls[index]),
-                ),
-              );
-            },
-          ),
+    return Center(
+      child: RaisedButton(
+        child: Text(
+          'Delete camp',
+          style: TextStyle(color: Colors.white),
         ),
-        Padding(
-          // Rest of camp description / rating view
-          padding: const EdgeInsets.all(8.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+        color: Colors.red,
+        onPressed: () {
+          firestoreService.deleteCamp(camp);
+          Navigator.pop(context);
+        },
+      ),
+    );
+  }
+}
+
+class CampInfo extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final camp = Provider.of<Camp>(context);
+    return Padding(
+      // Rest of camp description / rating view
+      padding: const EdgeInsets.all(8.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  RatingViewWidget(score: camp.score, ratings: camp.ratings),
-                  FavoriteWidget(),
-                ],
-              ),
-              Text(camp.description),
-              Divider(),
-              Text('By: ${camp.creatorName ?? 'Anonymous'}'),
+              RatingViewWidget(score: camp.score, ratings: camp.ratings),
+              FavoriteWidget(),
             ],
           ),
-        )
-      ],
+          Text(camp.description),
+          Divider(),
+          Text('By: ${camp.creatorName ?? 'Anonymous'}'),
+        ],
+      ),
+    );
+  }
+}
+
+class ImageList extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final camp = Provider.of<Camp>(context);
+    return Container(
+      height: 200, // restrict image height
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        itemCount: camp.imageUrls.length,
+        itemBuilder: (context, index) {
+          bool last = camp.imageUrls.length == index + 1;
+          return Container(
+            width: 340,
+            // insert right padding to all but the last list item
+            padding: !last ? EdgeInsets.only(right: 2) : null,
+            child: MarkerCachedImage(camp.imageUrls[index]),
+          );
+        },
+      ),
     );
   }
 }
