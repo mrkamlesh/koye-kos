@@ -44,6 +44,7 @@ dependencies:
   transparent_image: ^1.0.0
   image_cropper: ^1.2.3
   animations: ^1.1.1
+  smooth_star_rating: 1.1.1
 
   cupertino_icons: ^0.1.3
 

@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:latlong/latlong.dart';
+import 'package:smooth_star_rating/smooth_star_rating.dart';
 
 import 'add_camp.dart';
 import 'db.dart';
@@ -100,19 +101,8 @@ class FavoriteWidget extends StatelessWidget {
 class RatingViewWidget extends StatelessWidget {
   final double score;
   final int ratings;
-  final int stars;
 
-  RatingViewWidget({this.score, this.ratings, this.stars = 5});
-
-  IconData getStarIcon(double score, int index) {
-    if (score > index) {
-      return Icons.star;
-    } else if (score.ceil() == index) {
-      return Icons.star_half;
-    } else {
-      return Icons.star_border;
-    }
-  }
+  RatingViewWidget({this.score, this.ratings});
 
   @override
   Widget build(BuildContext context) {
@@ -122,12 +112,12 @@ class RatingViewWidget extends StatelessWidget {
           padding: const EdgeInsets.only(right: 4.0),
           child: Text('$score'),
         ),
-        ...[for (var i = 1; i <= stars; i += 1) i].map<Icon>((star) {
-          return Icon(
-            getStarIcon(score, star),
-            color: Colors.amberAccent,
-          );
-        }).toList(),
+        SmoothStarRating(
+          isReadOnly: true,
+          rating: score,
+          color: Colors.amber,
+          borderColor: Colors.amber,
+        ),
         Padding(
           padding: const EdgeInsets.only(left: 4.0),
           child: Text('($ratings)'),
