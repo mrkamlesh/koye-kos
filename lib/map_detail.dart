@@ -39,7 +39,7 @@ class MarkerBottomSheet extends StatelessWidget {
                         // insert right padding to all but the last list item
                         padding: !last ? EdgeInsets.only(right: 2) : null,
                         child: SizedBox(
-                          width: 120,
+                          width: 220,
                           child: MarkerCachedImage(camp.imageUrls[index]),
                         ),
                       );
@@ -137,14 +137,21 @@ class RatingViewWidget extends StatelessWidget {
   }
 }
 
-class MarkerCachedImage extends StatelessWidget {
+class MarkerCachedImage extends StatefulWidget {
   final String _imageUrl;
   MarkerCachedImage(this._imageUrl);
 
   @override
+  _MarkerCachedImageState createState() => _MarkerCachedImageState();
+}
+
+class _MarkerCachedImageState extends State<MarkerCachedImage> with AutomaticKeepAliveClientMixin{
+
+  @override
   Widget build(BuildContext context) {
+    super.build(context);
     return CachedNetworkImage(
-      imageUrl: _imageUrl,
+      imageUrl: widget._imageUrl,
       fit: BoxFit.cover,
       placeholder: (context, url) {
         return Container(
@@ -155,6 +162,9 @@ class MarkerCachedImage extends StatelessWidget {
       errorWidget: (context, url, error) => Icon(Icons.error),
     );
   }
+
+  @override
+  bool get wantKeepAlive => true;
 }
 
 class PointBottomSheet extends StatelessWidget {

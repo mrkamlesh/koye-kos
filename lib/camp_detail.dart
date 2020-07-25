@@ -55,7 +55,7 @@ class ImageList extends StatelessWidget {
     return Column(
       children: [
         Container(
-          height: 120, // restrict image height
+          height: 200, // restrict image height
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
             itemCount: camp.imageUrls.length,
@@ -65,7 +65,7 @@ class ImageList extends StatelessWidget {
                 // insert right padding to all but the last list item
                 padding: !last ? EdgeInsets.only(right: 2) : null,
                 child: SizedBox(
-                  width: 120,
+                  width: 340,
                   child: MarkerCachedImage(camp.imageUrls[index]),
                 ),
               );

@@ -75,7 +75,7 @@ class _HammockMapState extends State<HammockMap> {
                     urlTemplate: MapInfo.mapUrl,
                     subdomains: MapInfo
                         .mapSubdomains // loadbalancing; uses subdomains opencache[2/3].statkart.no
-                    )),
+                )),
             MarkerLayerWidget(
               options: MarkerLayerOptions(
                 markers: [
@@ -96,7 +96,7 @@ class _HammockMapState extends State<HammockMap> {
                                 closedColor: Colors.transparent,
                                 closedShape: const RoundedRectangleBorder(
                                   borderRadius:
-                                      BorderRadius.all(Radius.circular(0.0)),
+                                  BorderRadius.all(Radius.circular(0.0)),
                                 ),
                                 closedElevation: 0,
                                 closedBuilder: (BuildContext context,
@@ -127,17 +127,17 @@ class CampMarker extends Marker {
 
   CampMarker(this.camp, this._callback)
       : super(
-          point: camp.location,
-          width: 40,
-          height: 40,
-          anchorPos: AnchorPos.align(AnchorAlign.top),
-          builder: (context) => Container(
-            child: GestureDetector(
-              onTap: () => _callback(),
-              child: Icon(Icons.location_on, size: 40),
-            ),
-          ),
-        );
+    point: camp.location,
+    width: 40,
+    height: 40,
+    anchorPos: AnchorPos.align(AnchorAlign.top),
+    builder: (context) => Container(
+      child: GestureDetector(
+        onTap: () => _callback(),
+        child: Icon(Icons.location_on, size: 40),
+      ),
+    ),
+  );
 }
 
 Marker createLongpressMarker(LatLng point) {
@@ -147,8 +147,8 @@ Marker createLongpressMarker(LatLng point) {
       height: 45,
       anchorPos: AnchorPos.align(AnchorAlign.top),
       builder: (context) => Icon(
-            Icons.location_on,
-            size: 45,
-            color: Colors.red,
-          ));
+        Icons.location_on,
+        size: 45,
+        color: Colors.red,
+      ));
 }
