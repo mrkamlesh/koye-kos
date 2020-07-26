@@ -20,8 +20,8 @@ class Camp {
       {@required this.id,
         @required this.imageUrls,
         @required this.location,
-        this.score,
-        this.ratings,
+        this.score = 0.0,
+        this.ratings = 0,
         @required this.description,
         @required this.creatorId,
         @required this.creatorName});
@@ -33,8 +33,8 @@ class Camp {
         id: document.documentID,
         imageUrls: List<String>.from(data['image_urls'] as List),
         location: location,
-        score: data['score'] as double ?? 0.0,
-        ratings: data['ratings'] as int ?? 0,
+        score: (data['score'] as num).toDouble(),
+        ratings: data['ratings'] as int,
         description: data['description'] as String,
         creatorId: data['creator_id'] as String,
         creatorName: data['creator_name'] as String);
@@ -48,12 +48,10 @@ class Camp {
       'location': location.toGeoPoint(), // can't be empty
       'description': description,  // can't be empty
       'creator_id': creatorId, // can't be empty
-      'creator_name': creatorName  // can't be empty
+      'creator_name': creatorName,  // can't be empty
+      'score': score,
+      'ratings': ratings,
     });
-    // These can be null; do not save null values.
-    if (score != null) map['score'] = score;
-    if (ratings != null) map['ratings'] = score;
-
     return map;
   }
 
