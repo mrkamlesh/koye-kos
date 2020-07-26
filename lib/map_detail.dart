@@ -1,9 +1,9 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:koye_kos/star_rating.dart';
 import 'package:provider/provider.dart';
 import 'package:latlong/latlong.dart';
-import 'package:smooth_star_rating/smooth_star_rating.dart';
 
 import 'add_camp.dart';
 import 'db.dart';
@@ -54,7 +54,7 @@ class CampDescription extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              RatingViewWidget(score: camp.score, ratings: camp.ratings),
+              RatingViewSmall(score: camp.score, ratings: camp.ratings),
               FavoriteWidget(),
             ],
           ),
@@ -114,11 +114,11 @@ class FavoriteWidget extends StatelessWidget {
   }
 }
 
-class RatingViewWidget extends StatelessWidget {
+class RatingViewSmall extends StatelessWidget {
   final double score;
   final int ratings;
 
-  RatingViewWidget({this.score, this.ratings});
+  RatingViewSmall({this.score, this.ratings});
 
   @override
   Widget build(BuildContext context) {
@@ -128,7 +128,8 @@ class RatingViewWidget extends StatelessWidget {
           padding: const EdgeInsets.only(right: 4.0),
           child: Text('$score'),
         ),
-        SmoothStarRating(
+        StarRating(
+          key: UniqueKey(),
           isReadOnly: true,
           rating: score,
           color: Colors.amber,

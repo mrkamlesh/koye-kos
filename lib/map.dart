@@ -103,12 +103,8 @@ class _CampMarkerLayerState extends State<CampMarkerLayer> {
   Widget build(BuildContext context) {
     final firestoreService = Provider.of<FirestoreService>(context);
     return StreamBuilder(
-        stream: firestoreService.getCampStream(),
+        stream: firestoreService.getCampListStream(),
         builder: (BuildContext context, AsyncSnapshot<List<Camp>> snapshot) {
-          print(snapshot.connectionState);
-          print(snapshot.hasData);
-          print(snapshot.data);
-
           return MarkerLayerWidget(
             options: MarkerLayerOptions(
               markers: [

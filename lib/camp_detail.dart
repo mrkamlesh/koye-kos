@@ -2,9 +2,10 @@ import 'dart:collection';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
+import 'package:koye_kos/star_rating.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:provider/provider.dart';
-import 'package:smooth_star_rating/smooth_star_rating.dart';
 
 import 'db.dart';
 import 'map_detail.dart';
@@ -48,7 +49,27 @@ class CampDetailScreen extends StatelessWidget {
   }
 }
 
-class UserRatingWidget extends StatelessWidget {
+class UserRatingWidget extends StatefulWidget {
+  @override
+  _UserRatingWidgetState createState() => _UserRatingWidgetState();
+}
+
+class _UserRatingWidgetState extends State<UserRatingWidget> {
+  double _score = 0;
+
+  @override
+  void initState() {
+    final camp = Provider.of<Camp>(context, listen: false);
+    final user = Provider.of<FirebaseUser>(context, listen: false);
+    Provider.of<FirestoreService>(context, listen: false)
+        .getUserCampRating(user.uid, camp.id)
+        .then((double score) {
+      setState(() {
+        _score = score;
+      });
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final camp = Provider.of<Camp>(context);
@@ -62,13 +83,17 @@ class UserRatingWidget extends StatelessWidget {
         ),
         Padding(
           padding: const EdgeInsets.all(8.0),
-          child: SmoothStarRating(
+          child: StarRating(
+            key: UniqueKey(),
+            rating: _score,
             size: 50,
-            rating: camp.score,
             color: Colors.amber,
             borderColor: Colors.amber,
             onRated: (rating) {
               firestoreService.updateRating(camp, user, rating);
+              setState(() {
+                _score = rating;
+              });
             },
           ),
         ),
@@ -77,28 +102,30 @@ class UserRatingWidget extends StatelessWidget {
   }
 }
 
-class RatingWidget extends StatelessWidget {
+class RatingView extends StatelessWidget {
+  final double score;
+  final int ratings;
+
+  RatingView({this.score, this.ratings});
+
   @override
   Widget build(BuildContext context) {
-    final camp = Provider.of<Camp>(context);
-    final firestoreService = Provider.of<FirestoreService>(context);
-    final user = Provider.of<FirebaseUser>(context);
-
     return Row(
       children: [
         Padding(
           padding: const EdgeInsets.only(right: 4.0),
-          child: Text('${camp.score.toStringAsFixed(1)}'),
+          child: Text('$score'),
         ),
-        SmoothStarRating(
+        StarRating(
+          key: UniqueKey(),
           isReadOnly: true,
-          rating: camp.score,
+          rating: score,
           color: Colors.amber,
           borderColor: Colors.amber,
         ),
         Padding(
           padding: const EdgeInsets.only(left: 4.0),
-          child: Text('(${camp.ratings})'),
+          child: Text('($ratings)'),
         ),
       ],
     );
@@ -118,7 +145,10 @@ class CampInfo extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              RatingWidget(),
+              RatingView(
+                score: camp.score,
+                ratings: camp.ratings,
+              ),
               FavoriteWidget(),
             ],
           ),
