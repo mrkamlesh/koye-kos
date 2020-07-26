@@ -38,11 +38,14 @@ dependencies:
   # Flutter map
   flutter_map: ^0.10.1
 
-  # Misc
+  # image
   image_picker: ^0.6.7+4
   cached_network_image: ^2.3.0-rc
   transparent_image: ^1.0.0
   image_cropper: ^1.2.3
+  photo_view: ^0.9.2
+
+  # Misc
   animations: ^1.1.1
   smooth_star_rating: 1.1.1
 

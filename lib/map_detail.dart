@@ -143,7 +143,8 @@ class RatingViewWidget extends StatelessWidget {
 
 class MarkerCachedImage extends StatefulWidget {
   final String _imageUrl;
-  MarkerCachedImage(this._imageUrl);
+  final Function(ImageProvider) onTapCallback;
+  MarkerCachedImage(this._imageUrl, {this.onTapCallback});
 
   @override
   _MarkerCachedImageState createState() => _MarkerCachedImageState();
@@ -156,7 +157,24 @@ class _MarkerCachedImageState extends State<MarkerCachedImage>
     super.build(context);
     return CachedNetworkImage(
       imageUrl: widget._imageUrl,
-      fit: BoxFit.cover,
+      imageBuilder: (context, imageProvider) {
+        if (widget.onTapCallback != null) {
+          return GestureDetector(
+            onTap: () {
+              widget.onTapCallback(imageProvider);
+            },
+            child: Image(
+              fit: BoxFit.cover,
+              image: imageProvider,
+            ),
+          );
+        } else {
+          return Image(
+            fit: BoxFit.cover,
+            image: imageProvider,
+          );
+        }
+      },
       placeholder: (context, url) {
         return Container(
           padding: EdgeInsets.all(8),
@@ -189,7 +207,7 @@ class PointBottomSheet extends StatelessWidget {
           child: ListTile(
               leading: Icon(Icons.location_on, color: Colors.red),
               title:
-                  Text(_point.toReadableString(precision: 4, separator: ', ')),
+              Text(_point.toReadableString(precision: 4, separator: ', ')),
               trailing: FlatButton(
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(18.0),
@@ -200,9 +218,9 @@ class PointBottomSheet extends StatelessWidget {
                   onPressed: () {
                     //Navigator.pop(context);  // removes bottomsheet
                     Navigator.push(
-                            context,
-                            MaterialPageRoute<bool>(
-                                builder: (context) => AddCampScreen(_point)))
+                        context,
+                        MaterialPageRoute<bool>(
+                            builder: (context) => AddCampScreen(_point)))
                         .then((bool campAdded) {
                       if (campAdded ?? false) {
                         Navigator.pop(context);
