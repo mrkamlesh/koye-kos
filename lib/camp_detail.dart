@@ -1,3 +1,5 @@
+import 'dart:collection';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:photo_view/photo_view.dart';
@@ -81,7 +83,13 @@ class CampInfo extends StatelessWidget {
   }
 }
 
-class ImageList extends StatelessWidget {
+class ImageList extends StatefulWidget {
+  @override
+  _ImageListState createState() => _ImageListState();
+}
+
+class _ImageListState extends State<ImageList> {
+  final Map<int, ImageProvider> images = HashMap();
   @override
   Widget build(BuildContext context) {
     final camp = Provider.of<Camp>(context);
@@ -92,16 +100,28 @@ class ImageList extends StatelessWidget {
         itemCount: camp.imageUrls.length,
         itemBuilder: (context, index) {
           bool last = camp.imageUrls.length == index + 1;
-          return Container(
-            width: 340,
-            // insert right padding to all but the last list item
-            padding: !last ? EdgeInsets.only(right: 2) : null,
-            child: MarkerCachedImage(
-              camp.imageUrls[index],
-              onTapCallback: (ImageProvider provider) {
-                Navigator.push(context, MaterialPageRoute(builder: (_) => Gallery(provider: provider),),);
-              },
+          return GestureDetector(
+            child: Container(
+              width: 340,
+              // insert right padding to all but the last list item
+              padding: !last ? EdgeInsets.only(right: 2) : null,
+              child: MarkerCachedImage(
+                camp.imageUrls[index],
+                onLoadCallback: (ImageProvider provider) {
+                  images[index] = provider;
+                },
+              ),
             ),
+            onTap: () {
+              // TODO: make gallery out of images
+              if (!images.containsKey(index)) return;
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => Gallery(provider: images[index]),
+                ),
+              );
+            },
           );
         },
       ),

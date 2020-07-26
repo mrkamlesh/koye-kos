@@ -143,8 +143,8 @@ class RatingViewWidget extends StatelessWidget {
 
 class MarkerCachedImage extends StatefulWidget {
   final String _imageUrl;
-  final Function(ImageProvider) onTapCallback;
-  MarkerCachedImage(this._imageUrl, {this.onTapCallback});
+  final Function(ImageProvider) onLoadCallback;
+  MarkerCachedImage(this._imageUrl, {this.onLoadCallback});
 
   @override
   _MarkerCachedImageState createState() => _MarkerCachedImageState();
@@ -158,22 +158,11 @@ class _MarkerCachedImageState extends State<MarkerCachedImage>
     return CachedNetworkImage(
       imageUrl: widget._imageUrl,
       imageBuilder: (context, imageProvider) {
-        if (widget.onTapCallback != null) {
-          return GestureDetector(
-            onTap: () {
-              widget.onTapCallback(imageProvider);
-            },
-            child: Image(
-              fit: BoxFit.cover,
-              image: imageProvider,
-            ),
-          );
-        } else {
+        if (widget.onLoadCallback != null) widget.onLoadCallback(imageProvider);
           return Image(
             fit: BoxFit.cover,
             image: imageProvider,
           );
-        }
       },
       placeholder: (context, url) {
         return Container(
