@@ -126,7 +126,7 @@ class RatingViewSmall extends StatelessWidget {
       children: [
         Padding(
           padding: const EdgeInsets.only(right: 4.0),
-          child: Text('$score'),
+          child: Text('${score.toStringAsFixed(1)}'),
         ),
         StarRating(
           key: UniqueKey(),
