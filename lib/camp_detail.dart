@@ -23,13 +23,15 @@ class CampDetailScreen extends StatelessWidget {
             appBar: AppBar(
               title: Text('Camp'),
             ),
-            body: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                ImageList(),
-                CampInfo(),
-                DeleteCamp(),
-              ],
+            body: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  ImageList(),
+                  CampInfo(),
+                  DeleteCamp(),
+                ],
+              ),
             ),
           );
         });
@@ -37,7 +39,6 @@ class CampDetailScreen extends StatelessWidget {
 }
 
 class RatingWidget extends StatelessWidget {
-
   @override
   Widget build(BuildContext context) {
     final camp = Provider.of<Camp>(context);
@@ -66,7 +67,6 @@ class RatingWidget extends StatelessWidget {
     );
   }
 }
-
 
 class CampInfo extends StatelessWidget {
   @override
@@ -149,7 +149,6 @@ class Gallery extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(

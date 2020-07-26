@@ -20,18 +20,20 @@ class MarkerBottomSheet extends StatelessWidget {
         value: camp,
         builder: (context, child) {
           // Add a nice linear drop shadow behind card (from transparent to greY)
-          return Card(
-            clipBehavior: Clip.antiAliasWithSaveLayer, // for rounded corners
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8.0),
-            ),
-            elevation: 12,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                ImageListSmall(), // Image view
-                CampDescription()
-              ],
+          return SingleChildScrollView(
+            child: Card(
+              clipBehavior: Clip.antiAliasWithSaveLayer, // for rounded corners
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8.0),
+              ),
+              elevation: 12,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  ImageListSmall(), // Image view
+                  CampDescription()
+                ],
+              ),
             ),
           );
         });
@@ -159,10 +161,10 @@ class _MarkerCachedImageState extends State<MarkerCachedImage>
       imageUrl: widget._imageUrl,
       imageBuilder: (context, imageProvider) {
         if (widget.onLoadCallback != null) widget.onLoadCallback(imageProvider);
-          return Image(
-            fit: BoxFit.cover,
-            image: imageProvider,
-          );
+        return Image(
+          fit: BoxFit.cover,
+          image: imageProvider,
+        );
       },
       placeholder: (context, url) {
         return Container(
@@ -196,7 +198,7 @@ class PointBottomSheet extends StatelessWidget {
           child: ListTile(
               leading: Icon(Icons.location_on, color: Colors.red),
               title:
-              Text(_point.toReadableString(precision: 4, separator: ', ')),
+                  Text(_point.toReadableString(precision: 4, separator: ', ')),
               trailing: FlatButton(
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(18.0),
@@ -207,9 +209,9 @@ class PointBottomSheet extends StatelessWidget {
                   onPressed: () {
                     //Navigator.pop(context);  // removes bottomsheet
                     Navigator.push(
-                        context,
-                        MaterialPageRoute<bool>(
-                            builder: (context) => AddCampScreen(_point)))
+                            context,
+                            MaterialPageRoute<bool>(
+                                builder: (context) => AddCampScreen(_point)))
                         .then((bool campAdded) {
                       if (campAdded ?? false) {
                         Navigator.pop(context);
