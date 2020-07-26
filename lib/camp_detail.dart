@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:provider/provider.dart';
+import 'package:smooth_star_rating/smooth_star_rating.dart';
 
 import 'db.dart';
 import 'map_detail.dart';
@@ -15,7 +16,6 @@ class CampDetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final firestoreService = Provider.of<FirestoreService>(context);
     return Provider<Camp>.value(
         value: camp,
         builder: (context, child) {
@@ -36,26 +36,37 @@ class CampDetailScreen extends StatelessWidget {
   }
 }
 
-class DeleteCamp extends StatelessWidget {
+class RatingWidget extends StatelessWidget {
+
   @override
   Widget build(BuildContext context) {
-    final firestoreService = Provider.of<FirestoreService>(context);
     final camp = Provider.of<Camp>(context);
-    return Center(
-      child: RaisedButton(
-        child: Text(
-          'Delete camp',
-          style: TextStyle(color: Colors.white),
+    final firestoreService = Provider.of<FirestoreService>(context);
+    final user = Provider.of<FirebaseUser>(context);
+
+    return Row(
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(right: 4.0),
+          child: Text('${camp.score}'),
         ),
-        color: Colors.red,
-        onPressed: () {
-          firestoreService.deleteCamp(camp);
-          Navigator.pop(context);
-        },
-      ),
+        SmoothStarRating(
+          rating: camp.score,
+          color: Colors.amber,
+          borderColor: Colors.amber,
+          onRated: (rating) {
+            firestoreService.updateRating(camp, user, rating);
+          },
+        ),
+        Padding(
+          padding: const EdgeInsets.only(left: 4.0),
+          child: Text('(${camp.ratings})'),
+        ),
+      ],
     );
   }
 }
+
 
 class CampInfo extends StatelessWidget {
   @override
@@ -70,7 +81,7 @@ class CampInfo extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              RatingViewWidget(score: camp.score, ratings: camp.ratings),
+              RatingWidget(),
               FavoriteWidget(),
             ],
           ),
@@ -138,6 +149,7 @@ class Gallery extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
@@ -150,6 +162,27 @@ class Gallery extends StatelessWidget {
           maxScale: PhotoViewComputedScale.covered * 1.8,
           imageProvider: provider,
         ),
+      ),
+    );
+  }
+}
+
+class DeleteCamp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final firestoreService = Provider.of<FirestoreService>(context);
+    final camp = Provider.of<Camp>(context);
+    return Center(
+      child: RaisedButton(
+        child: Text(
+          'Delete camp',
+          style: TextStyle(color: Colors.white),
+        ),
+        color: Colors.red,
+        onPressed: () {
+          firestoreService.deleteCamp(camp);
+          Navigator.pop(context);
+        },
       ),
     );
   }

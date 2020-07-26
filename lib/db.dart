@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:latlong/latlong.dart';
@@ -83,14 +84,27 @@ class FirestoreService {
     });
   }
 
-/*  // TODO: business logic to update ratings + score
-  Future<void> updateRating(Camp camp) async {
-    print(camp.toFirestoreMap());
+  Future<void> updateRating(Camp camp, FirebaseUser user, double score) async {
     // compute new score
-    return await Firestore.instance
-        .document(camp.id)
-        .updateData(camp.toFirestoreMap());
-  }*/
+    final DocumentReference campRef =
+        Firestore.instance.collection('camps').document(camp.id);
+    print(campRef.path);
+    return Firestore.instance.runTransaction((Transaction transaction) async {
+      DocumentSnapshot campSnapshot = await transaction.get(campRef);
+      if (campSnapshot.exists) {
+        double currentScore = campSnapshot.data['score'] as double;
+        int currentRatings = campSnapshot.data['ratings'] as int;
+        int newRatings = currentRatings + 1;
+        double newScore = (currentScore * currentRatings + score) / newRatings;
+        print(currentScore);
+        print(currentRatings);
+        return transaction.update(campRef, <String, dynamic>{
+          'ratings': newRatings,
+          'score': newScore
+        });
+      }
+    });
+  }
 
   Future<void> deleteCamp(Camp camp) async {
     print('Delete: ${camp.id}');
