@@ -149,6 +149,18 @@ class FirestoreService {
         .delete();*/
   }
 
+  Future<double> getUserCampRating(String userId, String campId) {
+    return Firestore.instance
+        .collection('camps')
+        .document(campId)
+        .collection('user_ratings')
+        .document('${userId}_$campId')
+        .get()
+        .then((DocumentSnapshot snapshot) {
+      return snapshot.exists ? (snapshot['score'] as num).toDouble() : 0;
+    });
+  }
+
 /*  Future<void> addUser(User user) async {
     return await Firestore.instance
         .collection('users')
