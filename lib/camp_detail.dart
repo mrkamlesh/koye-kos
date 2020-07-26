@@ -16,8 +16,11 @@ class CampDetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Provider<Camp>.value(
-        value: camp,
+    final firestoreService = Provider.of<FirestoreService>(context);
+
+    return StreamProvider<Camp>(
+        initialData: camp,
+        create: (_) => firestoreService.getCampStream(camp.id),
         builder: (context, child) {
           return Scaffold(
             appBar: AppBar(
@@ -29,12 +32,48 @@ class CampDetailScreen extends StatelessWidget {
                 children: [
                   ImageList(),
                   CampInfo(),
-                  DeleteCamp(),
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: UserRatingWidget(),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(32.0),
+                    child: DeleteCamp(),
+                  ),
                 ],
               ),
             ),
           );
         });
+  }
+}
+
+class UserRatingWidget extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final camp = Provider.of<Camp>(context);
+    final firestoreService = Provider.of<FirestoreService>(context);
+    final user = Provider.of<FirebaseUser>(context);
+    return Column(
+      children: [
+        Text(
+          'Rate',
+          style: Theme.of(context).textTheme.headline6,
+        ),
+        Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: SmoothStarRating(
+            size: 50,
+            rating: camp.score,
+            color: Colors.amber,
+            borderColor: Colors.amber,
+            onRated: (rating) {
+              firestoreService.updateRating(camp, user, rating);
+            },
+          ),
+        ),
+      ],
+    );
   }
 }
 
@@ -49,15 +88,13 @@ class RatingWidget extends StatelessWidget {
       children: [
         Padding(
           padding: const EdgeInsets.only(right: 4.0),
-          child: Text('${camp.score}'),
+          child: Text('${camp.score.toStringAsFixed(1)}'),
         ),
         SmoothStarRating(
+          isReadOnly: true,
           rating: camp.score,
           color: Colors.amber,
           borderColor: Colors.amber,
-          onRated: (rating) {
-            firestoreService.updateRating(camp, user, rating);
-          },
         ),
         Padding(
           padding: const EdgeInsets.only(left: 4.0),

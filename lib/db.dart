@@ -13,14 +13,14 @@ class FirestoreService {
   FirestoreService._();
   static final instance = FirestoreService._();
 
-  Stream<List<Camp>> getCampStream() {
+  Stream<List<Camp>> getCampListStream() {
     // use ('camps').snapshots for continuous connection with live updates
     return Firestore.instance
         .collection('camps')
         .snapshots()
         .map((QuerySnapshot snapshot) => snapshot.documents
-            .map((DocumentSnapshot document) => Camp.fromFirestore(document))
-            .toList())
+        .map((DocumentSnapshot document) => Camp.fromFirestore(document))
+        .toList())
         .handleError((onError) {
       print('Error loading camps! $onError');
     });
@@ -33,17 +33,17 @@ class FirestoreService {
   // TODO: adding a camp should be possible to do offline, as many users could be!
   Future<bool> addCamp(
       {@required String description,
-      @required LatLng location,
-      @required String creatorId,
-      @required String creatorName,
-      @required List<File> images}) async {
+        @required LatLng location,
+        @required String creatorId,
+        @required String creatorName,
+        @required List<File> images}) async {
     // TODO: store paths in a static class
     // Get a reference to new camp
     DocumentReference campRef =
-        Firestore.instance.collection('camps').document();
+    Firestore.instance.collection('camps').document();
     String imagesStorePath = 'camps/${campRef.documentID}';
     StorageReference imageStoreRef =
-        FirebaseStorage.instance.ref().child(imagesStorePath);
+    FirebaseStorage.instance.ref().child(imagesStorePath);
     final imageUrls = <String>[];
 
     // Upload images to firestorage, path (camps/camp_id/time_id). Time id can later be used to sort images by upload date
@@ -89,10 +89,10 @@ class FirestoreService {
   Future<void> updateRating(Camp camp, FirebaseUser user, double score) async {
     // compute new score
     final DocumentReference campRef =
-        Firestore.instance.collection('camps').document(camp.id);
+    Firestore.instance.collection('camps').document(camp.id);
 
     final DocumentReference userRatingRef =
-        campRef.collection('user_ratings').document('${user.uid}_${camp.id}');
+    campRef.collection('user_ratings').document('${user.uid}_${camp.id}');
 
     return Firestore.instance.runTransaction((Transaction transaction) async {
       DocumentSnapshot campSnapshot = await transaction.get(campRef);
@@ -122,6 +122,16 @@ class FirestoreService {
         return transaction.update(campRef,
             <String, dynamic>{'ratings': newRatings, 'score': newScore});
       }
+    });
+  }
+
+  Stream<Camp> getCampStream(String campId) {
+    return Firestore.instance
+        .collection('camps')
+        .document(campId)
+        .snapshots()
+        .map((DocumentSnapshot snapshot) {
+      return Camp.fromFirestore(snapshot);
     });
   }
 
