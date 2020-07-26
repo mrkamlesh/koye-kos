@@ -84,24 +84,43 @@ class FirestoreService {
     });
   }
 
+  // Subject to this: https://github.com/FirebaseExtended/flutterfire/issues/1969
+  // Possible circumvention: do nout use await in transaction code
   Future<void> updateRating(Camp camp, FirebaseUser user, double score) async {
     // compute new score
     final DocumentReference campRef =
         Firestore.instance.collection('camps').document(camp.id);
-    print(campRef.path);
+
+    final DocumentReference userRatingRef =
+        campRef.collection('user_ratings').document('${user.uid}_${camp.id}');
+
     return Firestore.instance.runTransaction((Transaction transaction) async {
       DocumentSnapshot campSnapshot = await transaction.get(campRef);
       if (campSnapshot.exists) {
-        double currentScore = campSnapshot.data['score'] as double;
+        // Get current camp scores
         int currentRatings = campSnapshot.data['ratings'] as int;
-        int newRatings = currentRatings + 1;
-        double newScore = (currentScore * currentRatings + score) / newRatings;
-        print(currentScore);
-        print(currentRatings);
-        return transaction.update(campRef, <String, dynamic>{
-          'ratings': newRatings,
-          'score': newScore
+        // Total cumulative rating
+        double currentTotalScore =
+            (campSnapshot.data['score'] as num).toDouble() * currentRatings;
+
+        // Check if user already rated this camp
+        await userRatingRef.get().then((snapshot) {
+          if (snapshot.exists) {
+            // Revert users current score
+            currentTotalScore -= (snapshot.data['score'] as num).toDouble();
+            currentRatings -= 1;
+          }
         });
+
+        // Set users new score
+        userRatingRef.setData({'score': score});
+
+        // Calculate new camp score
+        int newRatings = currentRatings + 1;
+        double newScore = (currentTotalScore + score) / newRatings;
+
+        return transaction.update(campRef,
+            <String, dynamic>{'ratings': newRatings, 'score': newScore});
       }
     });
   }
