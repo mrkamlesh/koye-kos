@@ -44,7 +44,6 @@ class CampDescription extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final camp = Provider.of<Camp>(context);
-
     return Padding(
       // Rest of camp description / rating view
       padding: const EdgeInsets.all(8.0),

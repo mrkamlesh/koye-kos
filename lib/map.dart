@@ -117,6 +117,9 @@ class _CampMarkerLayerState extends State<CampMarkerLayer> {
                         context: context,
                         backgroundColor: Colors.transparent,
                         builder: (context) {
+                          // TODO: fix widgets rebuilding during animation
+                          // Causes poor performance, widgets showing wrong state (favorite widget)
+                          // E.g. streambuilder does not work here, since it would be rebuilt and need to load stream again
                           return OpenContainer(
                               closedColor: Colors.transparent,
                               closedShape: const RoundedRectangleBorder(),
