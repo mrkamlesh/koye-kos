@@ -53,48 +53,60 @@ class _CampFormState extends State<CampForm> {
 
   Future getImage() async {
     // Could throw error if no camera available!
-    picker.getImage(
-        source: ImageSource.camera,
-        imageQuality: 40)
-        .then((PickedFile file) {
-      if (file != null) return ImageCropper.cropImage(  // TODO: fix transition here
-          sourcePath: file.path,
-          compressFormat: ImageCompressFormat.jpg,  // default
-          compressQuality: 80,  // default 90
-          aspectRatio: CropAspectRatio(ratioX: 4, ratioY: 3),
-          androidUiSettings: AndroidUiSettings(
-            toolbarTitle: 'Crop image',
-            toolbarColor: Theme.of(context).primaryColor,
-            toolbarWidgetColor: Colors.white,
-            lockAspectRatio: true,
-            hideBottomControls: true,
-          ),
-          iosUiSettings: IOSUiSettings(
-            aspectRatioPickerButtonHidden: true,
-            aspectRatioLockEnabled: true,
-            title: 'Crop image',
-          )
-      );
-    }).then((File file) {
-      if (file == null) return;
-      _images.add(file);
+    picker
+        .getImage(
+      source: ImageSource.camera,
+    )
+        .then((PickedFile pickedFile) {
+      if (pickedFile == null) return;
+      _images.add(File(pickedFile.path));
       _listKey.currentState.insertItem(_images.length - 1);
     }).catchError((error) {
       Scaffold.of(context)
         ..removeCurrentSnackBar()
-        ..showSnackBar(SnackBar(content: Text('Could not add image: $error'),
+        ..showSnackBar(SnackBar(
+          content: Text('Could not add image: $error'),
         ));
+    });
+  }
+
+  Future<File> cropImage(File file, int index) {
+    ImageCropper.cropImage(
+        sourcePath: file.path,
+        compressFormat: ImageCompressFormat.jpg, // default
+        compressQuality: 100, // default 90, do compression on image upload
+        aspectRatio: CropAspectRatio(ratioX: 4, ratioY: 3),
+        androidUiSettings: AndroidUiSettings(
+          toolbarTitle: 'Crop image',
+          toolbarColor: Theme.of(context).primaryColor,
+          toolbarWidgetColor: Colors.white,
+          lockAspectRatio: true,
+          hideBottomControls: true,
+        ),
+        iosUiSettings: IOSUiSettings(
+          aspectRatioPickerButtonHidden: true,
+          aspectRatioLockEnabled: true,
+          title: 'Crop image',
+        ))
+        .then((File image) {
+          if (image == null) return;
+          setState(() {
+            // TODO: CampImage is not updated with the new image file
+            _images[index] = file;
+          });
     });
   }
 
   void deleteImage(int index, {bool animate = false}) {
     final image = _images.removeAt(index);
     _listKey.currentState.removeItem(index, (context, animation) {
-      return animate ? SizeTransition(
-        axis: Axis.horizontal,
-        sizeFactor: animation,
-        child: CampImage(image, key: Key(image.toString())),
-      ) : SizedBox.shrink();
+      return animate
+          ? SizeTransition(
+              axis: Axis.horizontal,
+              sizeFactor: animation,
+              child: CampImage(image, key: Key(image.toString())),
+            )
+          : SizedBox.shrink();
     });
   }
 
@@ -109,7 +121,7 @@ class _CampFormState extends State<CampForm> {
         padding: const EdgeInsets.only(top: 8.0),
         child: Column(
           children: [
-            ImageList(_listKey, _images, getImage, deleteImage),
+            ImageList(_listKey, _images, getImage, deleteImage, cropImage, key: UniqueKey()),
             Padding(
               padding: const EdgeInsets.all(8.0),
               child: Column(
@@ -145,8 +157,7 @@ class _CampFormState extends State<CampForm> {
                     color: Theme.of(context).primaryColor,
                     onPressed: () {
                       if (_formKey.currentState.validate()) {
-                        firestoreService
-                            .addCamp(
+                        firestoreService.addCamp(
                             description: descriptionController.text,
                             location: widget._location,
                             creatorId: user.uid,
@@ -179,10 +190,11 @@ class ImageList extends StatelessWidget {
   final ScrollController _controller = ScrollController();
   final List<File> _images;
   final Function _addCallback;
+  final Function(File, int) _onEditCallback;
   final Function(int, {bool animate}) _deleteCallback;
 
-  ImageList(
-      this._listKey, this._images, this._addCallback, this._deleteCallback);
+  ImageList(this._listKey, this._images, this._addCallback,
+      this._deleteCallback, this._onEditCallback, {Key key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -194,7 +206,7 @@ class ImageList extends StatelessWidget {
           scrollDirection: Axis.horizontal,
           initialItemCount: 1, // add extra for 'add image' button
           shrinkWrap:
-          true, // if true, list wil be centered when only 1 items is added
+              true, // if true, list wil be centered when only 1 items is added
           itemBuilder: (context, index, animation) {
             bool isButtonIndex = _images.length == index;
             if (!isButtonIndex) {
@@ -217,6 +229,18 @@ class ImageList extends StatelessWidget {
                       children: [
                         CampImage(image, key: key),
                         Positioned(
+                          left: 0,
+                          top: 0,
+                          child: IconButton(
+                              icon: Icon(
+                                Icons.crop,
+                                color: Colors.white,
+                              ),
+                              onPressed: () {
+                                _onEditCallback(image, index);
+                              }),
+                        ),
+                        Positioned(
                           right: 0,
                           top: 0,
                           child: IconButton(
@@ -224,7 +248,8 @@ class ImageList extends StatelessWidget {
                               Icons.close,
                               color: Colors.white,
                             ),
-                            onPressed: () => _deleteCallback(index, animate: true),
+                            onPressed: () =>
+                                _deleteCallback(index, animate: true),
                           ),
                         ),
                       ],
@@ -239,7 +264,7 @@ class ImageList extends StatelessWidget {
                 child: OutlineButton(
                     child: Icon(Icons.add),
                     borderSide:
-                    BorderSide(color: Theme.of(context).primaryColor),
+                        BorderSide(color: Theme.of(context).primaryColor),
                     onPressed: () => _addCallback(),
                     highlightedBorderColor: Theme.of(context)
                         .colorScheme
