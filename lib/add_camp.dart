@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
@@ -92,6 +93,7 @@ class _CampFormState extends State<CampForm> {
           if (image == null) return;
           setState(() {
             // TODO: CampImage is not updated with the new image file
+            // TODO use two image lists to represent cropped and original file?
             _images[index] = file;
           });
     });

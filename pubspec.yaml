@@ -44,6 +44,7 @@ dependencies:
   transparent_image: ^1.0.0
   image_cropper: ^1.2.3
   photo_view: ^0.9.2
+  flutter_image_compress: ^0.7.0
 
   # Misc
   animations: ^1.1.1

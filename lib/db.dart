@@ -5,6 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:latlong/latlong.dart';
 
 import 'models.dart';
@@ -37,6 +38,16 @@ class FirestoreService {
         @required String creatorId,
         @required String creatorName,
         @required List<File> images}) async {
+
+    // Compress images
+    List<Uint8List> imagesCompressed = await Future.wait(images.map((File image) async {
+      return await FlutterImageCompress.compressWithFile(
+          image.path,
+          quality: 60,
+          minWidth: 2000,
+          minHeight: 1500);
+    }));
+
     // TODO: store paths in a static class
     // Get a reference to new camp
     DocumentReference campRef =
@@ -47,11 +58,11 @@ class FirestoreService {
     final imageUrls = <String>[];
 
     // Upload images to firestorage, path (camps/camp_id/time_id). Time id can later be used to sort images by upload date
-    await Future.forEach(images, ((File image) async {
+    await Future.forEach(imagesCompressed, ((Uint8List imageList) async {
       String imageName = DateTime.now().toUtc().toString();
       await imageStoreRef
           .child('$imageName')
-          .putFile(image)
+          .putData(imageList)
           .onComplete
           .then((value) async {
         print('Image upload complete!');
