@@ -12,16 +12,43 @@ import 'map_detail.dart';
 
 // Static fields to help set up the map
 class MapInfo {
-  static final mapUrl = 'https://opencache{s}.statkart.no/'
-      'gatekeeper/gk/gk.open_gmaps?'
-      'layers=topo4&zoom={z}&x={x}&y={y}&format=image/jpeg';
-  static final mapSubdomains = ['', '2', '3'];
   static final LatLng center = LatLng(59.81, 10.44); // default center
   static final zoom = 12.0; // default zoom level
   static final minZoom = 4.0; // map zoom limits
   static final maxZoom = 18.0;
   static final swPanBoundary = LatLng(58, 4.0); // map pan boundaries
   static final nePanBoundary = LatLng(71.0, 31.0);
+}
+
+class MapProvider {
+  MapKartverket mapKartverket = MapKartverket();
+}
+
+class MapKartverket {
+  static final mapTopo = 'https://opencache{s}.statkart.no/'
+      'gatekeeper/gk/gk.open_gmaps?'
+      'layers=topo4&zoom={z}&x={x}&y={y}&format=image/jpeg';
+
+  static final mapGrunn = 'https://opencache{s}.statkart.no/'
+      'gatekeeper/gk/gk.open_gmaps?'
+      'layers=norges_grunnkart&zoom={z}&x={x}&y={y}&format=image/jpeg';
+
+  static final mapSubdomains = ['', '2', '3'];
+
+  final Widget layerKartverketTopo = TileLayerWidget(
+    options: TileLayerOptions(
+      urlTemplate: mapTopo,
+      subdomains:
+          mapSubdomains, // loadbalancing; uses subdomains opencache[2/3].statkart.no
+    ),
+  );
+
+  final Widget layerKartverketGrunn = TileLayerWidget(
+    options: TileLayerOptions(
+      urlTemplate: mapGrunn,
+      subdomains: mapSubdomains,
+    ),
+  );
 }
 
 class HammockMap extends StatefulWidget {
@@ -32,9 +59,18 @@ class HammockMap extends StatefulWidget {
 class _HammockMapState extends State<HammockMap> {
   LatLng _longpressPoint;
   final GlobalKey<ScaffoldState> scaffoldKey = GlobalKey<ScaffoldState>();
+  final MapProvider _mapProvider = MapProvider();
+
+  Widget _tileLayerWidget;
+
+  @override
+  void initState() {
+    _tileLayerWidget = _mapProvider.mapKartverket.layerKartverketTopo;
+  }
 
   @override
   Widget build(BuildContext context) {
+    print(_tileLayerWidget);
     final firestoreService = Provider.of<FirestoreService>(context);
     return FlutterMap(
       options: MapOptions(
@@ -68,12 +104,7 @@ class _HammockMapState extends State<HammockMap> {
       ),
       children: [
         // Map provider
-        TileLayerWidget(
-            options: TileLayerOptions(
-                urlTemplate: MapInfo.mapUrl,
-                subdomains: MapInfo
-                    .mapSubdomains // loadbalancing; uses subdomains opencache[2/3].statkart.no
-                )),
+        _tileLayerWidget,
         // Longpress marker
         MarkerLayerWidget(
           options: MarkerLayerOptions(markers: <Marker>[
