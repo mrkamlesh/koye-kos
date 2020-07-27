@@ -49,7 +49,7 @@ class _CampFormState extends State<CampForm> {
   @override
   void initState() {
     super.initState();
-    getImage();
+    getImage();  // TODO: show dialog to select camera/image picker, then remember the selection ?
   }
 
   Future getImage() async {
