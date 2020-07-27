@@ -20,8 +20,15 @@ class MapInfo {
   static final nePanBoundary = LatLng(71.0, 31.0);
 }
 
+enum MapType { topo, grunn }
+
 class MapProvider {
   MapKartverket mapKartverket = MapKartverket();
+
+  Widget getMap({MapType type}) {
+    if (type == MapType.topo) return mapKartverket.layerKartverketTopo;
+    if (type == MapType.grunn) return mapKartverket.layerKartverketGrunn;
+  }
 }
 
 class MapKartverket {
@@ -72,50 +79,73 @@ class _HammockMapState extends State<HammockMap> {
   Widget build(BuildContext context) {
     print(_tileLayerWidget);
     final firestoreService = Provider.of<FirestoreService>(context);
-    return FlutterMap(
-      options: MapOptions(
-        center: MapInfo.center,
-        zoom: MapInfo.zoom,
-        minZoom: MapInfo.minZoom,
-        maxZoom: MapInfo.maxZoom,
-        swPanBoundary: MapInfo.swPanBoundary,
-        nePanBoundary: MapInfo.nePanBoundary,
-        interactive: true,
-        onTap: (_) {
-          // Tapping the map should remove all other widgets
-          Navigator.popUntil(context, ModalRoute.withName('/'));
-        },
-        onLongPress: (point) {
-          setState(() {
-            _longpressPoint = point;
-          });
-          showBottomSheet<void>(
-              context: context,
-              backgroundColor: Colors.transparent,
-              builder: (_) {
-                return PointBottomSheet(point);
-              }).closed.then((_) {
-            setState(() {
-              // removed point marker when closing pointDetail
-              _longpressPoint = null;
-            });
-          });
-        },
-      ),
+    return Stack(
       children: [
-        // Map provider
-        _tileLayerWidget,
-        // Longpress marker
-        MarkerLayerWidget(
-          options: MarkerLayerOptions(markers: <Marker>[
-            if (_longpressPoint != null) createLongpressMarker(_longpressPoint),
-          ]),
+        FlutterMap(
+          options: MapOptions(
+            center: MapInfo.center,
+            zoom: MapInfo.zoom,
+            minZoom: MapInfo.minZoom,
+            maxZoom: MapInfo.maxZoom,
+            swPanBoundary: MapInfo.swPanBoundary,
+            nePanBoundary: MapInfo.nePanBoundary,
+            interactive: true,
+            onTap: (_) {
+              // Tapping the map should remove all other widgets
+              Navigator.popUntil(context, ModalRoute.withName('/'));
+            },
+            onLongPress: (point) {
+              setState(() {
+                _longpressPoint = point;
+              });
+              showBottomSheet<void>(
+                  context: context,
+                  backgroundColor: Colors.transparent,
+                  builder: (_) {
+                    return PointBottomSheet(point);
+                  }).closed.then((_) {
+                setState(() {
+                  // removed point marker when closing pointDetail
+                  _longpressPoint = null;
+                });
+              });
+            },
+          ),
+          children: [
+            // Map provider
+            _tileLayerWidget,
+            // Longpress marker
+            MarkerLayerWidget(
+              options: MarkerLayerOptions(markers: <Marker>[
+                if (_longpressPoint != null)
+                  createLongpressMarker(_longpressPoint),
+              ]),
+            ),
+            CampMarkerLayer(tapCallback: () {
+              setState(() {
+                _longpressPoint = null;
+              });
+            }),
+          ],
         ),
-        CampMarkerLayer(tapCallback: () {
-          setState(() {
-            _longpressPoint = null;
-          });
-        }),
+        PopupMenuButton<MapType>(
+          icon: Icon(Icons.layers),
+          onSelected: (MapType result) {
+            setState(() {
+              _tileLayerWidget = _mapProvider.getMap(type: result);
+            });
+          },
+          itemBuilder: (context) => <PopupMenuEntry<MapType>>[
+            PopupMenuItem<MapType>(
+              value: MapType.topo,
+              child: Text('Topografisk'),
+            ),
+            PopupMenuItem<MapType>(
+              value: MapType.grunn,
+              child: Text('Grunnkart'),
+            ),
+          ],
+        )
       ],
     );
   }
@@ -134,44 +164,45 @@ class _CampMarkerLayerState extends State<CampMarkerLayer> {
   Widget build(BuildContext context) {
     final firestoreService = Provider.of<FirestoreService>(context);
     return StreamBuilder(
-        stream: firestoreService.getCampListStream(),
-        builder: (BuildContext context, AsyncSnapshot<List<Camp>> snapshot) {
-          return MarkerLayerWidget(
-            options: MarkerLayerOptions(
-              markers: [
-                if (snapshot.hasData)
-                  ...snapshot.data.map((Camp camp) {
-                    return CampMarker(camp, tapCallback: () {
-                      widget.tapCallback();
-                      // TODO: change marker icon to red when tapped
-                      showBottomSheet<void>(
-                        context: context,
-                        backgroundColor: Colors.transparent,
-                        builder: (context) {
-                          // TODO: fix widgets rebuilding during animation
-                          // Causes poor performance, widgets showing wrong state (favorite widget)
-                          // E.g. streambuilder does not work here, since it would be rebuilt and need to load stream again
-                          return OpenContainer(
-                              closedColor: Colors.transparent,
-                              closedShape: const RoundedRectangleBorder(),
-                              closedElevation: 0,
-                              openElevation: 0,
-                              closedBuilder: (BuildContext context,
-                                  VoidCallback openContainer) {
-                                return MarkerBottomSheet(camp: camp);
-                              },
-                              openBuilder:
-                                  (BuildContext context, VoidCallback _) {
-                                return CampDetailScreen(camp: camp);
-                              });
-                        },
-                      );
-                    });
-                  }),
-              ],
-            ),
-          );
-        });
+      stream: firestoreService.getCampListStream(),
+      builder: (BuildContext context, AsyncSnapshot<List<Camp>> snapshot) {
+        return MarkerLayerWidget(
+          options: MarkerLayerOptions(
+            markers: [
+              if (snapshot.hasData)
+                ...snapshot.data.map((Camp camp) {
+                  return CampMarker(camp, tapCallback: () {
+                    widget.tapCallback();
+                    // TODO: change marker icon to red when tapped
+                    showBottomSheet<void>(
+                      context: context,
+                      backgroundColor: Colors.transparent,
+                      builder: (context) {
+                        // TODO: fix widgets rebuilding during animation
+                        // Causes poor performance, widgets showing wrong state (favorite widget)
+                        // E.g. streambuilder does not work here, since it would be rebuilt and need to load stream again
+                        return OpenContainer(
+                          closedColor: Colors.transparent,
+                          closedShape: const RoundedRectangleBorder(),
+                          closedElevation: 0,
+                          openElevation: 0,
+                          closedBuilder: (BuildContext context,
+                              VoidCallback openContainer) {
+                            return MarkerBottomSheet(camp: camp);
+                          },
+                          openBuilder: (BuildContext context, VoidCallback _) {
+                            return CampDetailScreen(camp: camp);
+                          },
+                        );
+                      },
+                    );
+                  });
+                }),
+            ],
+          ),
+        );
+      },
+    );
   }
 }
 
@@ -198,13 +229,14 @@ class CampMarker extends Marker {
 
 Marker createLongpressMarker(LatLng point) {
   return Marker(
-      point: point,
-      width: 45,
-      height: 45,
-      anchorPos: AnchorPos.align(AnchorAlign.top),
-      builder: (context) => Icon(
-            Icons.location_on,
-            size: 45,
-            color: Colors.red,
-          ));
+    point: point,
+    width: 45,
+    height: 45,
+    anchorPos: AnchorPos.align(AnchorAlign.top),
+    builder: (context) => Icon(
+      Icons.location_on,
+      size: 45,
+      color: Colors.red,
+    ),
+  );
 }
