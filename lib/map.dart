@@ -77,7 +77,6 @@ class _HammockMapState extends State<HammockMap> {
 
   @override
   Widget build(BuildContext context) {
-    print(_tileLayerWidget);
     final firestoreService = Provider.of<FirestoreService>(context);
     return Stack(
       children: [
@@ -128,23 +127,41 @@ class _HammockMapState extends State<HammockMap> {
             }),
           ],
         ),
-        PopupMenuButton<MapType>(
-          icon: Icon(Icons.layers),
-          onSelected: (MapType result) {
-            setState(() {
-              _tileLayerWidget = _mapProvider.getMap(type: result);
-            });
-          },
-          itemBuilder: (context) => <PopupMenuEntry<MapType>>[
-            PopupMenuItem<MapType>(
-              value: MapType.topo,
-              child: Text('Topografisk'),
+        Positioned(
+          right: 12,
+          top: 12,
+          child: PopupMenuButton<MapType>(
+            child: ClipOval(
+              child: Material(
+                color: Colors.grey.shade50,
+                child: Ink(
+                  child: SizedBox(
+                    width: 32,
+                    height: 32,
+                    child: Icon(
+                      Icons.layers,
+                      color: Colors.black87,
+                    ),
+                  ),
+                ),
+              ),
             ),
-            PopupMenuItem<MapType>(
-              value: MapType.grunn,
-              child: Text('Grunnkart'),
-            ),
-          ],
+            onSelected: (MapType result) {
+              setState(() {
+                _tileLayerWidget = _mapProvider.getMap(type: result);
+              });
+            },
+            itemBuilder: (context) => <PopupMenuEntry<MapType>>[
+              PopupMenuItem<MapType>(
+                value: MapType.topo,
+                child: Text('Topografisk'),
+              ),
+              PopupMenuItem<MapType>(
+                value: MapType.grunn,
+                child: Text('Grunnkart'),
+              ),
+            ],
+          ),
         )
       ],
     );
