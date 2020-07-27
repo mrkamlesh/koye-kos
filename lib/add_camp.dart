@@ -90,12 +90,12 @@ class _CampFormState extends State<CampForm> {
           title: 'Crop image',
         ))
         .then((File image) {
-          if (image == null) return;
-          setState(() {
-            // TODO: CampImage is not updated with the new image file
-            // TODO use two image lists to represent cropped and original file?
-            _images[index] = file;
-          });
+      if (image == null) return;
+      setState(() {
+        // TODO: CampImage is not updated with the new image file
+        // TODO use two image lists to represent cropped and original file?
+        _images[index] = file;
+      });
     });
   }
 
@@ -104,10 +104,10 @@ class _CampFormState extends State<CampForm> {
     _listKey.currentState.removeItem(index, (context, animation) {
       return animate
           ? SizeTransition(
-              axis: Axis.horizontal,
-              sizeFactor: animation,
-              child: CampImage(image, key: Key(image.toString())),
-            )
+        axis: Axis.horizontal,
+        sizeFactor: animation,
+        child: CampImage(image, key: Key(image.toString())),
+      )
           : SizedBox.shrink();
     });
   }
@@ -194,21 +194,27 @@ class ImageList extends StatelessWidget {
   final Function _addCallback;
   final Function(File, int) _onEditCallback;
   final Function(int, {bool animate}) _deleteCallback;
+  double imageHeight;
+  double imageWidth;
 
   ImageList(this._listKey, this._images, this._addCallback,
-      this._deleteCallback, this._onEditCallback, {Key key}) : super(key: key);
+      this._deleteCallback, this._onEditCallback, {Key key}) : super(key: key) {
+    // Show images in a 4x3 aspect ratio, reflecting the uploaded image.
+    this.imageHeight = 210;
+    this.imageWidth = imageHeight * 4/3;
+  }
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 210,
+      height: imageHeight,
       child: AnimatedList(
           key: _listKey,
           controller: _controller,
           scrollDirection: Axis.horizontal,
           initialItemCount: 1, // add extra for 'add image' button
           shrinkWrap:
-              true, // if true, list wil be centered when only 1 items is added
+          true, // if true, list wil be centered when only 1 items is added
           itemBuilder: (context, index, animation) {
             bool isButtonIndex = _images.length == index;
             if (!isButtonIndex) {
@@ -224,7 +230,7 @@ class ImageList extends StatelessWidget {
                     _deleteCallback(index);
                   },
                   child: Container(
-                    width: 280,
+                    width: imageWidth,
                     padding: EdgeInsets.only(right: 2),
                     child: Stack(
                       fit: StackFit.expand,
@@ -261,12 +267,12 @@ class ImageList extends StatelessWidget {
               );
             } else {
               return Container(
-                width: 280,
+                width: imageWidth,
                 padding: EdgeInsets.all(1),
                 child: OutlineButton(
                     child: Icon(Icons.add),
                     borderSide:
-                        BorderSide(color: Theme.of(context).primaryColor),
+                    BorderSide(color: Theme.of(context).primaryColor),
                     onPressed: () => _addCallback(),
                     highlightedBorderColor: Theme.of(context)
                         .colorScheme
