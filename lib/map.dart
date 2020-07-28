@@ -131,18 +131,17 @@ class _HammockMapState extends State<HammockMap> {
           right: 12,
           top: 12,
           child: PopupMenuButton<MapType>(
-            child: ClipOval(
-              child: Material(
-                color: Colors.grey.shade50,
-                child: Ink(
-                  child: SizedBox(
-                    width: 32,
-                    height: 32,
-                    child: Icon(
-                      Icons.layers,
-                      color: Colors.black87,
-                    ),
-                  ),
+            child: Material(  // TODO: add ripple effect. Note: onTap() overrides popupmenu
+              type: MaterialType.circle,
+              elevation: 1,
+              color: Colors.grey.shade50,
+              child: SizedBox(
+                width: 32,
+                height: 32,
+                child: Icon(
+                  Icons.layers,
+                  size: 20,
+                  color: Colors.black87,
                 ),
               ),
             ),
