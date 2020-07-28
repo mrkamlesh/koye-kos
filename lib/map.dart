@@ -46,7 +46,7 @@ class MapKartverket {
     options: TileLayerOptions(
       urlTemplate: mapTopo,
       subdomains:
-          mapSubdomains, // loadbalancing; uses subdomains opencache[2/3].statkart.no
+      mapSubdomains, // loadbalancing; uses subdomains opencache[2/3].statkart.no
     ),
   );
 
@@ -197,27 +197,84 @@ class _CampMarkerLayerState extends State<CampMarkerLayer> {
                         // TODO: fix widgets rebuilding during animation
                         // Causes poor performance, widgets showing wrong state (favorite widget)
                         // E.g. streambuilder does not work here, since it would be rebuilt and need to load stream again
-                        return OpenContainer(
-                          closedColor: Colors.transparent,
-                          closedShape: const RoundedRectangleBorder(),
-                          closedElevation: 0,
-                          openElevation: 0,
-                          closedBuilder: (BuildContext context,
-                              VoidCallback openContainer) {
-                            return MarkerBottomSheet(camp: camp);
-                          },
-                          openBuilder: (BuildContext context, VoidCallback _) {
-                            return CampDetailScreen(camp: camp);
-                          },
+                        return _OpenContainerWrapper(
+                            closedBuilder: (BuildContext _, VoidCallback openContainer) {
+                              return _BottomSheetWrapper(openContainer: openContainer);
+                            }
                         );
                       },
                     );
                   });
-                }),
+                })
             ],
           ),
         );
       },
+    );
+  }
+}
+
+class _BottomSheetWrapper extends StatelessWidget {
+  final VoidCallback openContainer;
+  _BottomSheetWrapper({this.openContainer});
+
+  @override
+  Widget build(BuildContext context) {
+    return _InkWellOverlay(
+      openContainer: openContainer,
+      height: 300,
+      child: MarkerBottomSheet(),
+
+    );
+  }
+}
+
+class _InkWellOverlay extends StatelessWidget {
+  const _InkWellOverlay({
+    this.openContainer,
+    this.width,
+    this.height,
+    this.child,
+  });
+
+  final VoidCallback openContainer;
+  final double width;
+  final double height;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: height,
+      width: width,
+      child: InkWell(
+        onTap: openContainer,
+        child: child,
+      ),
+    );
+  }
+}
+
+class _OpenContainerWrapper extends StatelessWidget {
+  final OpenContainerBuilder closedBuilder;
+  final ClosedCallback<bool> onClosed;
+  const _OpenContainerWrapper({
+    this.closedBuilder,
+    this.onClosed,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return OpenContainer<bool>(
+      closedColor: Colors.transparent,
+      closedShape: const RoundedRectangleBorder(),
+      closedElevation: 0,
+      openElevation: 0,
+      openBuilder: (BuildContext context, VoidCallback _) {
+        return CampDetailScreen();
+      },
+      onClosed: onClosed,
+      closedBuilder: closedBuilder,
     );
   }
 }
@@ -228,19 +285,19 @@ class CampMarker extends Marker {
 
   CampMarker(this.camp, {this.tapCallback})
       : super(
-          point: camp.location,
-          width: 40,
-          height: 40,
-          anchorPos: AnchorPos.align(AnchorAlign.top),
-          builder: (context) => Container(
-            child: GestureDetector(
-              onTap: () {
-                tapCallback();
-              },
-              child: Icon(Icons.location_on, size: 40),
-            ),
-          ),
-        );
+    point: camp.location,
+    width: 40,
+    height: 40,
+    anchorPos: AnchorPos.align(AnchorAlign.top),
+    builder: (context) => Container(
+      child: GestureDetector(
+        onTap: () {
+          tapCallback();
+        },
+        child: Icon(Icons.location_on, size: 40),
+      ),
+    ),
+  );
 }
 
 Marker createLongpressMarker(LatLng point) {
