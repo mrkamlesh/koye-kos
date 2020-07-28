@@ -89,21 +89,17 @@ class FavoriteWidget extends StatelessWidget {
     final firestoreService = Provider.of<FirestoreService>(context);
     final user = Provider.of<FirebaseUser>(context);
     final camp = Provider.of<Camp>(context);
+    final isFavorited = Provider.of<bool>(context);
 
-    return StreamBuilder<bool>(
-        stream: firestoreService.campFavoritedStream(user.uid, camp.id),
-        builder: (BuildContext context, AsyncSnapshot<bool> snapshot) {
-          bool isFavorited = snapshot.data ?? false;
-          return IconButton(
-            icon: isFavorited
-                ? Icon(Icons.favorite, color: Colors.redAccent)
-                : Icon(Icons.favorite_border),
-            onPressed: () {
-              firestoreService.setFavorited(user.uid, camp.id,
-                  favorited: !isFavorited);
-            },
-          );
-        });
+    return IconButton(
+      icon: isFavorited
+          ? Icon(Icons.favorite, color: Colors.redAccent)
+          : Icon(Icons.favorite_border),
+      onPressed: () {
+        firestoreService.setFavorited(user.uid, camp.id,
+            favorited: !isFavorited);
+      },
+    );
   }
 }
 

@@ -1,4 +1,5 @@
 import 'package:animations/animations.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_map/flutter_map.dart';
@@ -46,7 +47,7 @@ class MapKartverket {
     options: TileLayerOptions(
       urlTemplate: mapTopo,
       subdomains:
-          mapSubdomains, // loadbalancing; uses subdomains opencache[2/3].statkart.no
+      mapSubdomains, // loadbalancing; uses subdomains opencache[2/3].statkart.no
     ),
   );
 
@@ -179,6 +180,8 @@ class _CampMarkerLayerState extends State<CampMarkerLayer> {
   @override
   Widget build(BuildContext context) {
     final firestoreService = Provider.of<FirestoreService>(context);
+    final user = Provider.of<FirebaseUser>(context);
+
     return StreamBuilder(
       stream: firestoreService.getCampListStream(),
       builder: (BuildContext context, AsyncSnapshot<List<Camp>> snapshot) {
@@ -204,28 +207,41 @@ class _CampMarkerLayerState extends State<CampMarkerLayer> {
                           openElevation: 0,
                           closedBuilder: (BuildContext context,
                               VoidCallback openContainer) {
-                            return StreamProvider<Camp>(
-                              create: (_) => firestoreService.getCampStream(camp.id),
-                              initialData: camp,
-                              builder: (context, snapshot) {
-                                return MarkerBottomSheet();
-                              }
+                            return MultiProvider(
+                              providers: [
+                                StreamProvider<Camp>(
+                                  create: (_) => firestoreService.getCampStream(camp.id),
+                                  initialData: camp,
+                                ),
+                                StreamProvider<bool>(
+                                  create: (_) => firestoreService.campFavoritedStream(user.uid, camp.id),
+                                  initialData: false,
+                                ),
+                              ],
+                              child: MarkerBottomSheet(),
                             );
                           },
                           openBuilder: (BuildContext context, VoidCallback _) {
-                            return StreamProvider<Camp>(
-                              create: (_) => firestoreService.getCampStream(camp.id),
-                              initialData: camp,
-                              builder: (context, snapshot) {
-                                return CampDetailScreen();
-                              }
+                            return MultiProvider(
+                              providers: [
+                                StreamProvider<Camp>(
+                                  create: (_) => firestoreService.getCampStream(camp.id),
+                                  initialData: camp,
+                                ),
+                                StreamProvider<bool>(
+                                  create: (_) => firestoreService.campFavoritedStream(user.uid, camp.id),
+                                  initialData: false,
+                                ),
+                              ],
+                              child: CampDetailScreen(),
                             );
                           },
                         );
                       },
                     );
-                  });
-                }),
+                  },
+                  );
+                })
             ],
           ),
         );
@@ -240,19 +256,19 @@ class CampMarker extends Marker {
 
   CampMarker(this.camp, {this.tapCallback})
       : super(
-          point: camp.location,
-          width: 40,
-          height: 40,
-          anchorPos: AnchorPos.align(AnchorAlign.top),
-          builder: (context) => Container(
-            child: GestureDetector(
-              onTap: () {
-                tapCallback();
-              },
-              child: Icon(Icons.location_on, size: 40),
-            ),
-          ),
-        );
+    point: camp.location,
+    width: 40,
+    height: 40,
+    anchorPos: AnchorPos.align(AnchorAlign.top),
+    builder: (context) => Container(
+      child: GestureDetector(
+        onTap: () {
+          tapCallback();
+        },
+        child: Icon(Icons.location_on, size: 40),
+      ),
+    ),
+  );
 }
 
 Marker createLongpressMarker(LatLng point) {
