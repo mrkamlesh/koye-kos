@@ -204,10 +204,22 @@ class _CampMarkerLayerState extends State<CampMarkerLayer> {
                           openElevation: 0,
                           closedBuilder: (BuildContext context,
                               VoidCallback openContainer) {
-                            return MarkerBottomSheet(camp: camp);
+                            return StreamProvider<Camp>(
+                              create: (_) => firestoreService.getCampStream(camp.id),
+                              initialData: camp,
+                              builder: (context, snapshot) {
+                                return MarkerBottomSheet();
+                              }
+                            );
                           },
                           openBuilder: (BuildContext context, VoidCallback _) {
-                            return CampDetailScreen(camp: camp);
+                            return StreamProvider<Camp>(
+                              create: (_) => firestoreService.getCampStream(camp.id),
+                              initialData: camp,
+                              builder: (context, snapshot) {
+                                return CampDetailScreen();
+                              }
+                            );
                           },
                         );
                       },
