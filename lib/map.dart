@@ -47,7 +47,7 @@ class MapKartverket {
     options: TileLayerOptions(
       urlTemplate: mapTopo,
       subdomains:
-      mapSubdomains, // loadbalancing; uses subdomains opencache[2/3].statkart.no
+          mapSubdomains, // loadbalancing; uses subdomains opencache[2/3].statkart.no
     ),
   );
 
@@ -128,42 +128,56 @@ class _HammockMapState extends State<HammockMap> {
             }),
           ],
         ),
-        Positioned(
-          right: 12,
-          top: 12,
-          child: PopupMenuButton<MapType>(
-            child: Material(  // TODO: add ripple effect. Note: onTap() overrides popupmenu
-              type: MaterialType.circle,
-              elevation: 1,
-              color: Colors.grey.shade50,
-              child: SizedBox(
-                width: 32,
-                height: 32,
-                child: Icon(
-                  Icons.layers,
-                  size: 20,
-                  color: Colors.black87,
-                ),
-              ),
-            ),
-            onSelected: (MapType result) {
-              setState(() {
-                _tileLayerWidget = _mapProvider.getMap(type: result);
-              });
-            },
-            itemBuilder: (context) => <PopupMenuEntry<MapType>>[
-              PopupMenuItem<MapType>(
-                value: MapType.topo,
-                child: Text('Topografisk'),
-              ),
-              PopupMenuItem<MapType>(
-                value: MapType.grunn,
-                child: Text('Grunnkart'),
-              ),
-            ],
-          ),
-        )
+        MapLayerPopup(
+          selectionCallback: ((MapType selection) {
+            setState(() {
+              _tileLayerWidget = _mapProvider.getMap(type: selection);
+            });
+          }),
+        ),
       ],
+    );
+  }
+}
+
+class MapLayerPopup extends StatelessWidget {
+  final Function(MapType) selectionCallback;
+  MapLayerPopup({this.selectionCallback});
+
+  @override
+  Widget build(BuildContext context) {
+    return Positioned(
+      right: 12,
+      top: 12,
+      child: PopupMenuButton<MapType>(
+        child: Material(
+          type: MaterialType.circle,
+          elevation: 1,
+          color: Colors.grey.shade50,
+          child: SizedBox(
+            width: 32,
+            height: 32,
+            child: Icon(
+              Icons.layers,
+              size: 20,
+              color: Colors.black87,
+            ),
+          ),
+        ),
+        onSelected: (MapType result) {
+          selectionCallback(result);
+        },
+        itemBuilder: (context) => <PopupMenuEntry<MapType>>[
+          PopupMenuItem<MapType>(
+            value: MapType.topo,
+            child: Text('Topografisk'),
+          ),
+          PopupMenuItem<MapType>(
+            value: MapType.grunn,
+            child: Text('Grunnkart'),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -190,10 +204,8 @@ class CampMarkerLayer extends StatelessWidget {
                     showBottomSheet<void>(
                         context: context,
                         backgroundColor: Colors.transparent,
-                        builder: (context) => _OpenContainerCamp(camp: camp)
-                    );
-                  },
-                  );
+                        builder: (context) => _OpenContainerCamp(camp: camp));
+                  });
                 })
             ],
           ),
@@ -218,8 +230,7 @@ class _OpenContainerCamp extends StatelessWidget {
       closedShape: const RoundedRectangleBorder(),
       closedElevation: 0,
       openElevation: 0,
-      closedBuilder: (BuildContext context,
-          VoidCallback openContainer) {
+      closedBuilder: (BuildContext context, VoidCallback openContainer) {
         return MultiProvider(
           providers: [
             StreamProvider<Camp>(
@@ -227,7 +238,8 @@ class _OpenContainerCamp extends StatelessWidget {
               initialData: camp,
             ),
             StreamProvider<bool>(
-              create: (_) => firestoreService.campFavoritedStream(user.uid, camp.id),
+              create: (_) =>
+                  firestoreService.campFavoritedStream(user.uid, camp.id),
               initialData: false,
             ),
           ],
@@ -242,7 +254,8 @@ class _OpenContainerCamp extends StatelessWidget {
               initialData: camp,
             ),
             StreamProvider<bool>(
-              create: (_) => firestoreService.campFavoritedStream(user.uid, camp.id),
+              create: (_) =>
+                  firestoreService.campFavoritedStream(user.uid, camp.id),
               initialData: false,
             ),
           ],
@@ -259,19 +272,19 @@ class CampMarker extends Marker {
 
   CampMarker(this.camp, {this.tapCallback})
       : super(
-    point: camp.location,
-    width: 40,
-    height: 40,
-    anchorPos: AnchorPos.align(AnchorAlign.top),
-    builder: (context) => Container(
-      child: GestureDetector(
-        onTap: () {
-          tapCallback();
-        },
-        child: Icon(Icons.location_on, size: 40),
-      ),
-    ),
-  );
+          point: camp.location,
+          width: 40,
+          height: 40,
+          anchorPos: AnchorPos.align(AnchorAlign.top),
+          builder: (context) => Container(
+            child: GestureDetector(
+              onTap: () {
+                tapCallback();
+              },
+              child: Icon(Icons.location_on, size: 40),
+            ),
+          ),
+        );
 }
 
 Marker createLongpressMarker(LatLng point) {
