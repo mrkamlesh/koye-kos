@@ -168,19 +168,13 @@ class _HammockMapState extends State<HammockMap> {
   }
 }
 
-class CampMarkerLayer extends StatefulWidget {
+class CampMarkerLayer extends StatelessWidget {
   final Function tapCallback;
   CampMarkerLayer({this.tapCallback});
 
   @override
-  _CampMarkerLayerState createState() => _CampMarkerLayerState();
-}
-
-class _CampMarkerLayerState extends State<CampMarkerLayer> {
-  @override
   Widget build(BuildContext context) {
     final firestoreService = Provider.of<FirestoreService>(context);
-    final user = Provider.of<FirebaseUser>(context);
 
     return StreamBuilder(
       stream: firestoreService.getCampListStream(),
@@ -191,59 +185,68 @@ class _CampMarkerLayerState extends State<CampMarkerLayer> {
               if (snapshot.hasData)
                 ...snapshot.data.map((Camp camp) {
                   return CampMarker(camp, tapCallback: () {
-                    widget.tapCallback();
+                    tapCallback();
                     // TODO: change marker icon to red when tapped
                     showBottomSheet<void>(
-                      context: context,
-                      backgroundColor: Colors.transparent,
-                      builder: (context) {
-                        // TODO: fix widgets rebuilding during animation
-                        // Causes poor performance, widgets showing wrong state (favorite widget)
-                        // E.g. streambuilder does not work here, since it would be rebuilt and need to load stream again
-                        return OpenContainer(
-                          closedColor: Colors.transparent,
-                          closedShape: const RoundedRectangleBorder(),
-                          closedElevation: 0,
-                          openElevation: 0,
-                          closedBuilder: (BuildContext context,
-                              VoidCallback openContainer) {
-                            return MultiProvider(
-                              providers: [
-                                StreamProvider<Camp>(
-                                  create: (_) => firestoreService.getCampStream(camp.id),
-                                  initialData: camp,
-                                ),
-                                StreamProvider<bool>(
-                                  create: (_) => firestoreService.campFavoritedStream(user.uid, camp.id),
-                                  initialData: false,
-                                ),
-                              ],
-                              child: MarkerBottomSheet(),
-                            );
-                          },
-                          openBuilder: (BuildContext context, VoidCallback _) {
-                            return MultiProvider(
-                              providers: [
-                                StreamProvider<Camp>(
-                                  create: (_) => firestoreService.getCampStream(camp.id),
-                                  initialData: camp,
-                                ),
-                                StreamProvider<bool>(
-                                  create: (_) => firestoreService.campFavoritedStream(user.uid, camp.id),
-                                  initialData: false,
-                                ),
-                              ],
-                              child: CampDetailScreen(),
-                            );
-                          },
-                        );
-                      },
+                        context: context,
+                        backgroundColor: Colors.transparent,
+                        builder: (context) => _OpenContainerCamp(camp: camp)
                     );
                   },
                   );
                 })
             ],
           ),
+        );
+      },
+    );
+  }
+}
+
+class _OpenContainerCamp extends StatelessWidget {
+  final Camp camp;
+  _OpenContainerCamp({this.camp});
+  // TODO: fix widgets rebuilding during animation, likely cause for poor performance
+
+  @override
+  Widget build(BuildContext context) {
+    final firestoreService = Provider.of<FirestoreService>(context);
+    final user = Provider.of<FirebaseUser>(context);
+
+    return OpenContainer(
+      closedColor: Colors.transparent,
+      closedShape: const RoundedRectangleBorder(),
+      closedElevation: 0,
+      openElevation: 0,
+      closedBuilder: (BuildContext context,
+          VoidCallback openContainer) {
+        return MultiProvider(
+          providers: [
+            StreamProvider<Camp>(
+              create: (_) => firestoreService.getCampStream(camp.id),
+              initialData: camp,
+            ),
+            StreamProvider<bool>(
+              create: (_) => firestoreService.campFavoritedStream(user.uid, camp.id),
+              initialData: false,
+            ),
+          ],
+          child: MarkerBottomSheet(),
+        );
+      },
+      openBuilder: (BuildContext context, VoidCallback _) {
+        return MultiProvider(
+          providers: [
+            StreamProvider<Camp>(
+              create: (_) => firestoreService.getCampStream(camp.id),
+              initialData: camp,
+            ),
+            StreamProvider<bool>(
+              create: (_) => firestoreService.campFavoritedStream(user.uid, camp.id),
+              initialData: false,
+            ),
+          ],
+          child: CampDetailScreen(),
         );
       },
     );
