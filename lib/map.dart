@@ -197,10 +197,22 @@ class _CampMarkerLayerState extends State<CampMarkerLayer> {
                         // TODO: fix widgets rebuilding during animation
                         // Causes poor performance, widgets showing wrong state (favorite widget)
                         // E.g. streambuilder does not work here, since it would be rebuilt and need to load stream again
-                        return _OpenContainerWrapper(
-                            closedBuilder: (BuildContext _, VoidCallback openContainer) {
-                              return _BottomSheetWrapper(openContainer: openContainer);
-                            }
+                        return StreamProvider<Camp>(
+                          create: (_) => firestoreService.getCampStream(camp.id),
+                          initialData: camp,
+                          builder: (context, snapshot) {
+                            return _OpenContainerWrapper(
+                                closedBuilder: (BuildContext context, VoidCallback openContainer) {
+                                  return StreamProvider<Camp>(
+                                    create: (_) => firestoreService.getCampStream(camp.id),
+                                    initialData: camp,
+                                    builder: (context, snapshot) {
+                                      return _BottomSheetWrapper(openContainer: openContainer);
+                                    }
+                                  );
+                                }
+                            );
+                          }
                         );
                       },
                     );
@@ -220,10 +232,19 @@ class _BottomSheetWrapper extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final camp = Provider.of<Camp>(context);
+    final firestoreService = Provider.of<FirestoreService>(context);
+
     return _InkWellOverlay(
       openContainer: openContainer,
       height: 300,
-      child: MarkerBottomSheet(),
+      child: StreamProvider<Camp>(
+        create: (_) => firestoreService.getCampStream(camp.id),
+        initialData: camp,
+        builder: (context, snapshot) {
+          return MarkerBottomSheet();
+        }
+      ),
 
     );
   }
@@ -265,13 +286,22 @@ class _OpenContainerWrapper extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final camp = Provider.of<Camp>(context);
+    final firestoreService = Provider.of<FirestoreService>(context);
+
     return OpenContainer<bool>(
       closedColor: Colors.transparent,
       closedShape: const RoundedRectangleBorder(),
       closedElevation: 0,
       openElevation: 0,
       openBuilder: (BuildContext context, VoidCallback _) {
-        return CampDetailScreen();
+        return StreamProvider<Camp>(
+          create: (_) => firestoreService.getCampStream(camp.id),
+          initialData: camp,
+          builder: (context, snapshot) {
+            return CampDetailScreen();
+          }
+        );
       },
       onClosed: onClosed,
       closedBuilder: closedBuilder,
