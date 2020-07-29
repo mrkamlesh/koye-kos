@@ -97,13 +97,13 @@ class FirestoreService {
 
   // Subject to this: https://github.com/FirebaseExtended/flutterfire/issues/1969
   // Possible circumvention: do nout use await in transaction code
-  Future<void> updateRating(Camp camp, FirebaseUser user, double score) async {
+  Future<void> updateRating(String campId, String userId, double score) async {
     // compute new score
     final DocumentReference campRef =
-    Firestore.instance.collection('camps').document(camp.id);
+    Firestore.instance.collection('camps').document(campId);
 
     final DocumentReference userRatingRef =
-    campRef.collection('user_ratings').document('${user.uid}_${camp.id}');
+    campRef.collection('user_ratings').document('${userId}_${campId}');
 
     return Firestore.instance.runTransaction((Transaction transaction) async {
       DocumentSnapshot campSnapshot = await transaction.get(campRef);
@@ -146,10 +146,9 @@ class FirestoreService {
     });
   }
 
-  Future<void> deleteCamp(Camp camp) async {
-    print('Delete: ${camp.id}');
+  Future<void> deleteCamp(String campId) async {
     // compute new score
-    Firestore.instance.collection('camps').document(camp.id).delete();
+    Firestore.instance.collection('camps').document(campId).delete();
 
     /*
     Firebase storage does not support client side deletion of buckets..

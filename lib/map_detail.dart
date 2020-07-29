@@ -14,7 +14,6 @@ class MarkerBottomSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-
     return SingleChildScrollView(
       child: Card(
         clipBehavior: Clip.antiAliasWithSaveLayer, // for rounded corners
@@ -63,19 +62,19 @@ class CampDescription extends StatelessWidget {
 class ImageListSmall extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final camp = Provider.of<Camp>(context);
+    final List<String> imageUrls = context.select((Camp camp) => camp.imageUrls);
     return Container(
       height: 120, // restrict image height
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
-        itemCount: camp.imageUrls.length,
+        itemCount: imageUrls.length,
         itemBuilder: (context, index) {
-          bool last = camp.imageUrls.length == index + 1;
+          bool last = imageUrls.length == index + 1;
           return Container(
             width: 220,
             // insert right padding to all but the last list item
             padding: !last ? EdgeInsets.only(right: 2) : null,
-            child: MarkerCachedImage(camp.imageUrls[index]),
+            child: MarkerCachedImage(imageUrls[index]),
           );
         },
       ),
@@ -87,16 +86,16 @@ class FavoriteWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final firestoreService = Provider.of<FirestoreService>(context);
-    final user = Provider.of<FirebaseUser>(context);
-    final camp = Provider.of<Camp>(context);
-    final isFavorited = Provider.of<bool>(context);
+    final String userId = context.select((FirebaseUser user) => user.uid);
+    final String campId = context.select((Camp camp) => camp.id);
+    final bool isFavorited = Provider.of<bool>(context);
 
     return IconButton(
       icon: isFavorited
           ? Icon(Icons.favorite, color: Colors.redAccent)
           : Icon(Icons.favorite_border),
       onPressed: () {
-        firestoreService.setFavorited(user.uid, camp.id,
+        firestoreService.setFavorited(userId, campId,
             favorited: !isFavorited);
       },
     );

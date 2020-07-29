@@ -15,7 +15,6 @@ class CampDetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
       appBar: AppBar(
         title: Text('Camp'),
@@ -51,10 +50,10 @@ class _UserRatingWidgetState extends State<UserRatingWidget> {
 
   @override
   void initState() {
-    final camp = Provider.of<Camp>(context, listen: false);
-    final user = Provider.of<FirebaseUser>(context, listen: false);
-    Provider.of<FirestoreService>(context, listen: false)
-        .getUserCampRating(user.uid, camp.id)
+    final String campId = context.read<Camp>().id;
+    final String userId = context.read<FirebaseUser>().uid;
+    context.read<FirestoreService>()
+        .getUserCampRating(userId, campId)
         .then((double score) {
       setState(() {
         _score = score;
@@ -64,9 +63,9 @@ class _UserRatingWidgetState extends State<UserRatingWidget> {
 
   @override
   Widget build(BuildContext context) {
-    final camp = Provider.of<Camp>(context);
+    final String campId = context.select((Camp camp) => camp.id);
+    final String userId = context.select((FirebaseUser user) => user.uid);
     final firestoreService = Provider.of<FirestoreService>(context);
-    final user = Provider.of<FirebaseUser>(context);
     return Column(
       children: [
         Text(
@@ -82,7 +81,7 @@ class _UserRatingWidgetState extends State<UserRatingWidget> {
             color: Colors.amber,
             borderColor: Colors.amber,
             onRated: (rating) {
-              firestoreService.updateRating(camp, user, rating);
+              firestoreService.updateRating(campId, userId, rating);
               setState(() {
                 _score = rating;
               });
@@ -127,29 +126,29 @@ class RatingView extends StatelessWidget {
 class CampInfo extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final camp = Provider.of<Camp>(context);
+    final Camp camp = Provider.of<Camp>(context);
     return Padding(
-      // Rest of camp description / rating view
-      padding: const EdgeInsets.all(8.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              RatingView(
-                score: camp.score,
-                ratings: camp.ratings,
-              ),
-              FavoriteWidget(),
-            ],
-          ),
-          Text(camp.description),
-          Divider(),
-          Text('By: ${camp.creatorName ?? 'Anonymous'}'),
-        ],
-      ),
-    );
+            // Rest of camp description / rating view
+            padding: const EdgeInsets.all(8.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    RatingView(
+                      score: camp.score,
+                      ratings: camp.ratings,
+                    ),
+                    FavoriteWidget(),
+                  ],
+                ),
+                Text(camp.description),
+                Divider(),
+                Text('By: ${camp.creatorName ?? 'Anonymous'}'),
+              ],
+            ),
+          );
   }
 }
 
@@ -162,21 +161,21 @@ class _ImageListState extends State<ImageList> {
   final Map<int, ImageProvider> images = HashMap();
   @override
   Widget build(BuildContext context) {
-    final camp = Provider.of<Camp>(context);
+    final List<String> imageUrls = context.select((Camp camp) => camp.imageUrls);
     return Container(
       height: 200, // restrict image height
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
-        itemCount: camp.imageUrls.length,
+        itemCount: imageUrls.length,
         itemBuilder: (context, index) {
-          bool last = camp.imageUrls.length == index + 1;
+          bool last = imageUrls.length == index + 1;
           return GestureDetector(
             child: Container(
               width: 340,
               // insert right padding to all but the last list item
               padding: !last ? EdgeInsets.only(right: 2) : null,
               child: MarkerCachedImage(
-                camp.imageUrls[index],
+                imageUrls[index],
                 onLoadCallback: (ImageProvider provider) {
                   images[index] = provider;
                 },
@@ -228,8 +227,8 @@ class Gallery extends StatelessWidget {
 class DeleteCamp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final String campId = context.select((Camp camp) => camp.id);
     final firestoreService = Provider.of<FirestoreService>(context);
-    final camp = Provider.of<Camp>(context);
     return Center(
       child: RaisedButton(
         child: Text(
@@ -238,7 +237,7 @@ class DeleteCamp extends StatelessWidget {
         ),
         color: Colors.red,
         onPressed: () {
-          firestoreService.deleteCamp(camp);
+          firestoreService.deleteCamp(campId);
           Navigator.pop(context);
         },
       ),

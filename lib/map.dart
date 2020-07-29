@@ -188,10 +188,8 @@ class CampMarkerLayer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final firestoreService = Provider.of<FirestoreService>(context);
-
     return StreamBuilder(
-      stream: firestoreService.getCampListStream(),
+      stream: context.watch<FirestoreService>().getCampListStream(),
       builder: (BuildContext context, AsyncSnapshot<List<Camp>> snapshot) {
         return MarkerLayerWidget(
           options: MarkerLayerOptions(
@@ -223,7 +221,7 @@ class _OpenContainerCamp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final firestoreService = Provider.of<FirestoreService>(context);
-    final user = Provider.of<FirebaseUser>(context);
+    final String userId = context.select((FirebaseUser user) => user.uid);
 
     return OpenContainer(
       closedColor: Colors.transparent,
@@ -239,7 +237,7 @@ class _OpenContainerCamp extends StatelessWidget {
             ),
             StreamProvider<bool>(
               create: (_) =>
-                  firestoreService.campFavoritedStream(user.uid, camp.id),
+                  firestoreService.campFavoritedStream(userId, camp.id),
               initialData: false,
             ),
           ],
@@ -255,7 +253,7 @@ class _OpenContainerCamp extends StatelessWidget {
             ),
             StreamProvider<bool>(
               create: (_) =>
-                  firestoreService.campFavoritedStream(user.uid, camp.id),
+                  firestoreService.campFavoritedStream(userId, camp.id),
               initialData: false,
             ),
           ],
