@@ -48,6 +48,7 @@ dependencies:
 
   # Misc
   animations: ^1.1.1
+  font_awesome_flutter: ^8.8.1
   # smooth_star_rating: 1.1.1
 
   cupertino_icons: ^0.1.3
