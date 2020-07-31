@@ -76,70 +76,108 @@ class AccountView extends StatelessWidget {
   Widget build(BuildContext context) {
     final AuthService authService = Provider.of<AuthService>(context);
     final FirebaseUser user = Provider.of<FirebaseUser>(context);
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Account'),
-      ),
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(
-            vertical: 8,
-            horizontal: 8,
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                child: ClipOval(
-                  child: CachedNetworkImage(
-                    imageUrl: user.photoUrl,
-                  ),
-                ),
+    return DefaultTabController(
+      length: 4,
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text('Account'),
+          bottom: TabBar(
+            tabs: [
+              Icon(
+                Icons.person,
               ),
-              Text(
-                '${user.displayName}',
-                style: Theme.of(context).textTheme.headline6,
+              Icon(
+                Icons.favorite,
+                color: Colors.red,
               ),
-              Text('${user.email}',
-                  style: Theme.of(context).textTheme.headline6),
-              Divider(height: 40),
-              ListTile(
-                leading: Icon(
-                  Icons.favorite,
-                  color: Colors.red,
-                ),
-                title: Text('Favorited camps'),
-                onTap: () => print('opencontainer todo'),
+              Icon(
+                Icons.star,
+                color: Colors.amber,
               ),
-              ListTile(
-                leading: Icon(
-                  Icons.star,
-                  color: Colors.amber,
-                ),
-                title: Text('Rated camps'),
-                onTap: () => print('opencontainer todo'),
-              ),
-              ListTile(
-                leading: FaIcon(
-                  FontAwesomeIcons.mapMarkedAlt,
-                  color: Colors.green,
-                ),
-                title: Text('Created camps'),
-                onTap: () => print('opencontainer todo'),
-              ),
-              Expanded(
-                child: Align(
-                  alignment: FractionalOffset.bottomCenter,
-                  child: RaisedButton(
-                    child: Text('Log out'),
-                    color: Theme.of(context).primaryColor,
-                    onPressed: () async => await authService.signOut(),
-                  ),
-                ),
+              FaIcon(
+                FontAwesomeIcons.mapMarkedAlt,
+                color: Colors.green,
               ),
             ],
           ),
+        ),
+        body: TabBarView(
+          children: [
+            ProfileWidget(),
+            Icon(Icons.directions_car),
+            Icon(Icons.directions_transit),
+            Icon(Icons.directions_bike),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class ProfileWidget extends StatelessWidget {
+
+  @override
+  Widget build(BuildContext context) {
+    final AuthService authService = Provider.of<AuthService>(context);
+    final FirebaseUser user = Provider.of<FirebaseUser>(context);
+
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(
+          vertical: 8,
+          horizontal: 8,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              child: ClipOval(
+                child: CachedNetworkImage(
+                  imageUrl: user.photoUrl,
+                ),
+              ),
+            ),
+            Text(
+              '${user.displayName}',
+              style: Theme.of(context).textTheme.headline6,
+            ),
+            Text('${user.email}', style: Theme.of(context).textTheme.headline6),
+            Divider(height: 40),
+            ListTile(
+              leading: Icon(
+                Icons.favorite,
+                color: Colors.red,
+              ),
+              title: Text('Favorited camps'),
+            ),
+            ListTile(
+              leading: Icon(
+                Icons.star,
+                color: Colors.amber,
+              ),
+              title: Text('Rated camps'),
+              onTap: () => print('opencontainer todo'),
+            ),
+            ListTile(
+              leading: FaIcon(
+                FontAwesomeIcons.mapMarkedAlt,
+                color: Colors.green,
+              ),
+              title: Text('Created camps'),
+              onTap: () => print('opencontainer todo'),
+            ),
+            Expanded(
+              child: Align(
+                alignment: FractionalOffset.bottomCenter,
+                child: RaisedButton(
+                  child: Text('Log out'),
+                  color: Theme.of(context).primaryColor,
+                  onPressed: () async => await authService.signOut(),
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
