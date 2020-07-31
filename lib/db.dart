@@ -9,6 +9,7 @@ import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:latlong/latlong.dart';
 
 import 'models.dart';
+import 'firestore_paths.dart';
 
 class FirestoreService {
   FirestoreService._();
@@ -179,8 +180,8 @@ class FirestoreService {
 
   Stream<bool> campFavoritedStream(String userId, String campId) {
     return Firestore.instance
-        .collection('camps_favorited')
-        .document('${userId}_${campId}')
+        .collection(FirestorePath.getFavoritePath(userId))
+        .document(campId)
         .snapshots()
         .map((DocumentSnapshot documentSnapshot) => documentSnapshot.exists);
   }
@@ -188,7 +189,9 @@ class FirestoreService {
   Future<void> setFavorited(String userId, String campId,
       {bool favorited = true}) async {
     DocumentReference ref = await Firestore.instance
-        .document('camps_favorited/${userId}_${campId}');
+        .collection(FirestorePath.getFavoritePath(userId))
+        .document(campId);
+
     favorited ? ref.setData({}) : ref.delete();
   }
 }

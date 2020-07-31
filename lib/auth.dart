@@ -17,6 +17,7 @@ class AuthService {
   void signOut() async {
     _googleSignIn.signOut();
     _auth.signOut();
+    _auth.signInAnonymously();
 /*    FirebaseAuth.instance.currentUser()
         .then((FirebaseUser user) {
       user.unlinkFromProvider(user.providerId)
