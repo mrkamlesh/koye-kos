@@ -29,14 +29,18 @@ class AuthService {
   }
 
   Future<bool> signInWithGoogle() async {
+    signOut();
     final GoogleSignInAccount googleUser = await _googleSignIn.signIn();
-    final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+    final GoogleSignInAuthentication googleAuth = await googleUser
+        .authentication;
     final AuthCredential credential = GoogleAuthProvider.getCredential(
       accessToken: googleAuth.accessToken,
       idToken: googleAuth.idToken,
     );
+    _auth.signInWithCredential(credential);
 
-    _auth.currentUser().then((FirebaseUser user) {
+/*    // TODO: link google account to anonymous user, with updated display name and possibility to unlink later
+      _auth.currentUser().then((FirebaseUser user) {
       user.linkWithCredential(credential).then((AuthResult result) {
         print('linked user');
         UserUpdateInfo userInfo = UserUpdateInfo();
@@ -49,5 +53,6 @@ class AuthService {
           .catchError((error) {
         print('ERROR LINKING: $error');
       });
-  });
+  });*/
+  }
 }
