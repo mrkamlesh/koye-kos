@@ -100,11 +100,13 @@ class FirestoreService {
   // Possible circumvention: do nout use await in transaction code
   Future<void> updateRating(String campId, String userId, double score) async {
     // compute new score
-    final DocumentReference campRef =
-    Firestore.instance.collection('camps').document(campId);
+    final DocumentReference campRef = Firestore.instance
+        .collection(FirestorePath.campsPath)
+        .document(campId);
 
-    final DocumentReference userRatingRef =
-    campRef.collection('user_ratings').document('${userId}_${campId}');
+    final DocumentReference userRatingRef = campRef
+        .collection(FirestorePath.ratingsPath)
+        .document(userId);
 
     return Firestore.instance.runTransaction((Transaction transaction) async {
       DocumentSnapshot campSnapshot = await transaction.get(campRef);
@@ -137,6 +139,16 @@ class FirestoreService {
     });
   }
 
+  Future<double> getCampRating(String userId, String campId) {
+    return Firestore.instance
+        .collection(FirestorePath.getRatingPath(campId))
+        .document(userId)
+        .get()
+        .then((DocumentSnapshot snapshot) {
+      return snapshot.exists ? (snapshot['score'] as num).toDouble() : 0;
+    });
+  }
+
   Stream<Camp> getCampStream(String campId) {
     return Firestore.instance
         .collection('camps')
@@ -160,17 +172,6 @@ class FirestoreService {
         .delete();*/
   }
 
-  Future<double> getUserCampRating(String userId, String campId) {
-    return Firestore.instance
-        .collection('camps')
-        .document(campId)
-        .collection('user_ratings')
-        .document('${userId}_$campId')
-        .get()
-        .then((DocumentSnapshot snapshot) {
-      return snapshot.exists ? (snapshot['score'] as num).toDouble() : 0;
-    });
-  }
 
 /*  Future<void> addUser(User user) async {
     return await Firestore.instance

@@ -53,7 +53,7 @@ class _UserRatingWidgetState extends State<UserRatingWidget> {
     final String campId = context.read<Camp>().id;
     final String userId = context.read<FirebaseUser>().uid;
     context.read<FirestoreService>()
-        .getUserCampRating(userId, campId)
+        .getCampRating(userId, campId)
         .then((double score) {
       setState(() {
         _score = score;
