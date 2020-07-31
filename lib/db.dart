@@ -18,7 +18,7 @@ class FirestoreService {
   Stream<List<Camp>> getCampListStream() {
     // use ('camps').snapshots for continuous connection with live updates
     return Firestore.instance
-        .collection('camps')
+        .collection(FirestorePath.campsPath)
         .snapshots()
         .map((QuerySnapshot snapshot) => snapshot.documents
         .map((DocumentSnapshot document) => Camp.fromFirestore(document))
@@ -29,7 +29,10 @@ class FirestoreService {
   }
 
   Future<Uint8List> getCampImage(String path) {
-    return FirebaseStorage.instance.ref().child(path).getData(1000000);
+    return FirebaseStorage.instance
+        .ref()
+        .child(path)
+        .getData(1000000);
   }
 
   // TODO: adding a camp should be possible to do offline, as many users could be!
@@ -51,17 +54,19 @@ class FirestoreService {
 
     // TODO: store paths in a static class
     // Get a reference to new camp
-    DocumentReference campRef =
-    Firestore.instance.collection('camps').document();
-    String imagesStorePath = 'camps/${campRef.documentID}';
-    StorageReference imageStoreRef =
-    FirebaseStorage.instance.ref().child(imagesStorePath);
+    DocumentReference campRef = Firestore.instance
+        .collection(FirestorePath.campsPath)
+        .document();
+    StorageReference campImagesRef = FirebaseStorage.instance
+        .ref()
+        .child('${FirestoragePath.campsPath}/${campRef.documentID}');
+
     final imageUrls = <String>[];
 
     // Upload images to firestorage, path (camps/camp_id/time_id). Time id can later be used to sort images by upload date
     await Future.forEach(imagesCompressed, ((Uint8List imageList) async {
       String imageName = DateTime.now().toUtc().toString();
-      await imageStoreRef
+      await campImagesRef
           .child('$imageName')
           .putData(imageList)
           .onComplete
@@ -72,8 +77,7 @@ class FirestoreService {
         });
       }).catchError((_) {
         print('Error uploading camp!');
-        campRef.delete();
-        imageStoreRef.delete();
+        // TODO: properly handle upload failed (delete images, cancel transaction..).
         return false;
       });
     }));
@@ -151,7 +155,7 @@ class FirestoreService {
 
   Stream<Camp> getCampStream(String campId) {
     return Firestore.instance
-        .collection('camps')
+        .collection(FirestorePath.campsPath)
         .document(campId)
         .snapshots()
         .map((DocumentSnapshot snapshot) {
@@ -161,7 +165,10 @@ class FirestoreService {
 
   Future<void> deleteCamp(String campId) async {
     // compute new score
-    Firestore.instance.collection('camps').document(campId).delete();
+    Firestore.instance
+        .collection(FirestorePath.campsPath)
+        .document(campId)
+        .delete();
 
     /*
     Firebase storage does not support client side deletion of buckets..

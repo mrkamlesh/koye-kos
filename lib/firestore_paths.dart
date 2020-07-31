@@ -14,3 +14,7 @@ class FirestorePath {
     return '$campsPath/${campId}/$ratingsPath';
   }
 }
+
+class FirestoragePath {
+  static String campsPath = 'camps';
+}
