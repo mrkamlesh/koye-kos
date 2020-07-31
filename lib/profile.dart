@@ -10,14 +10,6 @@ class Profile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final FirebaseUser user = Provider.of<FirebaseUser>(context);
-    AuthService.instance.currentUser
-        .then((value) => print('Displayname:: ${value?.displayName}'));
-    /*print(user);
-    print(user?.uid);
-    print(user?.isAnonymous);
-    print(user?.email);
-    print(user?.displayName);
-    print(user == null || user.isAnonymous);*/
     return user == null || user.isAnonymous ? SignUpView() : AccountView();
   }
 }
@@ -104,15 +96,46 @@ class AccountView extends StatelessWidget {
         body: TabBarView(
           children: [
             ProfileWidget(),
-            Icon(Icons.directions_car),
-            Icon(Icons.directions_transit),
-            Icon(Icons.directions_bike),
+            FavoritedView(),
+            RatedView(),
+            CreatedView(),
           ],
         ),
       ),
     );
   }
 }
+
+class FavoritedView extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final AuthService authService = Provider.of<AuthService>(context);
+    final FirebaseUser user = Provider.of<FirebaseUser>(context);
+    return Container(
+      child: Icon(Icons.favorite),
+    );
+  }
+}
+
+class RatedView extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      child: Icon(Icons.star),
+    );
+  }
+}
+
+class CreatedView extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      child: Center(child: FaIcon(FontAwesomeIcons.mapMarkedAlt)),
+    );
+  }
+}
+
+
 
 class ProfileWidget extends StatelessWidget {
 
@@ -144,29 +167,6 @@ class ProfileWidget extends StatelessWidget {
             ),
             Text('${user.email}', style: Theme.of(context).textTheme.headline6),
             Divider(height: 40),
-            ListTile(
-              leading: Icon(
-                Icons.favorite,
-                color: Colors.red,
-              ),
-              title: Text('Favorited camps'),
-            ),
-            ListTile(
-              leading: Icon(
-                Icons.star,
-                color: Colors.amber,
-              ),
-              title: Text('Rated camps'),
-              onTap: () => print('opencontainer todo'),
-            ),
-            ListTile(
-              leading: FaIcon(
-                FontAwesomeIcons.mapMarkedAlt,
-                color: Colors.green,
-              ),
-              title: Text('Created camps'),
-              onTap: () => print('opencontainer todo'),
-            ),
             Expanded(
               child: Align(
                 alignment: FractionalOffset.bottomCenter,
