@@ -1,11 +1,11 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:koye_kos/profile.dart';
 import 'package:provider/provider.dart';
 
 import 'auth.dart';
 import 'db.dart';
 import 'map.dart';
-
 
 void main() => runApp(Application());
 
@@ -17,20 +17,23 @@ class Application extends StatefulWidget {
 class _ApplicationState extends State<Application> {
   @override
   Widget build(BuildContext context) {
-    FirebaseAuth.instance.currentUser().then((value) {
+    AuthService.instance.currentUser.then((value) {
       if (value == null) {
-        AuthService.signInAnonymously();
+        AuthService.instance.signInAnonymously();
       }
     });
 
     return MultiProvider(
       providers: [
-        StreamProvider<FirebaseUser>(
-          create: (_) => FirebaseAuth.instance.onAuthStateChanged,
+        StreamProvider<FirebaseUser>.value(
+          value: FirebaseAuth.instance.onAuthStateChanged,
           lazy: false,
         ),
         Provider<FirestoreService>(
           create: (_) => FirestoreService.instance,
+        ),
+        Provider<AuthService>(
+          create: (_) => AuthService.instance,
         ),
       ],
       child: MaterialApp(
@@ -38,10 +41,9 @@ class _ApplicationState extends State<Application> {
         initialRoute: '/',
         routes: {
           '/': (context) => Home(),
+          '/profile': (context) => Profile(),
         },
-        theme: ThemeData.from(
-          colorScheme: const ColorScheme.light(),
-        ).copyWith(
+        theme: ThemeData().copyWith(
           pageTransitionsTheme: const PageTransitionsTheme(
             builders: <TargetPlatform, PageTransitionsBuilder>{
               TargetPlatform.android: ZoomPageTransitionsBuilder(),
@@ -59,9 +61,14 @@ class Home extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text('Køye Kos'),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.person),
+            onPressed: () => Navigator.pushNamed(context, '/profile'),
+          ),
+        ],
       ),
       body: HammockMap(),
     );
   }
 }
-
