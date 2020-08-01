@@ -5,6 +5,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:koye_kos/auth.dart';
 import 'package:koye_kos/db.dart';
 import 'package:koye_kos/main.dart';
+import 'package:koye_kos/map_detail.dart';
 import 'package:provider/provider.dart';
 
 import 'models.dart';
@@ -112,7 +113,6 @@ class AccountView extends StatelessWidget {
 class FavoritedView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    print('build');
     final AuthService authService = Provider.of<AuthService>(context);
     final firestoreService = Provider.of<FirestoreService>(context);
     final String userId = context.select((FirebaseUser user) => user.uid);
@@ -141,6 +141,20 @@ class FavoritedView extends StatelessWidget {
               return ListTile(
                 title: Text('${camp.location}'),
                 subtitle: Text('${camp.description}'),
+                leading: Container(
+                  width: 80,
+                  height: 80,
+                  child: MarkerCachedImage(
+                    camp.imageUrls.first
+                  ),
+                ),
+                trailing: IconButton(
+                  icon: Icon(Icons.favorite, color: Colors.red,),
+                  onPressed: () {
+                    firestoreService.setFavorited(userId, camp.id, favorited: false);
+                    // TODO: add undo
+                  }
+                ),
               );
             },
           );
