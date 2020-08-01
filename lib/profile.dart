@@ -128,33 +128,34 @@ class FavoritedView extends StatelessWidget {
     final firestoreService = Provider.of<FirestoreService>(context);
     final String userId = context.select((User user) => user.id);
     return StreamBuilder<List<String>>(
-      stream: firestoreService.campIdsFavoritedStream(userId),
-      builder: (context, snapshot) {
-        if (snapshot.hasData) {
-          return FavoriteListView(campIds: snapshot.data);
-        } else if (snapshot.connectionState == ConnectionState.waiting) {
-          return Container(
-            padding: EdgeInsets.only(top: 20),
-            child: Column(
-              children: [
-                CircularProgressIndicator(),
-                Padding(
-                  padding: const EdgeInsets.only(top: 16.0),
-                  child: Text('Loading favorites...'),
-                ),
-              ],
-            ),
-          );
-        } else {
-          return Container(
-            child: Center(
-              child: Text(
-                  'You have no favorites. Tap the heart icon on a camp to add one.'),
-            ),
-          );
+        stream: firestoreService.campIdsFavoritedStream(userId),
+        builder: (context, snapshot) {
+          if (snapshot.hasData && snapshot.data.isNotEmpty) {
+            return FavoriteListView(campIds: snapshot.data);
+          } else if (snapshot.connectionState == ConnectionState.waiting) {
+            return Container(
+              padding: EdgeInsets.only(top: 20),
+              child: Column(
+                children: [
+                  CircularProgressIndicator(),
+                  Padding(
+                    padding: const EdgeInsets.only(top: 16.0),
+                    child: Text('Loading favorites...'),
+                  ),
+                ],
+              ),
+            );
+          } else {
+            return Container(
+              child: Center(
+                child: Text(
+                    'You have no favorites. Tap the heart icon on a camp to add one.'),
+              ),
+            );
+          }
         }
-      },
     );
+
   }
 }
 
