@@ -67,7 +67,7 @@ class User {
   final String email;
   final String photoUrl;
   final Set<String> campsCreated;
-  final Set<String> campsFavorited;
+  final Set<String> favorited;
   final Map<String, int> campsRated;
 
   User({
@@ -76,7 +76,7 @@ class User {
     this.email,
     this.photoUrl,
     this.campsCreated,
-    this.campsFavorited,
+    this.favorited,
     this.campsRated});
 
   factory User.fromFirestore(DocumentSnapshot document) {
@@ -87,7 +87,7 @@ class User {
       email: data['email'] as String,
       photoUrl: data['photo_url'] as String,
       //campsCreated: data['camps_created'],
-      campsFavorited: data['camps_favorited'],
+      favorited: data['favorited'],
       //campsRated: data['camps_rated'],
     );
   }
@@ -100,7 +100,7 @@ class User {
       'email': email,
       'photo_url': photoUrl,
       //'camps_created': campsCreated,
-      'camps_favorited': campsFavorited,
+      'favorited': favorited,
 /*      'camps_rated': campsRated?.entries?.map((e) => {
         'camp': e.key,
         'ranting': e.value,})?.toList(growable: false),*/

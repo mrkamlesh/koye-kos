@@ -9,6 +9,7 @@ import 'package:koye_kos/map_detail.dart';
 import 'package:provider/provider.dart';
 
 import 'models.dart';
+import 'utils.dart';
 
 class Profile extends StatelessWidget {
   @override
@@ -127,8 +128,8 @@ class FavoritedView extends StatelessWidget {
     final firestoreService = Provider.of<FirestoreService>(context);
     final String userId = context.select((User user) => user.id);
     //List<String> favoriteCamps = context.select(())
-    return StreamBuilder<List<Camp>>(
-      stream: firestoreService.campsFavoritedStream(userId),
+    return StreamBuilder<List<String>>(
+      stream: firestoreService.campIdsFavoritedStream(userId),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return Container(
@@ -145,28 +146,42 @@ class FavoritedView extends StatelessWidget {
           );
         }
         if (snapshot.hasData) {
+          final List<String> campIds = snapshot.data;
           return ListView.builder(
             itemCount: snapshot.data.length,
             itemBuilder: (context, index) {
-              final Camp camp = snapshot.data[index];
-              return ListTile(
-                title: Text('${camp.location}'),
-                subtitle: Text('${camp.description}'),
-                leading: Container(
-                  width: 80,
-                  height: 80,
-                  child: MarkerCachedImage(camp.imageUrls.first),
-                ),
-                trailing: IconButton(
-                    icon: Icon(
-                      Icons.favorite,
-                      color: Colors.red,
-                    ),
-                    onPressed: () {
-                      firestoreService.setFavorited(userId, camp.id,
-                          favorited: false);
-                      // TODO: add undo
-                    }),
+              return StreamBuilder<Camp>(
+                  stream: firestoreService.getCampStream(campIds[index]),
+                  builder: (context, snapshot) {
+                    if (snapshot.hasData) {
+                      final Camp camp = snapshot.data;
+                      return ListTile(
+                        title: Text('${camp.location.toReadableString(precision: 4, separator: ', ')}'),
+                        subtitle: Text('${camp.description}'),
+                        leading: Container(
+                          width: 80,
+                          height: 80,
+                          child: MarkerCachedImage(camp.imageUrls.first),
+                        ),
+                        trailing: IconButton(
+                            icon: Icon(
+                              Icons.favorite,
+                              color: Colors.red,
+                            ),
+                            onPressed: () {
+                              firestoreService.setFavorited(userId, camp.id,
+                                  favorited: false);
+                              // TODO: add undo
+                            }),
+                      );
+                    } else {
+                      return Container(
+                        child: Center(
+                          child: Text('No camp data'),
+                        ),
+                      );
+                    }
+                  }
               );
             },
           );

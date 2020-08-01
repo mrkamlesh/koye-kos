@@ -178,6 +178,14 @@ class FirestoreService {
         .map((DocumentSnapshot documentSnapshot) => documentSnapshot.exists);
   }
 
+  Stream<List<String>> campIdsFavoritedStream(String userId) {
+    return Firestore.instance
+        .collection(FirestorePath.getFavoritePath(userId))
+        .snapshots()
+        .map((QuerySnapshot snapshot) => snapshot.documents.map((e) => e.documentID)
+        .toList());
+  }
+
   Stream<List<Camp>> campsFavoritedStream(String userId) async* {
     List<String> ids = await Firestore.instance
         .collection(FirestorePath.getFavoritePath(userId))
@@ -194,6 +202,9 @@ class FirestoreService {
 
   Future<void> setFavorited(String userId, String campId,
       {bool favorited = true}) async {
+    if (favorited) {
+
+    }
     DocumentReference ref = await Firestore.instance
         .collection(FirestorePath.getFavoritePath(userId))
         .document(campId);
