@@ -125,14 +125,14 @@ class AccountView extends StatelessWidget {
 class FavoritedView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final AuthService authService = Provider.of<AuthService>(context);
     final firestoreService = Provider.of<FirestoreService>(context);
     final String userId = context.select((User user) => user.id);
-    //List<String> favoriteCamps = context.select(())
     return StreamBuilder<List<String>>(
       stream: firestoreService.campIdsFavoritedStream(userId),
       builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
+        if (snapshot.hasData) {
+          return FavoriteListView(campIds: snapshot.data);
+        } else if (snapshot.connectionState == ConnectionState.waiting) {
           return Container(
             padding: EdgeInsets.only(top: 20),
             child: Column(
@@ -145,77 +145,98 @@ class FavoritedView extends StatelessWidget {
               ],
             ),
           );
-        }
-        if (snapshot.hasData) {
-          final List<String> campIds = snapshot.data;
-          return ListView.builder(
-            itemCount: snapshot.data.length,
-            itemBuilder: (context, index) {
-              return StreamBuilder<Camp>(
-                  stream: firestoreService.getCampStream(campIds[index]),
-                  builder: (context, snapshot) {
-                    if (snapshot.hasData) {
-                      final Camp camp = snapshot.data;
-                      return ListTile(
-                          title: Text(
-                              '${camp.location.toReadableString(precision: 4, separator: ', ')}'),
-                          subtitle: Text('${camp.description}'),
-                          leading: Container(
-                            width: 80,
-                            height: 80,
-                            child: MarkerCachedImage(camp.imageUrls.first),
-                          ),
-                          trailing: IconButton(
-                              icon: Icon(
-                                Icons.favorite,
-                                color: Colors.red,
-                              ),
-                              onPressed: () {
-                                firestoreService.setFavorited(userId, camp.id,
-                                    favorited: false);
-                                // TODO: add undo
-                              }),
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => MultiProvider(
-                                  providers: [
-                                    StreamProvider<Camp>(
-                                      create: (_) => firestoreService
-                                          .getCampStream(camp.id),
-                                      initialData: camp,
-                                    ),
-                                    StreamProvider<bool>(
-                                      create: (_) => firestoreService
-                                          .campFavoritedStream(userId, camp.id),
-                                      initialData: true,
-                                    ),
-                                  ],
-                                  child: CampDetailScreen(),
-                                ),
-                              ),
-                            );
-                          });
-                    } else {
-                      return Container(
-                        child: Center(
-                          child: Text('No camp data'),
-                        ),
-                      );
-                    }
-                  });
-            },
-          );
         } else {
           return Container(
             child: Center(
-              child: Text('No favorites'),
+              child: Text(
+                  'You have no favorites. Tap the heart icon on a camp to add one.'),
             ),
           );
         }
       },
     );
+  }
+}
+
+class FavoriteListView extends StatelessWidget {
+  final List<String> campIds;
+  const FavoriteListView({
+    @required this.campIds,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final firestoreService = Provider.of<FirestoreService>(context);
+    return ListView.builder(
+      itemCount: campIds.length,
+      itemBuilder: (_, index) {
+        return StreamBuilder<Camp>(
+            stream: firestoreService.getCampStream(campIds[index]),
+            builder: (context, snapshot) {
+              if (snapshot.hasData) {
+                return FavoriteListItem(camp: snapshot.data);
+              } else {
+                return Container(
+                  child: Center(
+                    child: Text('Error fetching camp data...'),
+                  ),
+                );
+              }
+            });
+      },
+    );
+  }
+}
+
+class FavoriteListItem extends StatelessWidget {
+  final Camp camp;
+  const FavoriteListItem({@required this.camp});
+
+  @override
+  Widget build(BuildContext context) {
+    final firestoreService = Provider.of<FirestoreService>(context);
+    final String userId = context.select((User user) => user.id);
+    return ListTile(
+        contentPadding: EdgeInsets.all(0),
+        title: Text(
+            '${camp.location.toReadableString(precision: 4, separator: ', ')}'),
+        subtitle: Text('${camp.description}'),
+        leading: Container(
+          width: 80,
+          child: MarkerCachedImage(camp.imageUrls.first),
+        ),
+        trailing: IconButton(
+            icon: Icon(
+              Icons.favorite,
+              color: Colors.red,
+            ),
+            onPressed: () {
+              firestoreService.setFavorited(userId, camp.id,
+                  favorited: false);
+              // TODO: add undo
+            }),
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => MultiProvider(
+                providers: [
+                  StreamProvider<Camp>(
+                    create: (_) =>
+                        firestoreService.getCampStream(camp.id),
+                    initialData: camp,
+                  ),
+                  StreamProvider<bool>(
+                    create: (_) => firestoreService
+                        .campFavoritedStream(userId, camp.id),
+                    initialData: true,
+                  ),
+                ],
+                child: CampDetailScreen(),
+              ),
+            ),
+          );
+        });
   }
 }
 
