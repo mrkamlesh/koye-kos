@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:koye_kos/auth.dart';
+import 'package:koye_kos/camp_detail.dart';
 import 'package:koye_kos/db.dart';
 import 'package:koye_kos/main.dart';
 import 'package:koye_kos/map_detail.dart';
@@ -156,24 +157,46 @@ class FavoritedView extends StatelessWidget {
                     if (snapshot.hasData) {
                       final Camp camp = snapshot.data;
                       return ListTile(
-                        title: Text('${camp.location.toReadableString(precision: 4, separator: ', ')}'),
-                        subtitle: Text('${camp.description}'),
-                        leading: Container(
-                          width: 80,
-                          height: 80,
-                          child: MarkerCachedImage(camp.imageUrls.first),
-                        ),
-                        trailing: IconButton(
-                            icon: Icon(
-                              Icons.favorite,
-                              color: Colors.red,
-                            ),
-                            onPressed: () {
-                              firestoreService.setFavorited(userId, camp.id,
-                                  favorited: false);
-                              // TODO: add undo
-                            }),
-                      );
+                          title: Text(
+                              '${camp.location.toReadableString(precision: 4, separator: ', ')}'),
+                          subtitle: Text('${camp.description}'),
+                          leading: Container(
+                            width: 80,
+                            height: 80,
+                            child: MarkerCachedImage(camp.imageUrls.first),
+                          ),
+                          trailing: IconButton(
+                              icon: Icon(
+                                Icons.favorite,
+                                color: Colors.red,
+                              ),
+                              onPressed: () {
+                                firestoreService.setFavorited(userId, camp.id,
+                                    favorited: false);
+                                // TODO: add undo
+                              }),
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => MultiProvider(
+                                  providers: [
+                                    StreamProvider<Camp>(
+                                      create: (_) => firestoreService
+                                          .getCampStream(camp.id),
+                                      initialData: camp,
+                                    ),
+                                    StreamProvider<bool>(
+                                      create: (_) => firestoreService
+                                          .campFavoritedStream(userId, camp.id),
+                                      initialData: true,
+                                    ),
+                                  ],
+                                  child: CampDetailScreen(),
+                                ),
+                              ),
+                            );
+                          });
                     } else {
                       return Container(
                         child: Center(
@@ -181,8 +204,7 @@ class FavoritedView extends StatelessWidget {
                         ),
                       );
                     }
-                  }
-              );
+                  });
             },
           );
         } else {

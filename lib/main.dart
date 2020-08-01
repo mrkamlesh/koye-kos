@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:koye_kos/camp_detail.dart';
 import 'package:koye_kos/profile.dart';
 import 'package:provider/provider.dart';
 
@@ -42,6 +43,7 @@ class _ApplicationState extends State<Application> {
         routes: {
           '/': (context) => Home(),
           '/profile': (context) => Profile(),
+          '/detail': (context) => CampDetailScreen(),
         },
         theme: ThemeData().copyWith(
           pageTransitionsTheme: const PageTransitionsTheme(
