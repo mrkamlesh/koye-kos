@@ -167,22 +167,24 @@ class FavoriteListView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final firestoreService = Provider.of<FirestoreService>(context);
-    return ListView.builder(
-      itemCount: campIds.length,
-      itemBuilder: (_, index) {
-        return StreamBuilder<Camp>(
-            stream: firestoreService.getCampStream(campIds[index]),
-            builder: (context, snapshot) {
-              if (snapshot.hasData) {
-                return FavoriteListItem(camp: snapshot.data);
-              } else {
-                return Container(
-                  child: Center(
-                    child: Text('Error fetching camp data...'),
-                  ),
-                );
-              }
-            });
+    return StreamBuilder<List<Camp>>(
+      stream: firestoreService.getCampsStream(campIds),
+      builder: (context, snapshot) {
+        if (snapshot.hasData) {
+          final List<Camp> camps = snapshot.data;
+          return ListView.builder(
+            itemCount: camps.length,
+            itemBuilder: (_, index) {
+              return FavoriteListItem(camp: camps[index]);
+            },
+          );
+        } else {
+          return Container(
+            child: Center(
+              child: Text('Error fetching camp data...'),
+            ),
+          );
+        }
       },
     );
   }
@@ -216,6 +218,7 @@ class FavoriteListItem extends StatelessWidget {
               // TODO: add undo
             }),
         onTap: () {
+          // FIXME: This is messy. Also use openContainer
           Navigator.push(
             context,
             MaterialPageRoute(
