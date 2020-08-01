@@ -3,8 +3,11 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:koye_kos/auth.dart';
+import 'package:koye_kos/db.dart';
 import 'package:koye_kos/main.dart';
 import 'package:provider/provider.dart';
+
+import 'models.dart';
 
 class Profile extends StatelessWidget {
   @override
@@ -109,10 +112,46 @@ class AccountView extends StatelessWidget {
 class FavoritedView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    print('build');
     final AuthService authService = Provider.of<AuthService>(context);
-    final FirebaseUser user = Provider.of<FirebaseUser>(context);
-    return Container(
-      child: Icon(Icons.favorite),
+    final firestoreService = Provider.of<FirestoreService>(context);
+    final String userId = context.select((FirebaseUser user) => user.uid);
+    return StreamBuilder<List<Camp>>(
+      stream: firestoreService.campsFavoritedStream(userId),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Container(
+            padding: EdgeInsets.only(top: 20),
+            child: Column(
+              children: [
+                CircularProgressIndicator(),
+                Padding(
+                  padding: const EdgeInsets.only(top: 16.0),
+                  child: Text('Loading favorites...'),
+                ),
+              ],
+            ),
+          );
+        }
+        if (snapshot.hasData) {
+          return ListView.builder(
+            itemCount: snapshot.data.length,
+            itemBuilder: (context, index) {
+              final Camp camp = snapshot.data[index];
+              return ListTile(
+                title: Text('${camp.location}'),
+                subtitle: Text('${camp.description}'),
+              );
+            },
+          );
+        } else {
+          return Container(
+            child: Center(
+              child: Text('No favorites'),
+            ),
+          );
+        }
+      },
     );
   }
 }
