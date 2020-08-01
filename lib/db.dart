@@ -170,12 +170,6 @@ class FirestoreService {
         .delete();*/
   }
 
-/*  Future<void> addUser(User user) async {
-    return await Firestore.instance
-        .collection('users')
-        .add(user.toFirestoreMap());
-  }*/
-
   Stream<bool> campFavoritedStream(String userId, String campId) {
     return Firestore.instance
         .collection(FirestorePath.getFavoritePath(userId))
@@ -205,5 +199,20 @@ class FirestoreService {
         .document(campId);
 
     favorited ? ref.setData({}) : ref.delete();
+  }
+
+  Future<void> addUser(User user) async {
+    return await Firestore.instance
+        .collection(FirestorePath.usersPath)
+        .document(user.id)
+        .setData(user.toFirestoreMap());
+  }
+
+  Stream<User> getUserStream(String userId) {
+    return Firestore.instance
+        .collection(FirestorePath.usersPath)
+        .document(userId)
+        .snapshots()
+        .map((DocumentSnapshot document) => User.fromFirestore(document));
   }
 }

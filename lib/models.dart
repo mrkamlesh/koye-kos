@@ -64,6 +64,8 @@ class Camp {
 class User {
   final String id;
   final String name;
+  final String email;
+  final String photoUrl;
   final Set<String> campsCreated;
   final Set<String> campsFavorited;
   final Map<String, int> campsRated;
@@ -71,6 +73,8 @@ class User {
   User({
     this.id,
     this.name,
+    this.email,
+    this.photoUrl,
     this.campsCreated,
     this.campsFavorited,
     this.campsRated});
@@ -78,11 +82,13 @@ class User {
   factory User.fromFirestore(DocumentSnapshot document) {
     Map data = document.data;
     return User(
-      id: data['id'],
-      name: data['name'],
-      campsCreated: data['camps_created'],
+      id: data['id'] as String,
+      name: data['name'] as String,
+      email: data['email'] as String,
+      photoUrl: data['photo_url'] as String,
+      //campsCreated: data['camps_created'],
       campsFavorited: data['camps_favorited'],
-      campsRated: data['camps_rated'],
+      //campsRated: data['camps_rated'],
     );
   }
 
@@ -91,12 +97,13 @@ class User {
     map.addAll({
       'id': id,
       'name': name,
-      'camps_created': campsCreated?.toList(growable: false),
-      'camps_favorited': campsFavorited?.toList(growable: false),
-      'camps_rated': campsRated?.entries?.map((e) => {
+      'email': email,
+      'photo_url': photoUrl,
+      //'camps_created': campsCreated,
+      'camps_favorited': campsFavorited,
+/*      'camps_rated': campsRated?.entries?.map((e) => {
         'camp': e.key,
-        'ranting': e.value,
-      })?.toList(growable: false),
+        'ranting': e.value,})?.toList(growable: false),*/
     });
     print(map);
     return map;

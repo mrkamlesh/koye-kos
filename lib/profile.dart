@@ -13,8 +13,18 @@ import 'models.dart';
 class Profile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final firestoreService = Provider.of<FirestoreService>(context);
     final FirebaseUser user = Provider.of<FirebaseUser>(context);
-    return user == null || user.isAnonymous ? SignUpView() : AccountView();
+    if (user == null || user.isAnonymous) {
+      return SignUpView();
+    }
+
+    return StreamProvider<User>(
+        create: (_) => firestoreService.getUserStream(user.uid),
+        lazy: false,
+        builder: (context, snapshot) {
+          return AccountView();
+        });
   }
 }
 
@@ -71,7 +81,7 @@ class AccountView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final AuthService authService = Provider.of<AuthService>(context);
-    final FirebaseUser user = Provider.of<FirebaseUser>(context);
+    final User user = Provider.of<User>(context);
     return DefaultTabController(
       length: 4,
       child: Scaffold(
@@ -115,7 +125,8 @@ class FavoritedView extends StatelessWidget {
   Widget build(BuildContext context) {
     final AuthService authService = Provider.of<AuthService>(context);
     final firestoreService = Provider.of<FirestoreService>(context);
-    final String userId = context.select((FirebaseUser user) => user.uid);
+    final String userId = context.select((User user) => user.id);
+    //List<String> favoriteCamps = context.select(())
     return StreamBuilder<List<Camp>>(
       stream: firestoreService.campsFavoritedStream(userId),
       builder: (context, snapshot) {
@@ -144,17 +155,18 @@ class FavoritedView extends StatelessWidget {
                 leading: Container(
                   width: 80,
                   height: 80,
-                  child: MarkerCachedImage(
-                    camp.imageUrls.first
-                  ),
+                  child: MarkerCachedImage(camp.imageUrls.first),
                 ),
                 trailing: IconButton(
-                  icon: Icon(Icons.favorite, color: Colors.red,),
-                  onPressed: () {
-                    firestoreService.setFavorited(userId, camp.id, favorited: false);
-                    // TODO: add undo
-                  }
-                ),
+                    icon: Icon(
+                      Icons.favorite,
+                      color: Colors.red,
+                    ),
+                    onPressed: () {
+                      firestoreService.setFavorited(userId, camp.id,
+                          favorited: false);
+                      // TODO: add undo
+                    }),
               );
             },
           );
@@ -188,51 +200,59 @@ class CreatedView extends StatelessWidget {
   }
 }
 
-
-
 class ProfileWidget extends StatelessWidget {
-
   @override
   Widget build(BuildContext context) {
     final AuthService authService = Provider.of<AuthService>(context);
-    final FirebaseUser user = Provider.of<FirebaseUser>(context);
-
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(
-          vertical: 8,
-          horizontal: 8,
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              child: ClipOval(
-                child: CachedNetworkImage(
-                  imageUrl: user.photoUrl,
-                ),
+    return Consumer<User>(
+      builder: (context, user, child) {
+        if (user == null) {
+          return Container(
+            child: Center(
+              child: CircularProgressIndicator(),
+            ),
+          );
+        } else {
+          return Center(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(
+                vertical: 8,
+                horizontal: 8,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    child: ClipOval(
+                      child: CachedNetworkImage(
+                        imageUrl: user.photoUrl,
+                      ),
+                    ),
+                  ),
+                  Text(
+                    '${user.name}',
+                    style: Theme.of(context).textTheme.headline6,
+                  ),
+                  Text('${user.email}',
+                      style: Theme.of(context).textTheme.headline6),
+                  Divider(height: 40),
+                  Expanded(
+                    child: Align(
+                      alignment: FractionalOffset.bottomCenter,
+                      child: RaisedButton(
+                        child: Text('Log out'),
+                        color: Theme.of(context).primaryColor,
+                        onPressed: () async => await authService.signOut(),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
-            Text(
-              '${user.displayName}',
-              style: Theme.of(context).textTheme.headline6,
-            ),
-            Text('${user.email}', style: Theme.of(context).textTheme.headline6),
-            Divider(height: 40),
-            Expanded(
-              child: Align(
-                alignment: FractionalOffset.bottomCenter,
-                child: RaisedButton(
-                  child: Text('Log out'),
-                  color: Theme.of(context).primaryColor,
-                  onPressed: () async => await authService.signOut(),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
+          );
+        }
+      },
     );
   }
 }

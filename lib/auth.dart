@@ -4,6 +4,7 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:provider/provider.dart';
 
 import 'db.dart';
+import 'models.dart';
 
 class AuthService {
   AuthService._();
@@ -32,13 +33,23 @@ class AuthService {
   Future<bool> signInWithGoogle() async {
     signOut();
     final GoogleSignInAccount googleUser = await _googleSignIn.signIn();
-    final GoogleSignInAuthentication googleAuth = await googleUser
-        .authentication;
+    final GoogleSignInAuthentication googleAuth =
+        await googleUser.authentication;
     final AuthCredential credential = GoogleAuthProvider.getCredential(
       accessToken: googleAuth.accessToken,
       idToken: googleAuth.idToken,
     );
-    _auth.signInWithCredential(credential);
+    _auth.signInWithCredential(credential).then((AuthResult result) {
+      if (result.user != null) {
+        final User user = User(
+          id: result.user.uid,
+          name: result.user.displayName,
+          email: result.user.email,
+          photoUrl: result.user.photoUrl,
+        );
+        FirestoreService.instance.addUser(user);
+      }
+    });
 
 /*    // TODO: link google account to anonymous user, with updated display name and possibility to unlink later
       _auth.currentUser().then((FirebaseUser user) {
