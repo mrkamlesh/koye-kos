@@ -215,12 +215,14 @@ class FirestoreService {
         .map((DocumentSnapshot documentSnapshot) => documentSnapshot.exists);
   }
 
-  Stream<List<String>> campIdsFavoritedStream(String userId) {
+  Stream<List<Favorite>> campIdsFavoritedStream(String userId) {
     return Firestore.instance
         .collection(FirestorePath.getFavoritePath(userId))
+        .orderBy('time', descending: true)
         .snapshots()
-        .map((QuerySnapshot snapshot) =>
-        snapshot.documents.map((e) => e.documentID).toList());
+        .map((QuerySnapshot snapshot) => snapshot.documents
+        .map((DocumentSnapshot document) => Favorite.fromFirestore(document))
+        .toList());
   }
 
   Stream<List<Camp>> campsFavoritedStream(String userId) async* {
@@ -245,7 +247,7 @@ class FirestoreService {
         .collection(FirestorePath.getFavoritePath(userId))
         .document(campId);
 
-    favorited ? ref.setData({}) : ref.delete();
+    favorited ? ref.setData(<String, dynamic>{'time': FieldValue.serverTimestamp()}) : ref.delete();
   }
 
   Future<void> addUser(User user) async {

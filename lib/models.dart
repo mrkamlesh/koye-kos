@@ -106,8 +106,20 @@ class User {
         'camp': e.key,
         'ranting': e.value,})?.toList(growable: false),*/
     });
-    print(map);
     return map;
+  }
+}
+
+class Favorite {
+  final String campId;
+  final Timestamp time;
+  
+  Favorite({this.campId, this.time});
+  
+  factory Favorite.fromFirestore(DocumentSnapshot document) {
+    return Favorite(
+        campId: document.documentID,
+        time: document.data['time'] as Timestamp);
   }
 }
 

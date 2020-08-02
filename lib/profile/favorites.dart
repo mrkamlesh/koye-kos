@@ -12,11 +12,11 @@ class FavoritedView extends StatelessWidget {
   Widget build(BuildContext context) {
     final firestoreService = Provider.of<FirestoreService>(context);
     final String userId = context.select((User user) => user.id);
-    return StreamBuilder<List<String>>(
+    return StreamBuilder<List<Favorite>>(
         stream: firestoreService.campIdsFavoritedStream(userId),
         builder: (context, snapshot) {
           if (snapshot.hasData && snapshot.data.isNotEmpty) {
-            return FavoriteListView(campIds: snapshot.data);
+            return FavoriteListView(favorites: snapshot.data);
           } else if (snapshot.connectionState == ConnectionState.waiting) {
             return Container(
               padding: EdgeInsets.only(top: 20),
@@ -43,19 +43,20 @@ class FavoritedView extends StatelessWidget {
 }
 
 class FavoriteListView extends StatelessWidget {
-  final List<String> campIds;
-  const FavoriteListView({
-    @required this.campIds,
+  final List<Favorite> favorites;
+  FavoriteListView({
+    @required this.favorites,
   });
 
   @override
   Widget build(BuildContext context) {
     final firestoreService = Provider.of<FirestoreService>(context);
     return StreamBuilder<List<Camp>>(
-      stream: firestoreService.getCampsStream(campIds),
+      stream: firestoreService
+          .getCampsStream(favorites.map((f) => f.campId).toList()),
       builder: (context, snapshot) {
         if (snapshot.hasData) {
-          final List<Camp> camps = snapshot.data;
+          final List<Camp> camps = snapshot.data; // un-ordered list of maps
           return ListView.builder(
             itemCount: camps.length,
             itemBuilder: (_, index) {
