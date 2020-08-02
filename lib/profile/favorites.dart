@@ -7,7 +7,6 @@ import '../map/camp_detail.dart';
 import '../services/db.dart';
 import '../map/map_detail.dart';
 
-
 class FavoritedView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -39,9 +38,7 @@ class FavoritedView extends StatelessWidget {
               ),
             );
           }
-        }
-    );
-
+        });
   }
 }
 
@@ -85,84 +82,88 @@ class FavoriteListItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final firestoreService = Provider.of<FirestoreService>(context);
     final String userId = context.select((User user) => user.id);
-    return Container(
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(
-            flex: 2,
-            child: MarkerCachedImage(camp.imageUrls.first),
-          ),
-          Expanded(
-            flex: 5,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('${camp.location}', style: const TextStyle(
-                  fontWeight: FontWeight.w500,
-                  fontSize: 14.0,),),
-                Text('${camp.description}'),
-                Text('${camp.creatorName}'),
-              ],
+    return InkWell(
+      child: Container(
+        height: 100,
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              flex: 3,
+              child: MarkerCachedImage(camp.imageUrls.first),
             ),
-          ),
-          Center(
-            child: IconButton(
-                icon: Icon(
-                  Icons.favorite,
-                  color: Colors.red,
+            Expanded(
+              flex: 4,
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    Text(
+                      '${camp.location.toReadableString(precision: 2, separator: ', ')}. ${camp.score} (${camp.ratings})',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w500,
+                        fontSize: 14.0,
+                      ),
+                    ),
+                    Text(
+                      'Description: ${camp.description}',
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 2,
+                    ),
+                    Text(
+                      '- ${camp.creatorName}',
+                      style: const TextStyle(
+                        fontStyle: FontStyle.italic,
+                        fontWeight: FontWeight.w300,
+                        fontSize: 13.0,
+                      ),
+                    ),
+                  ],
                 ),
-                onPressed: () {
-                  firestoreService.setFavorited(userId, camp.id,
-                      favorited: false);
-                  // TODO: add undo
-                }),
-          ),
-        ],
-      ),
-    );
-
-    /*ListTile(
-        contentPadding: EdgeInsets.all(0),
-        title: Text(
-            '${camp.location.toReadableString(precision: 4, separator: ', ')}'),
-        subtitle: Text('${camp.description}'),
-        leading: Container(
-          width: 80,
-          child: MarkerCachedImage(camp.imageUrls.first),
-        ),
-        trailing: IconButton(
-            icon: Icon(
-              Icons.favorite,
-              color: Colors.red,
-            ),
-            onPressed: () {
-              firestoreService.setFavorited(userId, camp.id,
-                  favorited: false);
-              // TODO: add undo
-            }),
-        onTap: () {
-          // FIXME: This is messy. Also use openContainer
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => MultiProvider(
-                providers: [
-                  StreamProvider<Camp>(
-                    create: (_) =>
-                        firestoreService.getCampStream(camp.id),
-                    initialData: camp,
-                  ),
-                  StreamProvider<bool>(
-                    create: (_) => firestoreService
-                        .campFavoritedStream(userId, camp.id),
-                    initialData: true,
-                  ),
-                ],
-                child: CampDetailScreen(),
               ),
             ),
-          );
-        });*/
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Center(
+                child: IconButton(
+                    icon: Icon(
+                      Icons.favorite,
+                      color: Colors.red,
+                    ),
+                    onPressed: () {
+                      firestoreService.setFavorited(userId, camp.id,
+                          favorited: false);
+                      // TODO: add undo
+                    }),
+              ),
+            ),
+          ],
+        ),
+      ),
+      onTap: () {
+        // TODO: openContainer
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => MultiProvider(
+              providers: [
+                StreamProvider<Camp>(
+                  create: (_) => firestoreService.getCampStream(camp.id),
+                  initialData: camp,
+                ),
+                StreamProvider<bool>(
+                  create: (_) =>
+                      firestoreService.campFavoritedStream(userId, camp.id),
+                  initialData: true,
+                ),
+              ],
+              child: CampDetailScreen(),
+            ),
+          ),
+        );
+      },
+    );
   }
 }
