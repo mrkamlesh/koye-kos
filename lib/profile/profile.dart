@@ -2,15 +2,14 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:koye_kos/auth.dart';
-import 'package:koye_kos/camp_detail.dart';
-import 'package:koye_kos/db.dart';
-import 'package:koye_kos/main.dart';
-import 'package:koye_kos/map_detail.dart';
 import 'package:provider/provider.dart';
 
-import 'models.dart';
-import 'utils.dart';
+import '../models.dart';
+import '../utils.dart';
+import '../service/auth.dart';
+import '../map/camp_detail.dart';
+import '../service/db.dart';
+import '../map/map_detail.dart';
 
 class Profile extends StatelessWidget {
   @override
@@ -19,14 +18,14 @@ class Profile extends StatelessWidget {
     final FirebaseUser user = Provider.of<FirebaseUser>(context);
     if (user == null || user.isAnonymous) {
       return SignUpView();
+    } else {
+      return StreamProvider<User>(
+          create: (_) => firestoreService.getUserStream(user.uid),
+          lazy: false,
+          builder: (context, snapshot) {
+            return AccountView();
+          });
     }
-
-    return StreamProvider<User>(
-        create: (_) => firestoreService.getUserStream(user.uid),
-        lazy: false,
-        builder: (context, snapshot) {
-          return AccountView();
-        });
   }
 }
 
@@ -82,8 +81,6 @@ class SignUpView extends StatelessWidget {
 class AccountView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final AuthService authService = Provider.of<AuthService>(context);
-    final User user = Provider.of<User>(context);
     return DefaultTabController(
       length: 4,
       child: Scaffold(

@@ -3,13 +3,13 @@ import 'dart:collection';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
-import 'package:koye_kos/star_rating.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:provider/provider.dart';
 
-import 'db.dart';
+import '../service/db.dart';
 import 'map_detail.dart';
-import 'models.dart';
+import '../models.dart';
+import '../map/star_rating.dart';
 
 class CampDetailScreen extends StatelessWidget {
 

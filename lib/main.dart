@@ -1,12 +1,12 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:koye_kos/camp_detail.dart';
-import 'package:koye_kos/profile.dart';
+import 'file:///C:/Users/PC1/Development/koye-kos/lib/map/camp_detail.dart';
+import 'file:///C:/Users/PC1/Development/koye-kos/lib/profile/profile.dart';
 import 'package:provider/provider.dart';
 
-import 'auth.dart';
-import 'db.dart';
-import 'map.dart';
+import 'service/auth.dart';
+import 'service/db.dart';
+import 'map/map.dart';
 
 void main() => runApp(Application());
 

@@ -1,14 +1,14 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:koye_kos/star_rating.dart';
 import 'package:provider/provider.dart';
 import 'package:latlong/latlong.dart';
 
 import 'add_camp.dart';
-import 'db.dart';
-import 'models.dart';
-import 'utils.dart';
+import '../service/db.dart';
+import '../models.dart';
+import '../utils.dart';
+import '../map/star_rating.dart';
 
 class MarkerBottomSheet extends StatelessWidget {
 

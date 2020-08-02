@@ -10,9 +10,9 @@ import 'package:provider/provider.dart';
 import 'package:latlong/latlong.dart';
 import 'package:transparent_image/transparent_image.dart';
 
-import 'db.dart';
-import 'models.dart';
-import 'utils.dart';
+import '../service/db.dart';
+import '../models.dart';
+import '../utils.dart';
 
 class AddCampScreen extends StatelessWidget {
   final LatLng location;

@@ -4,7 +4,7 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:provider/provider.dart';
 
 import 'db.dart';
-import 'models.dart';
+import '../models.dart';
 
 class AuthService {
   AuthService._();

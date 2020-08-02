@@ -7,8 +7,8 @@ import 'package:latlong/latlong.dart';
 import 'package:provider/provider.dart';
 
 import 'camp_detail.dart';
-import 'db.dart';
-import 'models.dart';
+import '../service/db.dart';
+import '../models.dart';
 import 'map_detail.dart';
 
 // Static fields to help set up the map
