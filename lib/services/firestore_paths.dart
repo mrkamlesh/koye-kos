@@ -17,4 +17,8 @@ class FirestorePath {
 
 class FirestoragePath {
   static String campsPath = 'camps';
+
+  static String getCampImagesPath(String campId) {
+    return '${campsPath}/${campId}';
+  }
 }

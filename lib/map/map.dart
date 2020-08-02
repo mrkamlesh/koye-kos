@@ -79,6 +79,8 @@ class _HammockMapState extends State<HammockMap> {
 
   @override
   Widget build(BuildContext context) {
+    // TODO: Do some initial check for if (anonymous) user is signed in / internet connection to load map
+    //final FirebaseUser user = Provider.of<FirebaseUser>(context);
     return Stack(
       children: [
         FlutterMap(

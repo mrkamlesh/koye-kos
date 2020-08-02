@@ -37,6 +37,7 @@ class _ApplicationState extends State<Application> {
         providers: [
           StreamProvider<FirebaseUser>.value(
             value: FirebaseAuth.instance.onAuthStateChanged,
+            initialData: null,
             lazy: false,
           ),
           Provider<FirestoreService>(

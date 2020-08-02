@@ -46,7 +46,7 @@ class _CampFormState extends State<CampForm> {
   @override
   void initState() {
     super.initState();
-    getImage();  // TODO: show dialog to select camera/image picker, then remember the selection ?
+    getImage(); // TODO: show dialog to select camera/image picker, then remember the selection ?
   }
 
   Future getImage() async {
@@ -85,8 +85,7 @@ class _CampFormState extends State<CampForm> {
           aspectRatioPickerButtonHidden: true,
           aspectRatioLockEnabled: true,
           title: 'Crop image',
-        ))
-        .then((File image) {
+        )).then((File image) {
       if (image == null) return;
       setState(() {
         // TODO: CampImage is not updated with the new image file
@@ -101,10 +100,10 @@ class _CampFormState extends State<CampForm> {
     _listKey.currentState.removeItem(index, (context, animation) {
       return animate
           ? SizeTransition(
-        axis: Axis.horizontal,
-        sizeFactor: animation,
-        child: CampImage(image, key: Key(image.toString())),
-      )
+              axis: Axis.horizontal,
+              sizeFactor: animation,
+              child: CampImage(image, key: Key(image.toString())),
+            )
           : SizedBox.shrink();
     });
   }
@@ -113,14 +112,14 @@ class _CampFormState extends State<CampForm> {
   Widget build(BuildContext context) {
     final firestoreService = Provider.of<FirestoreService>(context);
     final user = Provider.of<FirebaseUser>(context);
-
     return Form(
       key: _formKey,
       child: Padding(
         padding: const EdgeInsets.only(top: 8.0),
         child: Column(
           children: [
-            ImageList(_listKey, _images, getImage, deleteImage, cropImage, key: UniqueKey()),
+            ImageList(_listKey, _images, getImage, deleteImage, cropImage,
+                key: UniqueKey()),
             Padding(
               padding: const EdgeInsets.all(8.0),
               child: Column(
@@ -148,26 +147,31 @@ class _CampFormState extends State<CampForm> {
                   ),
                   SizedBox(height: 8),
                   RaisedButton(
-                    child: Text(
-                      'Add camp',
-                      style: TextStyle(
-                          color: Theme.of(context).colorScheme.onPrimary),
-                    ),
-                    color: Theme.of(context).primaryColor,
-                    onPressed: () {
-                      if (_formKey.currentState.validate()) {
-                        firestoreService.addCamp(
-                            description: descriptionController.text,
-                            location: widget._location,
-                            creatorId: user.uid,
-                            creatorName: user.displayName,
-                            images: _images);
+                      child: Text(
+                        'Add camp',
+                        style: TextStyle(
+                            color: Theme.of(context).colorScheme.onPrimary),
+                      ),
+                      color: Theme.of(context).primaryColor,
+                      onPressed: () {
+                        if (_formKey.currentState.validate()) {
+                          bool wasAdded = firestoreService.addCamp(
+                              description: descriptionController.text,
+                              location: widget._location,
+                              user: user,
+                              images: _images);
 
-                        // FIXME: Failing silently
-                        Navigator.pop(context, true);
-                      }
-                    },
-                  ),
+                          wasAdded
+                              ? Navigator.pop(context, true)
+                              : Scaffold.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      'You need to have an account to add a camp!',
+                                    ),
+                                  ),
+                                );
+                        }
+                      }),
                 ],
               ),
             ),
@@ -195,10 +199,12 @@ class ImageList extends StatelessWidget {
   double imageWidth;
 
   ImageList(this._listKey, this._images, this._addCallback,
-      this._deleteCallback, this._onEditCallback, {Key key}) : super(key: key) {
+      this._deleteCallback, this._onEditCallback,
+      {Key key})
+      : super(key: key) {
     // Show images in a 4x3 aspect ratio, reflecting the uploaded image.
     this.imageHeight = 210;
-    this.imageWidth = imageHeight * 4/3;
+    this.imageWidth = imageHeight * 4 / 3;
   }
 
   @override
@@ -211,7 +217,7 @@ class ImageList extends StatelessWidget {
           scrollDirection: Axis.horizontal,
           initialItemCount: 1, // add extra for 'add image' button
           shrinkWrap:
-          true, // if true, list wil be centered when only 1 items is added
+              true, // if true, list wil be centered when only 1 items is added
           itemBuilder: (context, index, animation) {
             bool isButtonIndex = _images.length == index;
             if (!isButtonIndex) {
@@ -269,7 +275,7 @@ class ImageList extends StatelessWidget {
                 child: OutlineButton(
                     child: Icon(Icons.add),
                     borderSide:
-                    BorderSide(color: Theme.of(context).primaryColor),
+                        BorderSide(color: Theme.of(context).primaryColor),
                     onPressed: () => _addCallback(),
                     highlightedBorderColor: Theme.of(context)
                         .colorScheme

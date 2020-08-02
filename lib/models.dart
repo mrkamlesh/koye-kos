@@ -28,16 +28,17 @@ class Camp {
 
   factory Camp.fromFirestore(DocumentSnapshot document) {
     Map data = document.data;
+    print(data);
     LatLng location = (data['location'] as GeoPoint).toLatLng();
     return Camp(
-        id: document.documentID,
-        imageUrls: List<String>.from(data['image_urls'] as List),
+        id: document.documentID ?? '',
+        imageUrls: List<String>.from(data['image_urls'] as List) ?? [],
         location: location,
-        score: (data['score'] as num).toDouble(),
-        ratings: data['ratings'] as int,
-        description: data['description'] as String,
-        creatorId: data['creator_id'] as String,
-        creatorName: data['creator_name'] as String);
+        score: (data['score'] as num).toDouble() ?? 0.0,
+        ratings: data['ratings'] as int ?? 0,
+        description: data['description'] as String ?? '',
+        creatorId: data['creator_id'] as String ?? '',
+        creatorName: data['creator_name'] as String ?? '');
   }
 
   Map<String, dynamic> toFirestoreMap() {
