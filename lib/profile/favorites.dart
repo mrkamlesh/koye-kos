@@ -4,7 +4,7 @@ import 'package:provider/provider.dart';
 import '../models.dart';
 import '../utils.dart';
 import '../map/camp_detail.dart';
-import '../service/db.dart';
+import '../services/db.dart';
 import '../map/map_detail.dart';
 
 

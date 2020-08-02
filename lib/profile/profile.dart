@@ -5,11 +5,8 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:provider/provider.dart';
 
 import '../models.dart';
-import '../utils.dart';
-import '../service/auth.dart';
-import '../map/camp_detail.dart';
-import '../service/db.dart';
-import '../map/map_detail.dart';
+import '../services/auth.dart';
+import '../services/db.dart';
 import 'favorites.dart';
 
 class Profile extends StatelessWidget {

@@ -6,7 +6,7 @@ import 'package:flutter/widgets.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:provider/provider.dart';
 
-import '../service/db.dart';
+import '../services/db.dart';
 import 'map_detail.dart';
 import '../models.dart';
 import '../map/star_rating.dart';
@@ -59,6 +59,7 @@ class _UserRatingWidgetState extends State<UserRatingWidget> {
         _score = score;
       });
     });
+    super.initState();
   }
 
   @override

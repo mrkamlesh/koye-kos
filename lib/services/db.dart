@@ -9,7 +9,7 @@ import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:latlong/latlong.dart';
 
 import '../models.dart';
-import '../service/firestore_paths.dart';
+import 'firestore_paths.dart';
 
 class FirestoreService {
   FirestoreService._();

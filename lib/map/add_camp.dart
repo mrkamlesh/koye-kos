@@ -1,17 +1,14 @@
-import 'dart:ffi';
 import 'dart:io';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:latlong/latlong.dart';
 import 'package:transparent_image/transparent_image.dart';
 
-import '../service/db.dart';
-import '../models.dart';
+import '../services/db.dart';
 import '../utils.dart';
 
 class AddCampScreen extends StatelessWidget {

@@ -1,11 +1,11 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'file:///C:/Users/PC1/Development/koye-kos/lib/map/camp_detail.dart';
-import 'file:///C:/Users/PC1/Development/koye-kos/lib/profile/profile.dart';
 import 'package:provider/provider.dart';
 
-import 'service/auth.dart';
-import 'service/db.dart';
+import 'map/camp_detail.dart';
+import 'profile/profile.dart';
+import 'services/auth.dart';
+import 'services/db.dart';
 import 'map/map.dart';
 
 void main() => runApp(Application());

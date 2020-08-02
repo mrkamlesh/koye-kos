@@ -5,7 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:latlong/latlong.dart';
 
 import 'add_camp.dart';
-import '../service/db.dart';
+import '../services/db.dart';
 import '../models.dart';
 import '../utils.dart';
 import '../map/star_rating.dart';
