@@ -33,6 +33,7 @@ class AuthService {
   Future<bool> signInWithGoogle() async {
     signOut();
     final GoogleSignInAccount googleUser = await _googleSignIn.signIn();
+    if (googleUser == null) return false;  // user exited
     final GoogleSignInAuthentication googleAuth =
         await googleUser.authentication;
     final AuthCredential credential = GoogleAuthProvider.getCredential(
