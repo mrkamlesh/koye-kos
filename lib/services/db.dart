@@ -24,8 +24,9 @@ class FirestoreService {
         .map((QuerySnapshot snapshot) => snapshot.documents
         .map((DocumentSnapshot document) => Camp.fromFirestore(document))
         .toList())
-        .handleError((onError) {
+        .handleError((onError, stacktrace) {
       print('Error loading camps! $onError');
+      print('Stack:  $stacktrace');
     });
   }
 
@@ -45,8 +46,10 @@ class FirestoreService {
     DocumentReference campRef =
     Firestore.instance.collection(FirestorePath.campsPath).document();
 
-    // Write location data, return successful state.
+    // Write location data immediately, such that the camp location shows up on screen.
     campRef.setData(<String, dynamic>{'location': location.toGeoPoint()});
+
+    // Start long running compression and uploading. TODO: handle no internet connection.
     _uploadInBackground(
       campRef: campRef,
       description: description,

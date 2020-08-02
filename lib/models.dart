@@ -28,13 +28,13 @@ class Camp {
 
   factory Camp.fromFirestore(DocumentSnapshot document) {
     Map data = document.data;
-    print(data);
-    LatLng location = (data['location'] as GeoPoint).toLatLng();
+    LatLng location = ((data['location'] ?? GeoPoint(0, 0)) as GeoPoint).toLatLng();
+    // Fix this when null safety comes to Dart..
     return Camp(
         id: document.documentID ?? '',
-        imageUrls: List<String>.from(data['image_urls'] as List) ?? [],
+        imageUrls: List<String>.from((data['image_urls'] ?? []) as List),
         location: location,
-        score: (data['score'] as num).toDouble() ?? 0.0,
+        score: ((data['score'] ?? 0) as num).toDouble(),
         ratings: data['ratings'] as int ?? 0,
         description: data['description'] as String ?? '',
         creatorId: data['creator_id'] as String ?? '',
