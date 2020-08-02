@@ -87,7 +87,7 @@ class User {
       email: data['email'] as String,
       photoUrl: data['photo_url'] as String,
       //campsCreated: data['camps_created'],
-      favorited: data['favorited'],
+      //favorited: data['favorited'],
       //campsRated: data['camps_rated'],
     );
   }

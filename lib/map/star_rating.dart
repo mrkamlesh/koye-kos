@@ -113,7 +113,7 @@ class _StarRatingState extends State<StarRating> {
                   isWidgetTapped = false; //reset
                 },
                 onHover: (event) {
-                  RenderBox box = context.findRenderObject();
+                  RenderBox box = context.findRenderObject() as RenderBox;
                   var _pos = box.globalToLocal(event.position);
                   var i = _pos.dx / widget.size;
                   var newRating =
@@ -132,7 +132,7 @@ class _StarRatingState extends State<StarRating> {
                   onTapDown: (detail) {
                     isWidgetTapped = true;
 
-                    RenderBox box = context.findRenderObject();
+                    RenderBox box = context.findRenderObject() as RenderBox;
                     var _pos = box.globalToLocal(detail.globalPosition);
                     var i = ((_pos.dx - widget.spacing) / widget.size);
                     var newRating =
@@ -153,7 +153,7 @@ class _StarRatingState extends State<StarRating> {
                   onHorizontalDragUpdate: (dragDetails) {
                     isWidgetTapped = true;
 
-                    RenderBox box = context.findRenderObject();
+                    RenderBox box = context.findRenderObject() as RenderBox;
                     var _pos = box.globalToLocal(dragDetails.globalPosition);
                     var i = _pos.dx / widget.size;
                     var newRating =
@@ -180,7 +180,7 @@ class _StarRatingState extends State<StarRating> {
               )
             : GestureDetector(
                 onTapDown: (detail) {
-                  RenderBox box = context.findRenderObject();
+                  RenderBox box = context.findRenderObject() as RenderBox;
                   var _pos = box.globalToLocal(detail.globalPosition);
                   var i = ((_pos.dx - widget.spacing) / widget.size);
                   var newRating =
@@ -200,7 +200,7 @@ class _StarRatingState extends State<StarRating> {
                   if (widget.onRated != null) widget.onRated(currentRating);
                 },
                 onHorizontalDragUpdate: (dragDetails) {
-                  RenderBox box = context.findRenderObject();
+                  RenderBox box = context.findRenderObject() as RenderBox;
                   var _pos = box.globalToLocal(dragDetails.globalPosition);
                   var i = _pos.dx / widget.size;
                   var newRating =
