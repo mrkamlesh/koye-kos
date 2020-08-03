@@ -66,21 +66,8 @@ class FavoriteListView extends StatelessWidget {
             itemCount: camps.length,
             itemBuilder: (_, index) {
               final Camp camp = camps[index];
-              return MultiProvider(
-                providers: [
-                  StreamProvider<Camp>(
-                    create: (_) => firestoreService.getCampStream(camp.id),
-                    initialData: camp,
-                  ),
-                  StreamProvider<bool>(
-                    create: (_) =>
-                        firestoreService.campFavoritedStream(userId, camp.id),
-                    initialData: true,
-                  ),
-                ],
-                child: OpenContainerCamp(camp,
-                    closedScreen: FavoriteListItem(camp: camps[index])),
-              );
+              return OpenContainerCamp(camp,
+                    closedScreen: FavoriteListItem(camp: camps[index]));
             },
           );
         } else {
