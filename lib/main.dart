@@ -2,7 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import 'map/camp_detail.dart';
+import 'camp/camp_detail.dart';
 import 'profile/profile.dart';
 import 'services/auth.dart';
 import 'services/db.dart';

@@ -7,9 +7,9 @@ import 'package:photo_view/photo_view.dart';
 import 'package:provider/provider.dart';
 
 import '../services/db.dart';
-import 'map_detail.dart';
+import '../map/map_detail.dart';
 import '../models.dart';
-import '../map/star_rating.dart';
+import 'star_rating.dart';
 
 class CampDetailScreen extends StatelessWidget {
 

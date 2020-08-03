@@ -5,7 +5,7 @@ import 'package:provider/provider.dart';
 
 import '../models.dart';
 import '../utils.dart';
-import '../map/camp_detail.dart';
+import '../camp/camp_utils.dart';
 import '../services/db.dart';
 import '../map/map_detail.dart';
 
@@ -19,7 +19,8 @@ class FavoritedView extends StatelessWidget {
         builder: (context, snapshot) {
           if (snapshot.hasData && snapshot.data.isNotEmpty) {
             return FavoriteListView(favorites: snapshot.data);
-          } else if (snapshot.connectionState == ConnectionState.waiting) {
+          }
+          if (snapshot.connectionState == ConnectionState.waiting) {
             return Container(
               padding: EdgeInsets.only(top: 20),
               child: Column(
@@ -77,7 +78,8 @@ class FavoriteListView extends StatelessWidget {
                     initialData: true,
                   ),
                 ],
-                child: OpenContainerCamp(camp, closedScreen: FavoriteListItem(camp: camps[index])),
+                child: OpenContainerCamp(camp,
+                    closedScreen: FavoriteListItem(camp: camps[index])),
               );
             },
           );

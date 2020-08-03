@@ -4,11 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:latlong/latlong.dart';
 
-import 'add_camp.dart';
+import '../camp/add_camp.dart';
 import '../services/db.dart';
 import '../models.dart';
 import '../utils.dart';
-import '../map/star_rating.dart';
+import '../camp/star_rating.dart';
 
 class MarkerBottomSheet extends StatelessWidget {
 
