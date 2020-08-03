@@ -1,5 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:implicitly_animated_reorderable_list/implicitly_animated_reorderable_list.dart';
+import 'package:implicitly_animated_reorderable_list/transitions.dart';
 import 'package:koye_kos/map/map.dart';
 import 'package:provider/provider.dart';
 
@@ -47,6 +49,7 @@ class FavoritedView extends StatelessWidget {
 
 class FavoriteListView extends StatelessWidget {
   final List<Favorite> favorites;
+
   FavoriteListView({
     @required this.favorites,
   });
@@ -62,12 +65,15 @@ class FavoriteListView extends StatelessWidget {
       builder: (context, snapshot) {
         if (snapshot.hasData) {
           final List<Camp> camps = snapshot.data; // un-ordered list of maps
-          return ListView.builder(
-            itemCount: camps.length,
-            itemBuilder: (_, index) {
-              final Camp camp = camps[index];
-              return OpenContainerCamp(camp,
-                    closedScreen: FavoriteListItem(camp: camps[index]));
+          return ImplicitlyAnimatedList<Camp>(
+            items: camps,
+            areItemsTheSame: (a, b) => a.id == b.id,
+            itemBuilder: (_, animation, item, index) {
+              return SizeFadeTransition(
+                animation: animation,
+                child: OpenContainerCamp(item,
+                      closedScreen: FavoriteListItem(camp: item)),
+              );
             },
           );
         } else {
