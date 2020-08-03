@@ -1,4 +1,6 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:koye_kos/map/map.dart';
 import 'package:provider/provider.dart';
 
 import '../models.dart';
@@ -11,7 +13,7 @@ class FavoritedView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final firestoreService = Provider.of<FirestoreService>(context);
-    final String userId = context.select((User user) => user.id);
+    final String userId = context.select((FirebaseUser user) => user.uid);
     return StreamBuilder<List<Favorite>>(
         stream: firestoreService.campIdsFavoritedStream(userId),
         builder: (context, snapshot) {
@@ -51,6 +53,8 @@ class FavoriteListView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final firestoreService = Provider.of<FirestoreService>(context);
+    final String userId = context.select((FirebaseUser user) => user.uid);
+
     return StreamBuilder<List<Camp>>(
       stream: firestoreService
           .getCampsStream(favorites.map((f) => f.campId).toList()),
@@ -60,7 +64,21 @@ class FavoriteListView extends StatelessWidget {
           return ListView.builder(
             itemCount: camps.length,
             itemBuilder: (_, index) {
-              return FavoriteListItem(camp: camps[index]);
+              final Camp camp = camps[index];
+              return MultiProvider(
+                providers: [
+                  StreamProvider<Camp>(
+                    create: (_) => firestoreService.getCampStream(camp.id),
+                    initialData: camp,
+                  ),
+                  StreamProvider<bool>(
+                    create: (_) =>
+                        firestoreService.campFavoritedStream(userId, camp.id),
+                    initialData: true,
+                  ),
+                ],
+                child: OpenContainerCamp(camp, closedScreen: FavoriteListItem(camp: camps[index])),
+              );
             },
           );
         } else {
@@ -82,7 +100,7 @@ class FavoriteListItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final firestoreService = Provider.of<FirestoreService>(context);
-    final String userId = context.select((User user) => user.id);
+    final String userId = context.select((FirebaseUser user) => user.uid);
     return InkWell(
       child: Container(
         height: 100,
@@ -143,28 +161,6 @@ class FavoriteListItem extends StatelessWidget {
           ],
         ),
       ),
-      onTap: () {
-        // TODO: openContainer
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => MultiProvider(
-              providers: [
-                StreamProvider<Camp>(
-                  create: (_) => firestoreService.getCampStream(camp.id),
-                  initialData: camp,
-                ),
-                StreamProvider<bool>(
-                  create: (_) =>
-                      firestoreService.campFavoritedStream(userId, camp.id),
-                  initialData: true,
-                ),
-              ],
-              child: CampDetailScreen(),
-            ),
-          ),
-        );
-      },
     );
   }
 }

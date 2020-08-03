@@ -204,7 +204,7 @@ class CampMarkerLayer extends StatelessWidget {
                     showBottomSheet<void>(
                         context: context,
                         backgroundColor: Colors.transparent,
-                        builder: (context) => _OpenContainerCamp(camp: camp));
+                        builder: (context) => OpenContainerCamp(camp, closedScreen: MarkerBottomSheet()));
                   });
                 })
             ],
@@ -215,9 +215,10 @@ class CampMarkerLayer extends StatelessWidget {
   }
 }
 
-class _OpenContainerCamp extends StatelessWidget {
+class OpenContainerCamp extends StatelessWidget {
   final Camp camp;
-  _OpenContainerCamp({this.camp});
+  final Widget closedScreen;
+  OpenContainerCamp(this.camp, {@required this.closedScreen});
   // TODO: fix widgets rebuilding during animation, likely cause for poor performance
 
   @override
@@ -243,7 +244,7 @@ class _OpenContainerCamp extends StatelessWidget {
               initialData: false,
             ),
           ],
-          child: MarkerBottomSheet(),
+          child: closedScreen,
         );
       },
       openBuilder: (BuildContext context, VoidCallback _) {
