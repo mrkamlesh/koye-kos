@@ -11,30 +11,106 @@ import '../map/map_detail.dart';
 import '../models.dart';
 import 'star_rating.dart';
 
-class CampDetailScreen extends StatelessWidget {
+class CampDetailScreen extends StatefulWidget {
+
+  @override
+  _CampDetailScreenState createState() => _CampDetailScreenState();
+}
+
+class _CampDetailScreenState extends State<CampDetailScreen> with SingleTickerProviderStateMixin {
+  TabController _controller;
+
+  @override
+  void initState() {
+    _controller = TabController(length: 2, vsync: this);
+    _controller.addListener(_updateState);
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    _controller.removeListener(_updateState);
+    super.dispose();
+  }
+
+  void _updateState() {
+    setState(() {
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
+      appBar: AppBar(  // TODO: look into sizing height of tab bar
         title: Text('Camp'),
-      ),
-      body: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ImageList(),
-            CampInfo(),
+        bottom: TabBar(
+          controller: _controller,
+          tabs: [
             Padding(
               padding: const EdgeInsets.all(8.0),
-              child: UserRatingWidget(),
+              child: Text('Info', ),
             ),
             Padding(
-              padding: const EdgeInsets.all(32.0),
-              child: DeleteCamp(),
+              padding: const EdgeInsets.all(8.0),
+              child: Text('Comments'),
             ),
           ],
         ),
+      ),
+      body: TabBarView(
+        controller: _controller,
+        children: [
+          InfoWidget(),
+          CommentsWidget(),
+        ],
+      ),
+      floatingActionButton: _buildFloatingActionButton(),
+    );
+  }
+
+  Widget _buildFloatingActionButton() {
+    return _controller.index == 1 ?
+        FloatingActionButton(
+          child: Icon(Icons.add_comment),
+          onPressed: () => print('pressed'),
+        )
+        : SizedBox.shrink();
+  }
+}
+
+class CommentsWidget extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      child: Center(child: Row(
+        children: [
+          Icon(Icons.comment),
+        ],
+      ),),
+    );
+  }
+}
+
+class InfoWidget extends StatelessWidget {
+
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          ImageList(),
+          CampInfo(),
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: UserRatingWidget(),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(32.0),
+            child: DeleteCamp(),
+          ),
+        ],
       ),
     );
   }
