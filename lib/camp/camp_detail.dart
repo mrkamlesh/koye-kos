@@ -97,7 +97,6 @@ class AddCommentScreen extends StatefulWidget {
 
 class _AddCommentScreenState extends State<AddCommentScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _listKey = GlobalKey<AnimatedListState>();
   final _textEditingController = TextEditingController();
 
   @override
@@ -166,11 +165,9 @@ class CommentsWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
-      child: Center(
-        child: Row(
-          children: [
-            Icon(Icons.comment),
-          ],
+      child: Container(
+        child: Center(
+          child: Icon(Icons.comment),
         ),
       ),
     );
@@ -194,6 +191,35 @@ class InfoWidget extends StatelessWidget {
             padding: const EdgeInsets.all(32.0),
             child: DeleteCamp(),
           ),
+        ],
+      ),
+    );
+  }
+}
+
+class CampInfo extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final Camp camp = Provider.of<Camp>(context);
+    return Padding(
+      // Rest of camp description / rating view
+      padding: const EdgeInsets.all(8.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              RatingView(
+                score: camp.score,
+                ratings: camp.ratings,
+              ),
+              FavoriteWidget(),
+            ],
+          ),
+          Text(camp.description),
+          Divider(),
+          Text('By: ${camp.creatorName ?? 'Anonymous'}'),
         ],
       ),
     );
@@ -290,34 +316,6 @@ class RatingView extends StatelessWidget {
   }
 }
 
-class CampInfo extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    final Camp camp = Provider.of<Camp>(context);
-    return Padding(
-      // Rest of camp description / rating view
-      padding: const EdgeInsets.all(8.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              RatingView(
-                score: camp.score,
-                ratings: camp.ratings,
-              ),
-              FavoriteWidget(),
-            ],
-          ),
-          Text(camp.description),
-          Divider(),
-          Text('By: ${camp.creatorName ?? 'Anonymous'}'),
-        ],
-      ),
-    );
-  }
-}
 
 class ImageList extends StatefulWidget {
   @override
