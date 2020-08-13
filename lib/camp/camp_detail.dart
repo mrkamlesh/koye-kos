@@ -30,8 +30,8 @@ class _CampDetailScreenState extends State<CampDetailScreen>
 
   @override
   void dispose() {
-    _controller.dispose();
     _controller.removeListener(_updateState);
+    _controller.dispose();
     super.dispose();
   }
 
