@@ -86,7 +86,7 @@ class FavoriteWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final firestoreService = Provider.of<FirestoreService>(context);
-    final String userId = context.select((FirebaseUser user) => user.uid);
+    final String userId = context.select((User user) => user.id);
     final String campId = context.select((Camp camp) => camp.id);
     final bool isFavorited = Provider.of<bool>(context);
 

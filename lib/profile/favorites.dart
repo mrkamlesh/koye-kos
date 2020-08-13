@@ -15,7 +15,7 @@ class FavoritedView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final firestoreService = Provider.of<FirestoreService>(context);
-    final String userId = context.select((FirebaseUser user) => user.uid);
+    final String userId = context.select((User user) => user.id);
     return StreamBuilder<List<Favorite>>(
         stream: firestoreService.campIdsFavoritedStream(userId),
         builder: (context, snapshot) {
@@ -57,7 +57,7 @@ class FavoriteListView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final firestoreService = Provider.of<FirestoreService>(context);
-    final String userId = context.select((FirebaseUser user) => user.uid);
+    final String userId = context.select((User user) => user.id);
 
     return StreamBuilder<List<Camp>>(
       stream: firestoreService
@@ -95,7 +95,7 @@ class FavoriteListItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final firestoreService = Provider.of<FirestoreService>(context);
-    final String userId = context.select((FirebaseUser user) => user.uid);
+    final String userId = context.select((User user) => user.id);
     return InkWell(
       child: Container(
         height: 100,

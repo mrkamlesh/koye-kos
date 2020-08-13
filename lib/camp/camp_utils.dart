@@ -17,7 +17,7 @@ class OpenContainerCamp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final firestoreService = Provider.of<FirestoreService>(context);
-    final String userId = context.select((FirebaseUser user) => user.uid);
+    final String userId = context.select((User user) => user.id);
 
     return OpenContainer(
       closedColor: Colors.transparent,

@@ -8,6 +8,7 @@ import 'package:provider/provider.dart';
 import 'package:latlong/latlong.dart';
 import 'package:transparent_image/transparent_image.dart';
 
+import '../models.dart';
 import '../services/db.dart';
 import '../utils.dart';
 
@@ -111,7 +112,7 @@ class _CampFormState extends State<CampForm> {
   @override
   Widget build(BuildContext context) {
     final firestoreService = Provider.of<FirestoreService>(context);
-    final user = Provider.of<FirebaseUser>(context);
+    final user = Provider.of<User>(context);
     return Form(
       key: _formKey,
       child: Padding(
@@ -158,7 +159,7 @@ class _CampFormState extends State<CampForm> {
                           bool wasAdded = firestoreService.addCamp(
                               description: descriptionController.text,
                               location: widget._location,
-                              user: user,
+                              user: user.firebaseUser,
                               images: _images);
 
                           wasAdded
