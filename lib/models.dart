@@ -93,6 +93,10 @@ class User with ChangeNotifier{
   void setFirebaseUser(FirebaseUser user) {
     this.firebaseUser = user;
     this.id = user.uid;
+    this.name = user.displayName;
+    this.email = user.email;
+    this.photoUrl = user.photoUrl;
+    notifyListeners();
   }
 
   factory User.fromFirestore(DocumentSnapshot document) {
@@ -122,6 +126,11 @@ class User with ChangeNotifier{
         'ranting': e.value,})?.toList(growable: false),*/
     });
     return map;
+  }
+
+  @override
+  String toString() {
+    return 'User [id: ${this.id} name: ${this.name}]';
   }
 }
 

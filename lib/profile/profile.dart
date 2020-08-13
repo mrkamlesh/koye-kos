@@ -12,18 +12,8 @@ import 'favorites.dart';
 class Profile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final firestoreService = Provider.of<FirestoreService>(context);
     final User user = Provider.of<User>(context);
-    if (!user.loggedIn) {
-      return SignUpView();
-    } else {
-      return StreamProvider<User>(
-          create: (_) => firestoreService.getUserStream(user.firebaseUser.uid),
-          lazy: false,
-          builder: (context, snapshot) {
-            return AccountView();
-          });
-    }
+    return user.loggedIn ? AccountView() : SignUpView();
   }
 }
 
@@ -148,7 +138,7 @@ class ProfileWidget extends StatelessWidget {
     final AuthService authService = Provider.of<AuthService>(context);
     return Consumer<User>(
       builder: (context, user, child) {
-        if (user == null) {
+        if (user == null || user.name == null) {
           return Container(
             child: Center(
               child: CircularProgressIndicator(),

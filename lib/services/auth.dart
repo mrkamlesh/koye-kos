@@ -59,27 +59,38 @@ class AuthService {
       idToken: googleAuth.idToken,
     );
 
+    // TODO: this is still wrong.
     await _auth.currentUser().then((user) async {
       if (user.providerData.map((e) => e.providerId).contains('google.com')) {
         await user.unlinkFromProvider('google.com');
       }
+
       try {
-        _auth.signInWithCredential(credential);
-      } on Exception catch(e) {
+        // Try to upgrade anonymous user, if fail, user already have an account, so sign them into that one.
         await user.linkWithCredential(credential);
+        this.user.setLoggedIn(loggedIn: true);
+
+        UserUpdateInfo userInfo = UserUpdateInfo();
+        userInfo
+          ..displayName = googleUser.displayName
+          ..photoUrl = googleUser.photoUrl;
+        await _auth.currentUser().then((user) async {
+          await user.updateProfile(userInfo);
+        });
+        await _auth.currentUser().then((user) async {
+          this.user.setFirebaseUser(user);
+          FirestoreService.instance.addUser(this.user);
+        });
+
+
+      } on Exception catch(e) {
+        _auth.signInWithCredential(credential).then((result) async {
+          this.user.setLoggedIn(loggedIn: true);
+          this.user.setFirebaseUser(result.user);
+          FirestoreService.instance.addUser(this.user);
+        });
       }
     });
-    UserUpdateInfo userInfo = UserUpdateInfo();
-    userInfo
-      ..displayName = googleUser.displayName
-      ..photoUrl = googleUser.photoUrl;
-    await _auth.currentUser().then((user) async {
-      await user.updateProfile(userInfo);
-    });
-    _auth.currentUser().then((user) async {
-      this.user.setFirebaseUser(user);
-      await FirestoreService.instance.addUser(this.user);
-      this.user.setLoggedIn(loggedIn: true);
-    });
+
   }
 }
