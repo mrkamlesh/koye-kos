@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'camp/camp_detail.dart';
+import 'models.dart';
 import 'profile/profile.dart';
 import 'services/auth.dart';
 import 'services/db.dart';
@@ -24,21 +25,17 @@ class _ApplicationState extends State<Application> {
   }
 
   void asyncInit() {
-    AuthService.instance.currentUser.then((value) {
-      if (value == null) {
-        AuthService.instance.signInAnonymously();
-      }
-    });
+    if (!AuthService.instance.currentUser.loggedIn) {
+      AuthService.instance.initializeUser();
+    };
   }
 
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
         providers: [
-          StreamProvider<FirebaseUser>.value(
-            value: FirebaseAuth.instance.onAuthStateChanged,
-            initialData: null,
-            lazy: false,
+          ChangeNotifierProvider<User>.value(
+            value: AuthService.instance.currentUser,
           ),
           Provider<FirestoreService>(
             create: (_) => FirestoreService.instance,

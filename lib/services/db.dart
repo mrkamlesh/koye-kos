@@ -251,7 +251,7 @@ class FirestoreService {
   }
 
   Future<void> addUser(User user) async {
-    return await Firestore.instance
+    return Firestore.instance
         .collection(FirestorePath.usersPath)
         .document(user.id)
         .setData(user.toFirestoreMap());

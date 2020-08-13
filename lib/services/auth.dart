@@ -12,60 +12,74 @@ class AuthService {
 
   static final FirebaseAuth _auth = FirebaseAuth.instance;
   static final GoogleSignIn _googleSignIn = GoogleSignIn();
+  final User user = User();
 
-  Future<FirebaseUser> get currentUser => _auth.currentUser();
+  User get currentUser => user;
+
+  // Populate user object, either with logged in user or a new anon
+  Future<User> initializeUser() {
+    if (user.firebaseUser != null) {
+      return Future.microtask(() => user);
+    } else {
+      return _auth.currentUser().then((currentUser) {
+        if (currentUser == null) {
+          signInAnonymously().then((anonUser) {
+            user.setFirebaseUser(anonUser);
+          });
+        } else {
+          user.setFirebaseUser(currentUser);
+        }
+        return user;
+      });
+    }
+  }
 
   void signOut() async {
     _googleSignIn.signOut();
     _auth.signOut();
-    _auth.signInAnonymously();
-/*    FirebaseAuth.instance.currentUser()
-        .then((FirebaseUser user) {
-      user.unlinkFromProvider(user.providerId)
-    })
-        .catchError((onError) => print('ERROR UNLINKING: $onError'));*/
+    user.firebaseUser = null;
+    initializeUser();
+    user.setLoggedIn(loggedIn: false);
   }
 
-  void signInAnonymously() async {
-    await _auth.signInAnonymously();
+  Future<FirebaseUser> signInAnonymously() async {
+    return _auth.signInAnonymously().then((result) {
+      user.setLoggedIn(loggedIn: false);
+      return result.user;
+    });
   }
 
   Future<bool> signInWithGoogle() async {
-    signOut();
     final GoogleSignInAccount googleUser = await _googleSignIn.signIn();
-    if (googleUser == null) return false;  // user exited
+    if (googleUser == null) return false; // user exited
     final GoogleSignInAuthentication googleAuth =
-        await googleUser.authentication;
+    await googleUser.authentication;
     final AuthCredential credential = GoogleAuthProvider.getCredential(
       accessToken: googleAuth.accessToken,
       idToken: googleAuth.idToken,
     );
-    _auth.signInWithCredential(credential).then((AuthResult result) {
-      if (result.user != null) {
-        final User user = User(
-          id: result.user.uid,
-          name: result.user.displayName,
-          email: result.user.email,
-          photoUrl: result.user.photoUrl,
-        );
-        FirestoreService.instance.addUser(user);
+
+    await _auth.currentUser().then((user) async {
+      if (user.providerData.map((e) => e.providerId).contains('google.com')) {
+        await user.unlinkFromProvider('google.com');
+      }
+      try {
+        _auth.signInWithCredential(credential);
+      } on Exception catch(e) {
+        await user.linkWithCredential(credential);
       }
     });
-
-/*    // TODO: link google account to anonymous user, with updated display name and possibility to unlink later
-      _auth.currentUser().then((FirebaseUser user) {
-      user.linkWithCredential(credential).then((AuthResult result) {
-        print('linked user');
-        UserUpdateInfo userInfo = UserUpdateInfo();
-        userInfo
-          ..displayName = googleUser.displayName
-          ..photoUrl = googleUser.photoUrl;
-        result.user.updateProfile(userInfo);
-        _auth.currentUser().then((value) => print('new din: ${value.displayName}'));
-      })
-          .catchError((error) {
-        print('ERROR LINKING: $error');
-      });
-  });*/
+    UserUpdateInfo userInfo = UserUpdateInfo();
+    userInfo
+      ..displayName = googleUser.displayName
+      ..photoUrl = googleUser.photoUrl;
+    await _auth.currentUser().then((user) async {
+      await user.updateProfile(userInfo);
+    });
+    _auth.currentUser().then((user) async {
+      this.user.setFirebaseUser(user);
+      await FirestoreService.instance.addUser(this.user);
+      this.user.setLoggedIn(loggedIn: true);
+    });
   }
 }

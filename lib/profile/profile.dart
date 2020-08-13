@@ -13,12 +13,12 @@ class Profile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final firestoreService = Provider.of<FirestoreService>(context);
-    final FirebaseUser user = Provider.of<FirebaseUser>(context);
-    if (user == null || user.isAnonymous) {
+    final User user = Provider.of<User>(context);
+    if (!user.loggedIn) {
       return SignUpView();
     } else {
       return StreamProvider<User>(
-          create: (_) => firestoreService.getUserStream(user.uid),
+          create: (_) => firestoreService.getUserStream(user.firebaseUser.uid),
           lazy: false,
           builder: (context, snapshot) {
             return AccountView();
@@ -84,6 +84,12 @@ class AccountView extends StatelessWidget {
       child: Scaffold(
         appBar: AppBar(
           title: Text('Account'),
+          actions: [
+            FlatButton(
+                onPressed: () => AuthService.instance.signOut(),
+                child: Text('Log out', style: TextStyle(color: Colors.white),),
+            ),
+          ],
           bottom: TabBar(
             tabs: [
               Icon(

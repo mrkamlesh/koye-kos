@@ -1,5 +1,6 @@
 import 'dart:collection';
 
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:latlong/latlong.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -62,14 +63,16 @@ class Camp {
   }
 }
 
-class User {
-  final String id;
-  final String name;
-  final String email;
-  final String photoUrl;
-  final Set<String> campsCreated;
-  final Set<String> favorited;
-  final Map<String, int> campsRated;
+class User with ChangeNotifier{
+  String id;
+  String name;
+  String email;
+  String photoUrl;
+  Set<String> campsCreated;
+  Set<String> favorited;
+  Map<String, int> campsRated;
+  bool _loggedIn = false;
+  FirebaseUser firebaseUser;  // TODO: is the duplicating user info needed?
 
   User({
     this.id,
@@ -79,6 +82,18 @@ class User {
     this.campsCreated,
     this.favorited,
     this.campsRated});
+
+  setLoggedIn({bool loggedIn = true}) {
+    _loggedIn = loggedIn;
+    notifyListeners();
+  }
+
+  bool get loggedIn => _loggedIn;
+
+  void setFirebaseUser(FirebaseUser user) {
+    this.firebaseUser = user;
+    this.id = user.uid;
+  }
 
   factory User.fromFirestore(DocumentSnapshot document) {
     Map data = document.data;
@@ -96,10 +111,10 @@ class User {
   Map<String, dynamic> toFirestoreMap() {
     HashMap<String, dynamic> map = HashMap();
     map.addAll({
-      'id': id,
-      'name': name,
-      'email': email,
-      'photo_url': photoUrl,
+      'id': firebaseUser.uid,
+      'name': firebaseUser.displayName,
+      'email': firebaseUser.email,
+      'photo_url': firebaseUser.photoUrl,
       //'camps_created': campsCreated,
       'favorited': favorited,
 /*      'camps_rated': campsRated?.entries?.map((e) => {
