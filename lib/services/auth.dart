@@ -59,11 +59,10 @@ class AuthService {
       idToken: googleAuth.idToken,
     );
 
-    // TODO: this is still wrong.
     await _auth.currentUser().then((user) async {
-      if (user.providerData.map((e) => e.providerId).contains('google.com')) {
+      /* if (user.providerData.map((e) => e.providerId).contains('google.com')) {
         await user.unlinkFromProvider('google.com');
-      }
+      }*/
 
       try {
         // Try to upgrade anonymous user, if fail, user already have an account, so sign them into that one.
@@ -91,6 +90,6 @@ class AuthService {
         });
       }
     });
-
+    return true;
   }
 }
