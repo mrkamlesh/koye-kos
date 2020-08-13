@@ -3,6 +3,7 @@ import 'dart:collection';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:provider/provider.dart';
 
@@ -12,12 +13,12 @@ import '../models.dart';
 import 'star_rating.dart';
 
 class CampDetailScreen extends StatefulWidget {
-
   @override
   _CampDetailScreenState createState() => _CampDetailScreenState();
 }
 
-class _CampDetailScreenState extends State<CampDetailScreen> with SingleTickerProviderStateMixin {
+class _CampDetailScreenState extends State<CampDetailScreen>
+    with SingleTickerProviderStateMixin {
   TabController _controller;
 
   @override
@@ -35,21 +36,40 @@ class _CampDetailScreenState extends State<CampDetailScreen> with SingleTickerPr
   }
 
   void _updateState() {
-    setState(() {
-    });
+    setState(() {});
   }
 
   @override
   Widget build(BuildContext context) {
+    final Camp camp = Provider.of<Camp>(context);
+
+    Widget _buildFloatingActionButton() {
+      return _controller.index == 1
+          ? FloatingActionButton(
+              child: Icon(Icons.add_comment),
+              onPressed: () =>
+                  Navigator.push(context, MaterialPageRoute(builder: (context) {
+                return Provider<Camp>.value(
+                  value: camp,
+                  child: AddCommentScreen(),
+                );
+              })),
+            )
+          : SizedBox.shrink();
+    }
+
     return Scaffold(
-      appBar: AppBar(  // TODO: look into sizing height of tab bar
+      appBar: AppBar(
+        // TODO: look into sizing height of tab bar
         title: Text('Camp'),
         bottom: TabBar(
           controller: _controller,
           tabs: [
             Padding(
               padding: const EdgeInsets.all(8.0),
-              child: Text('Info', ),
+              child: Text(
+                'Info',
+              ),
             ),
             Padding(
               padding: const EdgeInsets.all(8.0),
@@ -68,14 +88,77 @@ class _CampDetailScreenState extends State<CampDetailScreen> with SingleTickerPr
       floatingActionButton: _buildFloatingActionButton(),
     );
   }
+}
 
-  Widget _buildFloatingActionButton() {
-    return _controller.index == 1 ?
-        FloatingActionButton(
-          child: Icon(Icons.add_comment),
-          onPressed: () => print('pressed'),
-        )
-        : SizedBox.shrink();
+class AddCommentScreen extends StatefulWidget {
+  @override
+  _AddCommentScreenState createState() => _AddCommentScreenState();
+}
+
+class _AddCommentScreenState extends State<AddCommentScreen> {
+  final _formKey = GlobalKey<FormState>();
+  final _listKey = GlobalKey<AnimatedListState>();
+  final _textEditingController = TextEditingController();
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Add comment'),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8),
+            child: FlatButton(
+              child: Text(
+                'POST',
+                style: TextStyle(color: Colors.white),
+              ),
+              onPressed: () => print('todo: add to firebase'),
+            ),
+          ),
+        ],
+      ),
+      body: SingleChildScrollView(
+        child: Form(
+          key: _formKey,
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Column(
+              children: [
+                SizedBox(
+                  height: 20,
+                ),
+                UserRatingWidget(),
+                SizedBox(
+                  height: 20,
+                ),
+                TextFormField(
+                  controller: _textEditingController,
+                  keyboardType: TextInputType.multiline,
+                  minLines: 1,
+                  maxLines: 10,
+                  maxLength: 500,
+                  decoration: InputDecoration(
+                      hintText: 'Enter a comment',
+                      labelText: 'Comment',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide(),
+                      )),
+                  validator: (value) {
+                    if (value.length < 0) {
+                      // PROD: change to meaningful value
+                      return 'Please enter short a description!';
+                    }
+                    return null;
+                  },
+                )
+              ],
+            ), // TODO: should not post to firebase until user presses 'POST'
+          ),
+        ),
+      ),
+    );
   }
 }
 
@@ -83,17 +166,18 @@ class CommentsWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
-      child: Center(child: Row(
-        children: [
-          Icon(Icons.comment),
-        ],
-      ),),
+      child: Center(
+        child: Row(
+          children: [
+            Icon(Icons.comment),
+          ],
+        ),
+      ),
     );
   }
 }
 
 class InfoWidget extends StatelessWidget {
-
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
@@ -104,7 +188,7 @@ class InfoWidget extends StatelessWidget {
           CampInfo(),
           Padding(
             padding: const EdgeInsets.all(8.0),
-            child: UserRatingWidget(),
+            child: UserRatingView(),
           ),
           Padding(
             padding: const EdgeInsets.all(32.0),
@@ -113,6 +197,22 @@ class InfoWidget extends StatelessWidget {
         ],
       ),
     );
+  }
+}
+
+class UserRatingView extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Column(children: [
+      Text(
+        'Rate',
+        style: Theme.of(context).textTheme.headline6,
+      ),
+      Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: UserRatingWidget(),
+      ),
+    ]);
   }
 }
 
@@ -128,7 +228,8 @@ class _UserRatingWidgetState extends State<UserRatingWidget> {
   void initState() {
     final String campId = context.read<Camp>().id;
     final String userId = context.read<User>().id;
-    context.read<FirestoreService>()
+    context
+        .read<FirestoreService>()
         .getCampRating(userId, campId)
         .then((double score) {
       setState(() {
@@ -143,29 +244,18 @@ class _UserRatingWidgetState extends State<UserRatingWidget> {
     final String campId = context.select((Camp camp) => camp.id);
     final String userId = context.select((User user) => user.id);
     final firestoreService = Provider.of<FirestoreService>(context);
-    return Column(
-      children: [
-        Text(
-          'Rate',
-          style: Theme.of(context).textTheme.headline6,
-        ),
-        Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: StarRating(
-            key: UniqueKey(),
-            rating: _score,
-            size: 50,
-            color: Colors.amber,
-            borderColor: Colors.amber,
-            onRated: (rating) {
-              firestoreService.updateRating(campId, userId, rating);
-              setState(() {
-                _score = rating;
-              });
-            },
-          ),
-        ),
-      ],
+    return StarRating(
+      key: UniqueKey(),
+      rating: _score,
+      size: 50,
+      color: Colors.amber,
+      borderColor: Colors.amber,
+      onRated: (rating) {
+        firestoreService.updateRating(campId, userId, rating);
+        setState(() {
+          _score = rating;
+        });
+      },
     );
   }
 }
@@ -205,27 +295,27 @@ class CampInfo extends StatelessWidget {
   Widget build(BuildContext context) {
     final Camp camp = Provider.of<Camp>(context);
     return Padding(
-            // Rest of camp description / rating view
-            padding: const EdgeInsets.all(8.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: [
-                    RatingView(
-                      score: camp.score,
-                      ratings: camp.ratings,
-                    ),
-                    FavoriteWidget(),
-                  ],
-                ),
-                Text(camp.description),
-                Divider(),
-                Text('By: ${camp.creatorName ?? 'Anonymous'}'),
-              ],
-            ),
-          );
+      // Rest of camp description / rating view
+      padding: const EdgeInsets.all(8.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              RatingView(
+                score: camp.score,
+                ratings: camp.ratings,
+              ),
+              FavoriteWidget(),
+            ],
+          ),
+          Text(camp.description),
+          Divider(),
+          Text('By: ${camp.creatorName ?? 'Anonymous'}'),
+        ],
+      ),
+    );
   }
 }
 
@@ -238,7 +328,8 @@ class _ImageListState extends State<ImageList> {
   final Map<int, ImageProvider> images = HashMap();
   @override
   Widget build(BuildContext context) {
-    final List<String> imageUrls = context.select((Camp camp) => camp.imageUrls);
+    final List<String> imageUrls =
+        context.select((Camp camp) => camp.imageUrls);
     return Container(
       height: 200, // restrict image height
       child: ListView.builder(
