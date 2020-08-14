@@ -40,21 +40,24 @@ class CommentPage extends StatelessWidget {
                         Row(
                           children: [
                             Expanded(
-                              child: Container(
-                                height: 40,
-                                child: Row(
-                                  children: [
-                                    ClipOval(
-                                      child: CachedNetworkImage(
-                                        imageUrl: comment.userPhotoUrl,
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(vertical: 8.0),
+                                child: Container(
+                                  height: 40,
+                                  child: Row(
+                                    children: [
+                                      ClipOval(
+                                        child: CachedNetworkImage(
+                                          imageUrl: comment.userPhotoUrl,
+                                        ),
                                       ),
-                                    ),
-                                    Padding(
-                                      padding:
-                                      const EdgeInsets.symmetric(horizontal: 8),
-                                      child: Text('${comment.userName}'),
-                                    ),
-                                  ],
+                                      Padding(
+                                        padding:
+                                        const EdgeInsets.symmetric(horizontal: 8),
+                                        child: Text('${comment.userName}'),
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ),
                             ),
@@ -69,21 +72,21 @@ class CommentPage extends StatelessWidget {
                                   })),)
                           ],
                         ),
+                        Row(
+                          children: [
+                            if (comment.score != null)
+                              RatingViewSmall(
+                                score: comment.score,
+                                showDetails: false,
+                              ),
+                            Text(
+                                '${DateFormat('dd/MM/yyyy').format(comment.date)}'),
+                          ],
+                        ),
                         Padding(
                           padding: const EdgeInsets.symmetric(vertical: 8.0),
-                          child: Row(
-                            children: [
-                              if (comment.score != null)
-                                RatingViewSmall(
-                                  score: comment.score,
-                                  showDetails: false,
-                                ),
-                              Text(
-                                  '${DateFormat('dd/MM/yyyy').format(comment.date)}'),
-                            ],
-                          ),
+                          child: Text('${comment.comment}'),
                         ),
-                        Text('${comment.comment}'),
                       ],
                     ),
                   ),
@@ -139,7 +142,7 @@ class _AddCommentScreenState extends State<AddCommentScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Add comment'),
+        title: Text(widget.comment == null ? 'Add comment' : 'Edit comment'),
         actions: [
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8),
