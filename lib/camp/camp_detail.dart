@@ -1,15 +1,15 @@
 import 'dart:collection';
 
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:provider/provider.dart';
 
 import '../services/db.dart';
 import '../map/map_detail.dart';
-import '../models.dart';
+import '../models/camp.dart';
+import '../models/user.dart';
 import 'star_rating.dart';
 
 class CampDetailScreen extends StatefulWidget {
@@ -101,7 +101,8 @@ class _AddCommentScreenState extends State<AddCommentScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final firestoreService = Provider.of<FirestoreService>(context, listen: false);
+    final firestoreService =
+        Provider.of<FirestoreService>(context, listen: false);
     final campId = context.select((Camp camp) => camp.id);
     final user = Provider.of<User>(context);
 
@@ -118,7 +119,10 @@ class _AddCommentScreenState extends State<AddCommentScreen> {
               ),
               onPressed: () {
                 if (_formKey.currentState.validate()) {
-                  FirestoreService.instance.addCampComment(campId: campId, comment: _textEditingController.text, user: user);
+                  FirestoreService.instance.addCampComment(
+                      campId: campId,
+                      comment: _textEditingController.text,
+                      user: user);
                   Navigator.pop(context);
                 }
               },
@@ -168,18 +172,54 @@ class _AddCommentScreenState extends State<AddCommentScreen> {
       ),
     );
   }
-
 }
 
 class CommentsWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      child: Container(
-        child: Center(
-          child: Icon(Icons.comment),
-        ),
-      ),
+    final firestoreService = Provider.of<FirestoreService>(context);
+    final campId = context.select((Camp camp) => camp.id);
+    return StreamBuilder<List<CampComment>>(
+      stream: firestoreService.getComments(campId),
+      builder: (context, snapshot) {
+        if (snapshot.hasData && snapshot.data.isNotEmpty) {
+          final List<CampComment> comments = snapshot.data;
+          return ListView.builder(
+              itemCount: comments.length,
+              itemBuilder: (context, index) {
+                final CampComment comment = comments[index];
+                return ListTile(
+                  leading: ClipOval(
+                    child: CachedNetworkImage(
+                      imageUrl: comment.userPhotoUrl,
+                    ),
+                  ),
+                  title: Text(comment.comment),
+                  subtitle: Text(comment.userName),
+                );
+              });
+        }
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Container(
+            padding: EdgeInsets.only(top: 20),
+            child: Column(
+              children: [
+                CircularProgressIndicator(),
+                Padding(
+                  padding: const EdgeInsets.only(top: 16.0),
+                  child: Text('Loading comments...'),
+                ),
+              ],
+            ),
+          );
+        } else {
+          return Container(
+            child: Center(
+              child: Text('No comments for this camp. Be the first one!'),
+            ),
+          );
+        }
+      },
     );
   }
 }
@@ -325,7 +365,6 @@ class RatingView extends StatelessWidget {
     );
   }
 }
-
 
 class ImageList extends StatefulWidget {
   @override
