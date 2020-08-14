@@ -1,4 +1,3 @@
-
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
@@ -15,9 +14,11 @@ class CommentPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final firestoreService = Provider.of<FirestoreService>(context);
-    final campId = context.select((Camp camp) => camp.id);
+    final Camp camp = Provider.of<Camp>(context);
+    final User user = Provider.of<User>(context);
+
     return StreamBuilder<List<CampComment>>(
-      stream: firestoreService.getComments(campId),
+      stream: firestoreService.getComments(camp.id),
       builder: (context, snapshot) {
         if (snapshot.hasData && snapshot.data.isNotEmpty) {
           final List<CampComment> comments = snapshot.data;
@@ -32,25 +33,41 @@ class CommentPage extends StatelessWidget {
                     borderRadius: BorderRadius.circular(8.0),
                   ),
                   child: Padding(
-                    padding: const EdgeInsets.all(8.0),
+                    padding: const EdgeInsets.symmetric(horizontal: 8.0),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Container(
-                          height: 40,
-                          child: Row(
-                            children: [
-                              ClipOval(
-                                child: CachedNetworkImage(
-                                  imageUrl: comment.userPhotoUrl,
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Container(
+                                height: 40,
+                                child: Row(
+                                  children: [
+                                    ClipOval(
+                                      child: CachedNetworkImage(
+                                        imageUrl: comment.userPhotoUrl,
+                                      ),
+                                    ),
+                                    Padding(
+                                      padding:
+                                      const EdgeInsets.symmetric(horizontal: 8),
+                                      child: Text('${comment.userName}'),
+                                    ),
+                                  ],
                                 ),
                               ),
-                              Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 8),
-                                child: Text('${comment.userName}'),
-                              ),
-                            ],
-                          ),
+                            ),
+                            if (comment.userId == user.id) IconButton(
+                              icon: Icon(Icons.edit),
+                              onPressed: () =>
+                                  Navigator.push(context, MaterialPageRoute(builder: (context) {
+                                    return Provider<Camp>.value(
+                                      value: camp,
+                                      child: AddCommentScreen(comment: comment,),
+                                    );
+                                  })),)
+                          ],
                         ),
                         Padding(
                           padding: const EdgeInsets.symmetric(vertical: 8.0),
@@ -61,7 +78,8 @@ class CommentPage extends StatelessWidget {
                                   score: comment.score,
                                   showDetails: false,
                                 ),
-                              Text('${DateFormat('dd/MM/yyyy').format(comment.date)}'),
+                              Text(
+                                  '${DateFormat('dd/MM/yyyy').format(comment.date)}'),
                             ],
                           ),
                         ),
@@ -97,8 +115,11 @@ class CommentPage extends StatelessWidget {
   }
 }
 
-
 class AddCommentScreen extends StatefulWidget {
+  final CampComment comment;
+
+  AddCommentScreen({this.comment});
+
   @override
   _AddCommentScreenState createState() => _AddCommentScreenState();
 }
@@ -113,6 +134,8 @@ class _AddCommentScreenState extends State<AddCommentScreen> {
     Provider.of<FirestoreService>(context, listen: false);
     final campId = context.select((Camp camp) => camp.id);
     final user = Provider.of<User>(context);
+    if (widget.comment != null)
+      _textEditingController.text = widget.comment.comment;
 
     return Scaffold(
       appBar: AppBar(
