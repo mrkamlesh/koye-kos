@@ -101,6 +101,10 @@ class _AddCommentScreenState extends State<AddCommentScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final firestoreService = Provider.of<FirestoreService>(context, listen: false);
+    final campId = context.select((Camp camp) => camp.id);
+    final user = Provider.of<User>(context);
+
     return Scaffold(
       appBar: AppBar(
         title: Text('Add comment'),
@@ -112,7 +116,12 @@ class _AddCommentScreenState extends State<AddCommentScreen> {
                 'POST',
                 style: TextStyle(color: Colors.white),
               ),
-              onPressed: () => print('todo: add to firebase'),
+              onPressed: () {
+                if (_formKey.currentState.validate()) {
+                  FirestoreService.instance.addCampComment(campId: campId, comment: _textEditingController.text, user: user);
+                  Navigator.pop(context);
+                }
+              },
             ),
           ),
         ],
@@ -159,6 +168,7 @@ class _AddCommentScreenState extends State<AddCommentScreen> {
       ),
     );
   }
+
 }
 
 class CommentsWidget extends StatelessWidget {

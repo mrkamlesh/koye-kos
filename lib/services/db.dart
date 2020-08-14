@@ -161,6 +161,22 @@ class FirestoreService {
     });
   }
 
+  Future<void> addCampComment({@required String campId, @required String comment, @required User user, double score}) {
+    Map<String, dynamic> data = {
+      'comment': comment,
+      'user_name': user.name,
+      'user_id': user.id,
+      'user_photo_url': user.photoUrl,
+      'date': DateTime.now().toUtc().toString(),
+    };
+    if (score != null) data['score'] = score;
+
+    return Firestore.instance
+        .collection(FirestorePath.getCommentsPath(campId))
+        .document(user.id)
+        .setData(data);
+  }
+
   Future<double> getCampRating(String userId, String campId) {
     return Firestore.instance
         .collection(FirestorePath.getRatingPath(campId))
