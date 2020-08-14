@@ -69,18 +69,22 @@ class CampComment {
   final String userName;
   final String userPhotoUrl;
   final DateTime date;
+  double score;
 
-  CampComment({this.comment, this.userId, this.userName, this.userPhotoUrl, this.date});
+  CampComment({this.comment, this.userId, this.userName, this.userPhotoUrl, this.date,
+  this.score});
 
   factory CampComment.fromFirestore(DocumentSnapshot document) {
     Map data = document.data;
-    return CampComment(
+    CampComment comment = CampComment(
       comment: data['comment'] as String,
       userId: data['user_id'] as String,
       userName: data['user_name'] as String,
       userPhotoUrl: data['user_photo_url'] as String,
       date: (data['date'] as Timestamp).toDate(),
     );
+    if (data['score'] != null) comment.score = data['score'] as double;
+    return comment;
   }
 }
 

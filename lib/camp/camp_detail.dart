@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:provider/provider.dart';
+import 'package:intl/intl.dart';
+
 
 import '../services/db.dart';
 import '../map/map_detail.dart';
@@ -188,14 +190,50 @@ class CommentsWidget extends StatelessWidget {
               itemCount: comments.length,
               itemBuilder: (context, index) {
                 final CampComment comment = comments[index];
-                return ListTile(
-                  leading: ClipOval(
-                    child: CachedNetworkImage(
-                      imageUrl: comment.userPhotoUrl,
+                return Card(
+                  clipBehavior:
+                      Clip.antiAliasWithSaveLayer, // for rounded corners
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8.0),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          height: 40,
+                          child: Row(
+                            children: [
+                              ClipOval(
+                                child: CachedNetworkImage(
+                                  imageUrl: comment.userPhotoUrl,
+                                ),
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 8),
+                                child: Text('${comment.userName}'),
+                              ),
+                            ],
+                          ),
+                        ),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 8.0),
+                            child: Row(
+                              children: [
+                                if (comment.score != null)
+                                  RatingViewSmall(
+                                  score: comment.score,
+                                  showDetails: false,
+                                ),
+                                Text('${DateFormat('dd/MM/yyyy').format(comment.date)}'),
+                            ],
+                            ),
+                          ),
+                        Text('${comment.comment}'),
+                      ],
                     ),
                   ),
-                  title: Text(comment.comment),
-                  subtitle: Text(comment.userName),
                 );
               });
         }

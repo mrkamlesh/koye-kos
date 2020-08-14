@@ -106,14 +106,15 @@ class FavoriteWidget extends StatelessWidget {
 class RatingViewSmall extends StatelessWidget {
   final double score;
   final int ratings;
+  final bool showDetails;
 
-  RatingViewSmall({this.score, this.ratings});
+  RatingViewSmall({this.score, this.ratings, this.showDetails = true});
 
   @override
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Padding(
+        if (showDetails) Padding(
           padding: const EdgeInsets.only(right: 4.0),
           child: Text('${score.toStringAsFixed(1)}'),
         ),
@@ -124,7 +125,7 @@ class RatingViewSmall extends StatelessWidget {
           color: Colors.amber,
           borderColor: Colors.amber,
         ),
-        Padding(
+        if (showDetails) Padding(
           padding: const EdgeInsets.only(left: 4.0),
           child: Text('($ratings)'),
         ),
