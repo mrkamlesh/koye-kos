@@ -9,7 +9,7 @@ import 'package:provider/provider.dart';
 import '../camp/camp_detail.dart';
 import '../camp/camp_utils.dart';
 import '../services/db.dart';
-import '../models.dart';
+import '../models/camp.dart';
 import 'map_detail.dart';
 
 // Static fields to help set up the map

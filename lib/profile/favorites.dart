@@ -1,11 +1,10 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:implicitly_animated_reorderable_list/implicitly_animated_reorderable_list.dart';
 import 'package:implicitly_animated_reorderable_list/transitions.dart';
-import 'package:koye_kos/map/map.dart';
 import 'package:provider/provider.dart';
 
-import '../models.dart';
+import '../models/camp.dart';
+import '../models/user.dart';
 import '../utils.dart';
 import '../camp/camp_utils.dart';
 import '../services/db.dart';

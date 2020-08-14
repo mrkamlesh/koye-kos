@@ -8,7 +8,8 @@ import 'package:provider/provider.dart';
 import 'package:latlong/latlong.dart';
 import 'package:transparent_image/transparent_image.dart';
 
-import '../models.dart';
+import '../models/camp.dart';
+import '../models/user.dart';
 import '../services/db.dart';
 import '../utils.dart';
 

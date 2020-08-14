@@ -6,7 +6,8 @@ import 'package:latlong/latlong.dart';
 
 import '../camp/add_camp.dart';
 import '../services/db.dart';
-import '../models.dart';
+import '../models/camp.dart';
+import '../models/user.dart';
 import '../utils.dart';
 import '../camp/star_rating.dart';
 
