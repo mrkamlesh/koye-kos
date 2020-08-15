@@ -27,6 +27,7 @@ class AuthService {
           });
         } else {
           user.setFirebaseUser(currentUser);
+          if (user.name != null) user.setLoggedIn();
         }
         return user;
       });
