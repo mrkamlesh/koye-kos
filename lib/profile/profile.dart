@@ -10,8 +10,8 @@ import 'favorites.dart';
 class Profile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final User user = Provider.of<User>(context);
-    return user.loggedIn ? AccountView() : SignUpView();
+    final AuthProvider auth = Provider.of<AuthProvider>(context);
+    return auth.status == AuthStatus.Authenticated ? AccountView() : SignUpView();
   }
 }
 
@@ -153,7 +153,7 @@ class ProfileWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final AuthService authService = Provider.of<AuthService>(context);
-    return Consumer<User>(
+    return Consumer<UserModel>(
       builder: (context, user, child) {
         if (user == null || user.name == null) {
           return Container(

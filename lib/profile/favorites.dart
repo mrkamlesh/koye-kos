@@ -14,9 +14,8 @@ class FavoritedView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final firestoreService = Provider.of<FirestoreService>(context);
-    final String userId = context.select((User user) => user.id);
     return StreamBuilder<List<Favorite>>(
-        stream: firestoreService.campIdsFavoritedStream(userId),
+        stream: firestoreService.campIdsFavoritedStream(),
         builder: (context, snapshot) {
           if (snapshot.hasData && snapshot.data.isNotEmpty) {
             return FavoriteListView(favorites: snapshot.data);
@@ -56,7 +55,6 @@ class FavoriteListView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final firestoreService = Provider.of<FirestoreService>(context);
-    final String userId = context.select((User user) => user.id);
 
     return StreamBuilder<List<Camp>>(
       stream: firestoreService
@@ -94,7 +92,6 @@ class FavoriteListItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final firestoreService = Provider.of<FirestoreService>(context);
-    final String userId = context.select((User user) => user.id);
     return InkWell(
       child: Container(
         height: 100,
@@ -146,7 +143,7 @@ class FavoriteListItem extends StatelessWidget {
                       color: Colors.red,
                     ),
                     onPressed: () {
-                      firestoreService.setFavorited(userId, camp.id,
+                      firestoreService.setFavorited(camp.id,
                           favorited: false);
                       // TODO: add undo
                     }),

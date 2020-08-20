@@ -169,10 +169,9 @@ class _UserRatingWidgetState extends State<UserRatingWidget> {
   @override
   void initState() {
     final String campId = context.read<Camp>().id;
-    final String userId = context.read<User>().id;
     context
         .read<FirestoreService>()
-        .getCampRating(userId, campId)
+        .getCampRating(campId)
         .then((double score) {
       setState(() {
         _score = score;
@@ -184,7 +183,6 @@ class _UserRatingWidgetState extends State<UserRatingWidget> {
   @override
   Widget build(BuildContext context) {
     final String campId = context.select((Camp camp) => camp.id);
-    final String userId = context.select((User user) => user.id);
     final firestoreService = Provider.of<FirestoreService>(context);
     return StarRating(
       key: UniqueKey(),
@@ -193,7 +191,7 @@ class _UserRatingWidgetState extends State<UserRatingWidget> {
       color: Colors.amber,
       borderColor: Colors.amber,
       onRated: (rating) {
-        firestoreService.updateRating(campId, userId, rating);
+        firestoreService.updateRating(campId, rating);
         setState(() {
           _score = rating;
         });

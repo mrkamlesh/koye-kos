@@ -15,7 +15,7 @@ class CommentPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final firestoreService = Provider.of<FirestoreService>(context);
     final Camp camp = Provider.of<Camp>(context);
-    final User user = Provider.of<User>(context);
+    final UserModel user = Provider.of<UserModel>(context);
 
     return StreamBuilder<List<CampComment>>(
       stream: firestoreService.getComments(camp.id),
@@ -133,10 +133,9 @@ class _AddCommentScreenState extends State<AddCommentScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final firestoreService =
-    Provider.of<FirestoreService>(context, listen: false);
+    final firestoreService = Provider.of<FirestoreService>(context, listen: false);
     final campId = context.select((Camp camp) => camp.id);
-    final user = Provider.of<User>(context);
+    final user = Provider.of<UserModel>(context);
     if (widget.comment != null)
       _textEditingController.text = widget.comment.comment;
 
@@ -153,10 +152,10 @@ class _AddCommentScreenState extends State<AddCommentScreen> {
               ),
               onPressed: () {
                 if (_formKey.currentState.validate()) {
-                  FirestoreService.instance.addCampComment(
+                  firestoreService.addCampComment(
                       campId: campId,
                       comment: _textEditingController.text,
-                      user: user);
+                      userModel: user);
                   Navigator.pop(context);
                 }
               },

@@ -18,7 +18,6 @@ class OpenContainerCamp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final firestoreService = Provider.of<FirestoreService>(context);
-    final String userId = context.select((User user) => user.id);
 
     return OpenContainer(
       closedColor: Colors.transparent,
@@ -34,7 +33,7 @@ class OpenContainerCamp extends StatelessWidget {
             ),
             StreamProvider<bool>(
               create: (_) =>
-                  firestoreService.campFavoritedStream(userId, camp.id),
+                  firestoreService.campFavoritedStream(camp.id),
               initialData: false,
             ),
           ],
@@ -50,7 +49,7 @@ class OpenContainerCamp extends StatelessWidget {
             ),
             StreamProvider<bool>(
               create: (_) =>
-                  firestoreService.campFavoritedStream(userId, camp.id),
+                  firestoreService.campFavoritedStream(camp.id),
               initialData: false,
             ),
           ],

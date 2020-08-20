@@ -4,12 +4,11 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:koye_kos/services/auth.dart';
 import 'package:provider/provider.dart';
 import 'package:latlong/latlong.dart';
 import 'package:transparent_image/transparent_image.dart';
 
-import '../models/camp.dart';
-import '../models/user.dart';
 import '../services/db.dart';
 import '../utils.dart';
 
@@ -113,7 +112,7 @@ class _CampFormState extends State<CampForm> {
   @override
   Widget build(BuildContext context) {
     final firestoreService = Provider.of<FirestoreService>(context);
-    final user = Provider.of<User>(context);
+    final auth = Provider.of<AuthProvider>(context);
     return Form(
       key: _formKey,
       child: Padding(
@@ -160,7 +159,7 @@ class _CampFormState extends State<CampForm> {
                           bool wasAdded = firestoreService.addCamp(
                               description: descriptionController.text,
                               location: widget._location,
-                              user: user.firebaseUser,
+                              userModel: null,  // FIXME
                               images: _images);
 
                           wasAdded

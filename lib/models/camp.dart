@@ -28,11 +28,11 @@ class Camp {
         @required this.creatorName});
 
   factory Camp.fromFirestore(DocumentSnapshot document) {
-    Map data = document.data;
+    Map data = document.data();
     LatLng location = ((data['location'] ?? GeoPoint(0, 0)) as GeoPoint).toLatLng();
     // Fix this when null safety comes to Dart..
     return Camp(
-        id: document.documentID ?? '',
+        id: document.id ?? '',
         imageUrls: List<String>.from((data['image_urls'] ?? []) as List),
         location: location,
         score: ((data['score'] ?? 0) as num).toDouble(),
@@ -75,7 +75,7 @@ class CampComment {
   this.score});
 
   factory CampComment.fromFirestore(DocumentSnapshot document) {
-    Map data = document.data;
+    Map data = document.data();
     CampComment comment = CampComment(
       comment: data['comment'] as String,
       userId: data['user_id'] as String,
@@ -97,8 +97,8 @@ class Favorite {
 
   factory Favorite.fromFirestore(DocumentSnapshot document) {
     return Favorite(
-        campId: document.documentID,
-        time: document.data['time'] as Timestamp);
+        campId: document.id,
+        time: document.data()['time'] as Timestamp);
   }
 }
 

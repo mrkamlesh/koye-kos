@@ -1,10 +1,10 @@
 import 'dart:collection';
 
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_auth/firebase_auth.dart' as auth;
 import 'package:flutter/foundation.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-class User with ChangeNotifier{
+class UserModel {
   String id;
   String name;
   String email;
@@ -12,10 +12,9 @@ class User with ChangeNotifier{
   Set<String> campsCreated;
   Set<String> favorited;
   Map<String, int> campsRated;
-  bool _loggedIn = false;
-  FirebaseUser firebaseUser;  // TODO: is the duplicating user info needed?
+  auth.User firebaseUser;  // TODO: is the duplicating user info needed?
 
-  User({
+  UserModel({
     this.id,
     this.name,
     this.email,
@@ -24,25 +23,17 @@ class User with ChangeNotifier{
     this.favorited,
     this.campsRated});
 
-  setLoggedIn({bool loggedIn = true}) {
-    _loggedIn = loggedIn;
-    notifyListeners();
-  }
-
-  bool get loggedIn => _loggedIn;
-
-  void setFirebaseUser(FirebaseUser user) {
+  void setFirebaseUser(auth.User user) {
     this.firebaseUser = user;
     this.id = user.uid;
     this.name = user.displayName;
     this.email = user.email;
     this.photoUrl = user.photoUrl;
-    notifyListeners();
   }
 
-  factory User.fromFirestore(DocumentSnapshot document) {
-    Map data = document.data;
-    return User(
+  factory UserModel.fromFirestore(DocumentSnapshot document) {
+    Map<String, dynamic> data = document.data();
+    return UserModel(
       id: data['id'] as String,
       name: data['name'] as String,
       email: data['email'] as String,

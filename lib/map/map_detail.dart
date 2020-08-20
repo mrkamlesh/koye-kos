@@ -87,7 +87,6 @@ class FavoriteWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final firestoreService = Provider.of<FirestoreService>(context);
-    final String userId = context.select((User user) => user.id);
     final String campId = context.select((Camp camp) => camp.id);
     final bool isFavorited = Provider.of<bool>(context);
 
@@ -96,7 +95,7 @@ class FavoriteWidget extends StatelessWidget {
           ? Icon(Icons.favorite, color: Colors.redAccent)
           : Icon(Icons.favorite_border),
       onPressed: () {
-        firestoreService.setFavorited(userId, campId,
+        firestoreService.setFavorited(campId,
             favorited: !isFavorited);
       },
     );
