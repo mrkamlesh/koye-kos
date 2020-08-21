@@ -1,16 +1,17 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_core/firebase_core.dart';
 
 import 'camp/camp_detail.dart';
 import 'models/user.dart';
 import 'profile/profile.dart';
+import 'providers.dart';
 import 'services/auth.dart';
 import 'services/db.dart';
 import 'map/map.dart';
 
 void main() {
-  runApp(Application());
+  runApp(ProviderScope(child: Application()));
 }
 
 class Application extends StatefulWidget {
@@ -25,15 +26,8 @@ class _ApplicationState extends State<Application> {
         future: Firebase.initializeApp(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.done) {
-            return MultiProvider(
-              providers: [
-                ChangeNotifierProvider<AuthProvider>(
-                  create: (_) => AuthProvider(),
-                ),
-              ],
-              child: MyApp(
-                firestoreBuilder: (_, uid) => FirestoreService(uid: uid),
-              ),
+            return MyApp(
+              firestoreBuilder: (_, uid) => FirestoreService(uid: uid),
             );
           }
           return Material(
@@ -42,6 +36,10 @@ class _ApplicationState extends State<Application> {
         });
   }
 }
+
+final _userSnapshot = ScopedProvider<AsyncSnapshot<UserModel>>((ref) {
+  throw UnimplementedError();
+});
 
 class MyApp extends StatelessWidget {
   final FirestoreService Function(BuildContext context, String uid)
@@ -68,19 +66,27 @@ class MyApp extends StatelessWidget {
               },
             ),
           ),
-          home: Consumer<AuthProvider>(
-            builder: (_, value, __) {
-              if (userSnapshot.connectionState == ConnectionState.active) {
-                return userSnapshot.hasData ? Home() : SplashScreen();
-              }
-              return Material(
-                child: CircularProgressIndicator(),
-              );
-            },
-          ),
+          home: ProviderScope(
+              overrides: [_userSnapshot.overrideWithValue(userSnapshot)],
+              child: StartupView()),
         );
       },
     );
+  }
+}
+
+class StartupView extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    Consumer((context, watch) {
+      final userSnapshot = watch(_userSnapshot);
+      if (userSnapshot.connectionState == ConnectionState.active) {
+        return userSnapshot.hasData ? Home() : SplashScreen();
+      }
+      return Material(
+        child: CircularProgressIndicator(),
+      );
+    });
   }
 }
 
@@ -107,30 +113,26 @@ class AuthWidgetBuilder extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final authService = Provider.of<AuthProvider>(context, listen: false);
-    return StreamBuilder<UserModel>(
-      stream: authService.userStream,
-      builder: (BuildContext context, AsyncSnapshot<UserModel> snapshot) {
-        final UserModel user = snapshot.data;
-        if (user != null) {
-          /*
-          * For any other Provider services that rely on user data can be
-          * added to the following MultiProvider list.
-          * Once a user has been detected, a re-build will be initiated.
-           */
-          return MultiProvider(
-            providers: [
-              Provider<UserModel>.value(value: user),
-              Provider<FirestoreService>(
-                create: (context) => firestoreBuilder(context, user.id),
-              ),
-            ],
-            child: builder(context, snapshot),
-          );
-        }
-        return builder(context, snapshot);
-      },
-    );
+    return Consumer((context, watch) {
+      final auth = watch(authProvider);
+      return StreamBuilder<UserModel>(
+        stream: auth.userStream,
+        builder: (BuildContext context, AsyncSnapshot<UserModel> snapshot) {
+          final UserModel user = snapshot.data;
+          if (user != null) {
+            return ProviderScope(
+              overrides: [
+                userModel.overrideWithValue(user),
+                firestoreService
+                    .overrideWithValue(firestoreBuilder(context, user.id))
+              ],
+              child: builder(context, snapshot),
+            );
+          }
+          return builder(context, snapshot);
+        },
+      );
+    });
   }
 }
 
