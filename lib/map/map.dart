@@ -3,11 +3,12 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_map/flutter_map.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:latlong/latlong.dart';
-import 'package:provider/provider.dart';
 
 import '../camp/camp_detail.dart';
 import '../camp/camp_utils.dart';
+import '../providers.dart';
 import '../services/db.dart';
 import '../models/camp.dart';
 import 'map_detail.dart';
@@ -191,28 +192,33 @@ class CampMarkerLayer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder(
-      stream: context.watch<FirestoreService>().getCampListStream(),
-      builder: (BuildContext context, AsyncSnapshot<List<Camp>> snapshot) {
-        return MarkerLayerWidget(
-          options: MarkerLayerOptions(
-            markers: [
-              if (snapshot.hasData)
-                ...snapshot.data.map((Camp camp) {
-                  return CampMarker(camp, tapCallback: () {
-                    tapCallback();
-                    // TODO: change marker icon to red when tapped
-                    showBottomSheet<void>(
-                        context: context,
-                        backgroundColor: Colors.transparent,
-                        builder: (context) => OpenContainerCamp(camp, closedScreen: MarkerBottomSheet()));
-                  });
-                })
-            ],
-          ),
-        );
-      },
-    );
+    return Consumer((context, watch) {
+      final firestore = watch(firestoreService);
+      return StreamBuilder(
+        stream: firestore.getCampListStream(),
+        builder: (BuildContext context, AsyncSnapshot<List<Camp>> snapshot) {
+          return MarkerLayerWidget(
+            options: MarkerLayerOptions(
+              markers: [
+                if (snapshot.hasData)
+                  ...snapshot.data.map((Camp camp) {
+                    return CampMarker(camp, tapCallback: () {
+                      tapCallback();
+                      // TODO: change marker icon to red when tapped
+                      showBottomSheet<void>(
+                          context: context,
+                          backgroundColor: Colors.transparent,
+                          builder: (context) =>
+                              OpenContainerCamp(
+                                  camp, closedScreen: MarkerBottomSheet()));
+                    });
+                  })
+              ],
+            ),
+          );
+        },
+      );
+    });
   }
 }
 

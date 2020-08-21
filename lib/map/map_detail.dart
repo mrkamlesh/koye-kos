@@ -1,13 +1,10 @@
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:koye_kos/providers.dart';
 import 'package:latlong/latlong.dart';
 
 import '../camp/add_camp.dart';
-import '../services/db.dart';
-import '../models/camp.dart';
-import '../models/user.dart';
 import '../utils.dart';
 import '../camp/star_rating.dart';
 
@@ -37,68 +34,74 @@ class MarkerBottomSheet extends StatelessWidget {
 class CampDescription extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final camp = Provider.of<Camp>(context);
-    return Padding(
-      // Rest of camp description / rating view
-      padding: const EdgeInsets.all(8.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              RatingViewSmall(score: camp.score, ratings: camp.ratings),
-              FavoriteWidget(),
-            ],
-          ),
-          Text(camp.description),
-          Divider(),
-          Text('By: ${camp.creatorName ?? 'Anonymous'}'),
-        ],
-      ),
-    );
+    return Consumer((context, watch) {
+      final camp = watch(campProvider);
+      return Padding(
+        // Rest of camp description / rating view
+        padding: const EdgeInsets.all(8.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                RatingViewSmall(score: camp.score, ratings: camp.ratings),
+                FavoriteWidget(),
+              ],
+            ),
+            Text(camp.description),
+            Divider(),
+            Text('By: ${camp.creatorName ?? 'Anonymous'}'),
+          ],
+        ),
+      );
+    });
   }
 }
 
 class ImageListSmall extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final List<String> imageUrls = context.select((Camp camp) => camp.imageUrls);
-    return Container(
-      height: 120, // restrict image height
-      child: ListView.builder(
-        scrollDirection: Axis.horizontal,
-        itemCount: imageUrls.length,
-        itemBuilder: (context, index) {
-          bool last = imageUrls.length == index + 1;
-          return Container(
-            width: 220,
-            // insert right padding to all but the last list item
-            padding: !last ? EdgeInsets.only(right: 2) : null,
-            child: MarkerCachedImage(imageUrls[index]),
-          );
-        },
-      ),
-    );
+    return Consumer((context, watch) {
+      final imageUrls = watch(campProvider).imageUrls;
+      return Container(
+        height: 120, // restrict image height
+        child: ListView.builder(
+          scrollDirection: Axis.horizontal,
+          itemCount: imageUrls.length,
+          itemBuilder: (context, index) {
+            bool last = imageUrls.length == index + 1;
+            return Container(
+              width: 220,
+              // insert right padding to all but the last list item
+              padding: !last ? EdgeInsets.only(right: 2) : null,
+              child: MarkerCachedImage(imageUrls[index]),
+            );
+          },
+        ),
+      );
+    });
   }
 }
 
 class FavoriteWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final firestoreService = Provider.of<FirestoreService>(context);
-    final String campId = context.select((Camp camp) => camp.id);
-    final bool isFavorited = Provider.of<bool>(context);
+    return Consumer((context, watch) {
+      final isFavorited = watch(favoritedProvider);
+      final campId = watch(campProvider).id;
+      final firestore = watch(firestoreService);
 
-    return IconButton(
-      icon: isFavorited
-          ? Icon(Icons.favorite, color: Colors.redAccent)
-          : Icon(Icons.favorite_border),
-      onPressed: () {
-        firestoreService.setFavorited(campId,
-            favorited: !isFavorited);
-      },
-    );
+      return IconButton(
+        icon: isFavorited
+            ? Icon(Icons.favorite, color: Colors.redAccent)
+            : Icon(Icons.favorite_border),
+        onPressed: () {
+          firestore.setFavorited(campId,
+              favorited: !isFavorited);
+        },
+      );
+    });
   }
 }
 

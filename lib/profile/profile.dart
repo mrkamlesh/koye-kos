@@ -1,17 +1,20 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:provider/provider.dart';
 
 import '../models/user.dart';
+import '../providers.dart';
 import '../services/auth.dart';
 import 'favorites.dart';
 
 class Profile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final AuthProvider auth = Provider.of<AuthProvider>(context);
-    return auth.status == AuthStatus.Authenticated ? AccountView() : SignUpView();
+    return Consumer((context, watch) {
+      final AuthProvider auth = watch(authProvider);
+      return auth.status == AuthStatus.Authenticated ? AccountView() : SignUpView();
+    });
   }
 }
 
@@ -152,9 +155,9 @@ class CreatedView extends StatelessWidget {
 class ProfileWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final AuthService authService = Provider.of<AuthService>(context);
-    return Consumer<UserModel>(
-      builder: (context, user, child) {
+    return Consumer((context, watch) {
+      //final auth = watch(authProvider);
+      final user = watch(userProvider);
         if (user == null || user.name == null) {
           return Container(
             child: Center(
@@ -195,7 +198,7 @@ class ProfileWidget extends StatelessWidget {
                           style: TextStyle(color: Colors.white),
                         ),
                         color: Theme.of(context).primaryColor,
-                        onPressed: () async => await authService.signOut(),
+                        onPressed: () async => throw UnimplementedError(), /*await auth.signOut()*/
                       ),
                     ),
                   ),

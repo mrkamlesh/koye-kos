@@ -122,7 +122,7 @@ class AuthWidgetBuilder extends StatelessWidget {
           if (user != null) {
             return ProviderScope(
               overrides: [
-                userModel.overrideWithValue(user),
+                userProvider.overrideWithValue(user),
                 firestoreService
                     .overrideWithValue(firestoreBuilder(context, user.id))
               ],

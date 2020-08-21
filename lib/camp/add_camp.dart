@@ -1,16 +1,15 @@
 import 'dart:io';
 
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:koye_kos/services/auth.dart';
-import 'package:provider/provider.dart';
 import 'package:latlong/latlong.dart';
 import 'package:transparent_image/transparent_image.dart';
 
-import '../services/db.dart';
+import '../providers.dart';
 import '../utils.dart';
+import '../models/user.dart';
 
 class AddCampScreen extends StatelessWidget {
   final LatLng location;
@@ -111,75 +110,83 @@ class _CampFormState extends State<CampForm> {
 
   @override
   Widget build(BuildContext context) {
-    final firestoreService = Provider.of<FirestoreService>(context);
-    final auth = Provider.of<AuthProvider>(context);
-    return Form(
-      key: _formKey,
-      child: Padding(
-        padding: const EdgeInsets.only(top: 8.0),
-        child: Column(
-          children: [
-            ImageList(_listKey, _images, getImage, deleteImage, cropImage,
-                key: UniqueKey()),
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Column(
-                children: [
-                  SizedBox(height: 8),
-                  TextFormField(
-                    controller: descriptionController,
-                    keyboardType: TextInputType.multiline,
-                    minLines: 1,
-                    maxLines: 5,
-                    decoration: InputDecoration(
-                        hintText: 'Enter a short camp description',
-                        labelText: 'Description',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: BorderSide(),
-                        )),
-                    validator: (value) {
-                      if (value.length < 0) {
-                        // PROD: change to meaningful value
-                        return 'Please enter short a description!';
-                      }
-                      return null;
-                    },
-                  ),
-                  SizedBox(height: 8),
-                  RaisedButton(
-                      child: Text(
-                        'Add camp',
-                        style: TextStyle(
-                            color: Theme.of(context).colorScheme.onPrimary),
-                      ),
-                      color: Theme.of(context).primaryColor,
-                      onPressed: () {
-                        if (_formKey.currentState.validate()) {
-                          bool wasAdded = firestoreService.addCamp(
-                              description: descriptionController.text,
-                              location: widget._location,
-                              userModel: null,  // FIXME
-                              images: _images);
-
-                          wasAdded
-                              ? Navigator.pop(context, true)
-                              : Scaffold.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text(
-                                      'You need to have an account to add a camp!',
-                                    ),
-                                  ),
-                                );
+    return Consumer((context, watch) {
+      final firestore = watch(firestoreService);
+      //final AuthProvider auth = watch(authProvider);
+      final UserModel user = watch(userProvider);
+      return Form(
+        key: _formKey,
+        child: Padding(
+          padding: const EdgeInsets.only(top: 8.0),
+          child: Column(
+            children: [
+              ImageList(_listKey, _images, getImage, deleteImage, cropImage,
+                  key: UniqueKey()),
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Column(
+                  children: [
+                    SizedBox(height: 8),
+                    TextFormField(
+                      controller: descriptionController,
+                      keyboardType: TextInputType.multiline,
+                      minLines: 1,
+                      maxLines: 5,
+                      decoration: InputDecoration(
+                          hintText: 'Enter a short camp description',
+                          labelText: 'Description',
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: BorderSide(),
+                          )),
+                      validator: (value) {
+                        if (value.length < 0) {
+                          // PROD: change to meaningful value
+                          return 'Please enter short a description!';
                         }
-                      }),
-                ],
+                        return null;
+                      },
+                    ),
+                    SizedBox(height: 8),
+                    RaisedButton(
+                        child: Text(
+                          'Add camp',
+                          style: TextStyle(
+                              color: Theme
+                                  .of(context)
+                                  .colorScheme
+                                  .onPrimary),
+                        ),
+                        color: Theme
+                            .of(context)
+                            .primaryColor,
+                        onPressed: () {
+                          if (_formKey.currentState.validate()) {
+                            bool wasAdded = firestore.addCamp(
+                                description: descriptionController.text,
+                                location: widget._location,
+                                userModel: user, // FIXME
+                                images: _images);
+
+                            wasAdded
+                                ? Navigator.pop(context, true)
+                                : Scaffold.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  'You need to have an account to add a camp!',
+                                ),
+                              ),
+                            );
+                          }
+                        }),
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
-      ),
-    );
+      );
+    });
   }
 
   @override
