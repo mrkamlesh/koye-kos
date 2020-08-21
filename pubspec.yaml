@@ -20,7 +20,7 @@ dependencies:
   firebase_storage: ^4.0.0
 
   # State
-  flutter_riverpod: ^0.6.0
+  flutter_riverpod: ^0.6.1
 
   # Flutter map
   flutter_map: ^0.10.1

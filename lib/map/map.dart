@@ -49,7 +49,7 @@ class MapKartverket {
     options: TileLayerOptions(
       urlTemplate: mapTopo,
       subdomains:
-          mapSubdomains, // loadbalancing; uses subdomains opencache[2/3].statkart.no
+      mapSubdomains, // loadbalancing; uses subdomains opencache[2/3].statkart.no
     ),
   );
 
@@ -209,8 +209,15 @@ class CampMarkerLayer extends StatelessWidget {
                           context: context,
                           backgroundColor: Colors.transparent,
                           builder: (context) =>
-                              OpenContainerCamp(
-                                  camp, closedScreen: MarkerBottomSheet()));
+                              ProviderScope(
+                                overrides: [
+                                  campProvider.overrideWithValue(camp),
+                                  favoritedProvider.overrideWithValue(false),
+                                ],
+                                child: OpenContainerCamp(
+                                  closedScreen: MarkerBottomSheet(),
+                                  openScreen: CampDetailScreen(),),
+                              ));
                     });
                   })
               ],
@@ -229,19 +236,19 @@ class CampMarker extends Marker {
 
   CampMarker(this.camp, {this.tapCallback})
       : super(
-          point: camp.location,
-          width: 40,
-          height: 40,
-          anchorPos: AnchorPos.align(AnchorAlign.top),
-          builder: (context) => Container(
-            child: GestureDetector(
-              onTap: () {
-                tapCallback();
-              },
-              child: Icon(Icons.location_on, size: 40),
-            ),
-          ),
-        );
+    point: camp.location,
+    width: 40,
+    height: 40,
+    anchorPos: AnchorPos.align(AnchorAlign.top),
+    builder: (context) => Container(
+      child: GestureDetector(
+        onTap: () {
+          tapCallback();
+        },
+        child: Icon(Icons.location_on, size: 40),
+      ),
+    ),
+  );
 }
 
 Marker createLongpressMarker(LatLng point) {

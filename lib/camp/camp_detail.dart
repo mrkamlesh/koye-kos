@@ -33,6 +33,9 @@ class _CampDetailScreenState extends State<CampDetailScreen>
   Widget build(BuildContext context) {
     return Consumer((context, watch) {
       final Camp camp = watch(campProvider);
+      final bool favorited = watch(favoritedProvider);
+      print('openbuilder: $camp');
+      print('openbuilder: $favorited');
 
       Widget _buildFloatingActionButton() {
         return _controller.index == 1

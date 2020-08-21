@@ -78,7 +78,7 @@ class MyApp extends StatelessWidget {
 class StartupView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    Consumer((context, watch) {
+    return Consumer((context, watch) {
       final userSnapshot = watch(_userSnapshot);
       if (userSnapshot.connectionState == ConnectionState.active) {
         return userSnapshot.hasData ? Home() : SplashScreen();
@@ -104,12 +104,13 @@ class SplashScreen extends StatelessWidget {
 }
 
 class AuthWidgetBuilder extends StatelessWidget {
+  final Widget Function(BuildContext, AsyncSnapshot<UserModel>) builder;
+  final FirestoreService Function(BuildContext context, String uid) firestoreBuilder;
+
   const AuthWidgetBuilder(
       {Key key, @required this.builder, @required this.firestoreBuilder})
       : super(key: key);
-  final Widget Function(BuildContext, AsyncSnapshot<UserModel>) builder;
-  final FirestoreService Function(BuildContext context, String uid)
-      firestoreBuilder;
+
 
   @override
   Widget build(BuildContext context) {

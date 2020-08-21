@@ -1,6 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:koye_kos/models/camp.dart';
 import 'package:koye_kos/providers.dart';
 import 'package:latlong/latlong.dart';
 
@@ -63,7 +64,9 @@ class ImageListSmall extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Consumer((context, watch) {
-      final imageUrls = watch(campProvider).imageUrls;
+      final Camp camp = watch(campProvider);
+      print('imagelistsmall: $camp');
+      final imageUrls = camp.imageUrls;
       return Container(
         height: 120, // restrict image height
         child: ListView.builder(

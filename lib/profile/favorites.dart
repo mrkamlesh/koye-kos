@@ -72,8 +72,12 @@ class FavoriteListView extends StatelessWidget {
               itemBuilder: (_, animation, item, index) {
                 return SizeFadeTransition(
                   animation: animation,
-                  child: OpenContainerCamp(item,
-                      closedScreen: FavoriteListItem(camp: item)),
+                  child: ProviderScope(
+                      overrides: [
+                        campProvider.overrideWithValue(item),
+                        favoritedProvider.overrideWithValue(false),
+                      ],
+                      child: OpenContainerCamp(closedScreen: FavoriteListItem(camp: item))),
                 );
               },
             );
