@@ -24,7 +24,7 @@ class _SignUpViewState extends State<SignUpView> {
   bool signingIn = false;
   @override
   Widget build(BuildContext context) {
-    final AuthService authService = Provider.of<AuthService>(context);
+    //final AuthService authService = Provider.of<AuthService>(context);
 
     return Scaffold(
       appBar: AppBar(
@@ -64,13 +64,13 @@ class _SignUpViewState extends State<SignUpView> {
                         setState(() {
                           signingIn = true;
                         });
-                        authService.signInWithGoogle().then((signedIn) {
+                        /*authService.signInWithGoogle().then((signedIn) {
                           if (!signedIn) {
                             setState(() {
                               signingIn = false;
                             });
                           }
-                        });
+                        });*/
                       },
                     )
                   ],

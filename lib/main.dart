@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:firebase_core/firebase_core.dart';
 
 import 'camp/camp_detail.dart';
 import 'models/user.dart';
@@ -20,16 +21,25 @@ class Application extends StatefulWidget {
 class _ApplicationState extends State<Application> {
   @override
   Widget build(BuildContext context) {
-    return MultiProvider(
-      providers: [
-        Provider<AuthProvider>(
-          create: (_) => AuthProvider(),
-        ),
-      ],
-      child: MyApp(
-        firestoreBuilder: (_, uid) => FirestoreService(uid: uid),
-      ),
-    );
+    return FutureBuilder(
+        future: Firebase.initializeApp(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.done) {
+            return MultiProvider(
+              providers: [
+                ChangeNotifierProvider<AuthProvider>(
+                  create: (_) => AuthProvider(),
+                ),
+              ],
+              child: MyApp(
+                firestoreBuilder: (_, uid) => FirestoreService(uid: uid),
+              ),
+            );
+          }
+          return Material(
+            child: CircularProgressIndicator(),
+          );
+        });
   }
 }
 
@@ -47,7 +57,7 @@ class MyApp extends StatelessWidget {
         return MaterialApp(
           title: 'Køye Kos',
           routes: {
-            '/': (context) => Home(),
+            //'/': (context) => Home(),
             '/profile': (context) => Profile(),
             '/detail': (context) => CampDetailScreen(),
           },
