@@ -147,7 +147,7 @@ class Home extends StatelessWidget {
           ),
         ],
       ),
-      body: HammockMap(),
+      body: MapScreen(),
     );
   }
 }
