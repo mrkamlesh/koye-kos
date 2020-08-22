@@ -68,7 +68,7 @@ class AuthService {
   }
 
   Future<User> signInAnonymously() async {
-    user != null ? Future.microtask(() => user) : _auth.signInAnonymously().then((result) {
+    return user != null ? Future.microtask(() => user) : _auth.signInAnonymously().then((result) {
       return result.user;
     });
   }
