@@ -19,6 +19,7 @@ class AuthProvider extends ChangeNotifier {
   AuthStatus _status = AuthStatus.Uninitialized;
 
   Stream<UserModel> get userStream => _authService.userStream.map(_mapUserStream);
+  UserModel get user => _mapUserStream(_authService.user);
   AuthStatus get status => _status;
 
   AuthProvider() {
@@ -38,7 +39,7 @@ class AuthProvider extends ChangeNotifier {
   }
 
   void _onAuthStateChanged(User user) {
-    print('AuthProvider user: $user');
+    print('AuthProvider _onAuthStateChanged: ${user.uid}');
     if (user.isAnonymous) {
       _status = AuthStatus.Anonymous;
     } else if (user.displayName != null) {
@@ -57,7 +58,7 @@ class AuthService {
   static final FirebaseAuth _auth = FirebaseAuth.instance;
   static final GoogleSignIn _googleSignIn = GoogleSignIn();
 
-  User getUser () => _auth.currentUser;
+  User get user => _auth.currentUser;
 
   Stream<User> get userStream => _auth.userChanges();
 
@@ -67,7 +68,7 @@ class AuthService {
   }
 
   Future<User> signInAnonymously() async {
-    return _auth.signInAnonymously().then((result) {
+    user != null ? Future.microtask(() => user) : _auth.signInAnonymously().then((result) {
       return result.user;
     });
   }
