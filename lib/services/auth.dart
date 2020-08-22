@@ -39,7 +39,9 @@ class AuthProvider extends ChangeNotifier {
   }
 
   void _onAuthStateChanged(User user) {
-    print('AuthProvider _onAuthStateChanged: ${user.uid}');
+    if (user == null) {
+      _status = AuthStatus.Unauthenticated;
+    }
     if (user.isAnonymous) {
       _status = AuthStatus.Anonymous;
     } else if (user.displayName != null) {
