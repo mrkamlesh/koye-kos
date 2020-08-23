@@ -1,15 +1,14 @@
 import 'dart:collection';
+import 'dart:math';
 
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
-import 'package:latlong/latlong.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../utils.dart';
 
 class Camp {
   final String id;
   final List<String> imageUrls;
-  final LatLng location;
+  final Point<double> location;
   final double score;
   final int ratings;  // save as list of scores?
   final String description;
@@ -29,7 +28,7 @@ class Camp {
 
   factory Camp.fromFirestore(DocumentSnapshot document) {
     Map data = document.data();
-    LatLng location = ((data['location'] ?? GeoPoint(0, 0)) as GeoPoint).toLatLng();
+    Point<double> location = ((data['location'] ?? GeoPoint(0, 0)) as GeoPoint).toPoint();
     // Fix this when null safety comes to Dart..
     return Camp(
         id: document.id ?? '',

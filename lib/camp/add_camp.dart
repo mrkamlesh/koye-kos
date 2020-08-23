@@ -1,19 +1,17 @@
 import 'dart:io';
+import 'dart:math';
 
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:koye_kos/services/auth.dart';
 import 'package:provider/provider.dart';
-import 'package:latlong/latlong.dart';
 import 'package:transparent_image/transparent_image.dart';
 
 import '../services/db.dart';
 import '../utils.dart';
 
 class AddCampScreen extends StatelessWidget {
-  final LatLng location;
+  final Point<double> location;
 
   AddCampScreen(this.location);
 
@@ -30,7 +28,7 @@ class AddCampScreen extends StatelessWidget {
 }
 
 class CampForm extends StatefulWidget {
-  final LatLng _location;
+  final Point<double> _location;
   CampForm(this._location);
 
   @override
@@ -112,7 +110,6 @@ class _CampFormState extends State<CampForm> {
   @override
   Widget build(BuildContext context) {
     final firestoreService = Provider.of<FirestoreService>(context);
-    final auth = Provider.of<AuthProvider>(context);
     return Form(
       key: _formKey,
       child: Padding(

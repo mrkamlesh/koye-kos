@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -39,7 +40,7 @@ class FirestoreService {
   // TODO: adding a camp should be possible to do offline, as many users could be!
   bool addCamp({
     @required String description,
-    @required LatLng location,
+    @required Point<double> location,
     @required List<File> images,
     @required UserModel userModel,
   }) {
@@ -65,7 +66,7 @@ class FirestoreService {
   Future<void> _uploadInBackground({
     @required DocumentReference campRef,
     @required String description,
-    @required LatLng location,
+    @required Point<double> location,
     @required String creatorId,
     @required String creatorName,
     @required List<File> images,

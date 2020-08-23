@@ -1,17 +1,19 @@
+import 'dart:math';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:latlong/latlong.dart';
+import 'package:mapbox_gl/mapbox_gl.dart';
 
 
 extension GeoPointHelper on GeoPoint {
-  LatLng toLatLng() => LatLng(latitude, longitude);
+  Point<double> toPoint() => Point(latitude, longitude);
 }
 
-extension LatLngHelper on LatLng {
-  GeoPoint toGeoPoint() => GeoPoint(latitude, longitude);
+extension LatLngHelper on Point {
+  GeoPoint toGeoPoint() => GeoPoint(x.toDouble(), y.toDouble());
 
   String toReadableString({int precision, String separator}) {
-    return latitude.toStringAsFixed(precision) +
+    return x.toStringAsFixed(precision) +
         separator +
-        longitude.toStringAsFixed(precision);
+        y.toStringAsFixed(precision);
   }
 }
