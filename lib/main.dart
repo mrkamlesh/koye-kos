@@ -56,8 +56,9 @@ class MyApp extends StatelessWidget {
             ? SplashScreen()
             : MaterialApp(
                 title: 'Køye Kos',
+                initialRoute: '/',
                 routes: {
-                  //'/': (context) => Home(),
+                  '/': (context) => Home(),
                   '/profile': (context) => Profile(),
                   '/detail': (context) => CampDetailScreen(),
                 },
@@ -68,7 +69,6 @@ class MyApp extends StatelessWidget {
                     },
                   ),
                 ),
-                home: Home(),
               );
       },
     );
