@@ -28,6 +28,18 @@ class AuthProvider extends ChangeNotifier {
     _authService.signInAnonymously();
   }
 
+  void signInWithGoogle() async {
+    _status = AuthStatus.Authenticating;
+    notifyListeners();
+    bool signedIn = await _authService.signInWithGoogle();
+    _status = signedIn ? AuthStatus.Authenticated : AuthStatus.Unauthenticated;
+    notifyListeners();
+  }
+
+  void signOut() async {
+    _authService.signOut();  // _onAuthStateChanged already changes _status
+  }
+
   UserModel _mapUserStream(User user) {
     if (user == null) return null;
     return UserModel(

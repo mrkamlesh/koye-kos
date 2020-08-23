@@ -21,10 +21,9 @@ class SignUpView extends StatefulWidget {
 }
 
 class _SignUpViewState extends State<SignUpView> {
-  bool signingIn = false;
   @override
   Widget build(BuildContext context) {
-    //final AuthService authService = Provider.of<AuthService>(context);
+    final auth = Provider.of<AuthProvider>(context);
 
     return Scaffold(
       appBar: AppBar(
@@ -33,7 +32,7 @@ class _SignUpViewState extends State<SignUpView> {
       body: Padding(
         padding: const EdgeInsets.all(8.0),
         child: Center(
-          child: signingIn
+          child: auth.status == AuthStatus.Authenticating
               ? CircularProgressIndicator()
               : Column(
                   crossAxisAlignment: CrossAxisAlignment.center,
@@ -60,19 +59,9 @@ class _SignUpViewState extends State<SignUpView> {
                     RaisedButton(
                       child: Text('GOOGLE'),
                       color: Colors.red,
-                      onPressed: () async {
-                        setState(() {
-                          signingIn = true;
-                        });
-                        /*authService.signInWithGoogle().then((signedIn) {
-                          if (!signedIn) {
-                            setState(() {
-                              signingIn = false;
-                            });
-                          }
-                        });*/
-                      },
-                    )
+                      onPressed: () =>
+                          context.read<AuthProvider>().signInWithGoogle()
+                    ),
                   ],
                 ),
         ),
@@ -91,7 +80,7 @@ class AccountView extends StatelessWidget {
           title: Text('Account'),
           actions: [
             FlatButton(
-              onPressed: () => AuthService.instance.signOut(),
+              onPressed: () => context.read<AuthProvider>().signOut(),
               child: Text(
                 'Log out',
                 style: TextStyle(color: Colors.white),
@@ -152,10 +141,10 @@ class CreatedView extends StatelessWidget {
 class ProfileWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final AuthService authService = Provider.of<AuthService>(context);
-    return Consumer<UserModel>(
-      builder: (context, user, child) {
-        if (user == null || user.name == null) {
+    return Consumer<AuthProvider>(
+      builder: (_, auth, __) {
+        final user = auth.user;
+        if (user == null || user.name == null) {  // should user ever be null here?
           return Container(
             child: Center(
               child: CircularProgressIndicator(),
@@ -176,6 +165,7 @@ class ProfileWidget extends StatelessWidget {
                     child: ClipOval(
                       child: CachedNetworkImage(
                         imageUrl: user.photoUrl,
+                        placeholder: (context, url) => Center(child: CircularProgressIndicator(),),
                       ),
                     ),
                   ),
@@ -195,7 +185,7 @@ class ProfileWidget extends StatelessWidget {
                           style: TextStyle(color: Colors.white),
                         ),
                         color: Theme.of(context).primaryColor,
-                        onPressed: () async => await authService.signOut(),
+                        onPressed: () async => auth.signOut(),
                       ),
                     ),
                   ),
