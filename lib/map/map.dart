@@ -13,18 +13,6 @@ import 'package:provider/provider.dart';
 import 'map_model.dart';
 import '../utils.dart';
 
-class MapScreen extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return ChangeNotifierProxyProvider<FirestoreService, MapModel>(
-      create: (context) =>
-          MapModel(firestore: context.read<FirestoreService>()),
-      update: (_, firestore, mapModel) => mapModel..setFirestore(firestore),
-      child: Map(),
-    );
-  }
-}
-
 class Map extends StatefulWidget {
   @override
   State createState() => MapState();
@@ -41,6 +29,7 @@ class MapState extends State<Map> {
         return Scaffold(
           body: MapboxMap(
             onMapCreated: _onMapCreated,
+            onStyleLoadedCallback: _onStyleLoaded,
             initialCameraPosition:
                 const CameraPosition(target: LatLng(59.81, 10.44), zoom: 11.0),
             onMapLongClick: (_, coordinates) {
@@ -59,16 +48,19 @@ class MapState extends State<Map> {
     );
   }
 
-  _onMapCreated(MapboxMapController controller) {
-    print('_onMapCreated');
-    _mapController = controller;
-    _mapController.onSymbolTapped.add(_onSymbolTapped);
+  void _onStyleLoaded() {
     context.read<MapModel>().campSymbols.forEach((element) {
       _mapController.addSymbol(element.options, {'id': element.id});
     });
   }
 
+  void _onMapCreated(MapboxMapController controller) {
+    _mapController = controller;
+    _mapController.onSymbolTapped.add(_onSymbolTapped);
+  }
+
   void _onSymbolTapped(Symbol symbol) {
+    print('symbol tapped');
     final String campId = symbol.data['id'] as String;
     final Camp camp = context.read<MapModel>().getCamp(campId);
     showBottomSheet<void>(
@@ -92,8 +84,8 @@ class MapState extends State<Map> {
 
   @override
   void dispose() {
-    _mapController?.dispose();
-    //_mapController?.onSymbolTapped?.remove(_onSymbolTapped);
+    _mapController?.onSymbolTapped?.remove(_onSymbolTapped);
     super.dispose();
   }
+
 }

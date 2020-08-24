@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
 
 import 'camp/camp_detail.dart';
+import 'map/map_model.dart';
 import 'models/user.dart';
 import 'profile/profile.dart';
 import 'services/auth.dart';
@@ -106,7 +107,12 @@ class Home extends StatelessWidget {
           ),
         ],
       ),
-      body: MapScreen(),
+      body: ChangeNotifierProxyProvider<FirestoreService, MapModel>(
+        create: (context) =>
+            MapModel(firestore: context.read<FirestoreService>()),
+        update: (_, firestore, mapModel) => mapModel..setFirestore(firestore),
+        child: Map(),
+      ),
     );
   }
 }
