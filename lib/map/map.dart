@@ -34,9 +34,9 @@ class MapState extends State<Map> {
                 const CameraPosition(target: LatLng(59.81, 10.44), zoom: 11.0),
             onMapLongClick: (_, coordinates) {
               //mapModel.onMapLongClick(coordinates);
-              print('longclick $coordinates');
               _showBottomSheetBuilder(coordinates.toPoint());
             },
+
             onMapClick: (_, coordinates) {
               print('click');
               //mapModel.onMapClick(coordinates);
@@ -56,11 +56,11 @@ class MapState extends State<Map> {
 
   void _onMapCreated(MapboxMapController controller) {
     _mapController = controller;
+    // TODO: disable tap event propagating to mapCLick listener https://github.com/tobrun/flutter-mapbox-gl/pull/381
     _mapController.onSymbolTapped.add(_onSymbolTapped);
   }
 
   void _onSymbolTapped(Symbol symbol) {
-    print('symbol tapped');
     final String campId = symbol.data['id'] as String;
     final Camp camp = context.read<MapModel>().getCamp(campId);
     showBottomSheet<void>(

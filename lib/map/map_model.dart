@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math';
 
 import 'package:flutter/cupertino.dart';
@@ -22,10 +23,11 @@ class MapModel extends ChangeNotifier {
   ClickState _clickState;
   Set<MapSymbolMarker> _campSymbols;
   Map<String, Camp> _campMap;
+  StreamSubscription _campsSubscription;
   
   MapModel({@required this.firestore}) {
     _clickState = ClickState.None;
-    firestore.getCampListStream().listen(_onCampStream);
+    _campsSubscription = firestore.getCampListStream().listen(_onCampStream);
   }
 
   void setFirestore(FirestoreService firestore) => this.firestore = firestore;
@@ -63,6 +65,12 @@ class MapModel extends ChangeNotifier {
     clickCoordinates = coordinates.toPoint();
     _clickState = ClickState.Click;
     notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    _campsSubscription.cancel();
+    super.dispose();
   }
 }
 

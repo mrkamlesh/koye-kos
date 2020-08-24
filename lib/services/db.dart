@@ -184,7 +184,7 @@ class FirestoreService {
         .set(data);
   }
 
-  Stream<List<CampComment>> getComments(String campId) {
+  Stream<List<CampComment>> getCommentsStream(String campId) {
     return _firestore
         .collection(FirestorePath.getCommentsPath(campId))
         .snapshots()

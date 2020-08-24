@@ -3,6 +3,7 @@ import 'dart:collection';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:koye_kos/camp/providers/camp_model.dart';
+import 'package:koye_kos/services/auth.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:provider/provider.dart';
 
@@ -31,22 +32,17 @@ class _CampDetailScreenState extends State<CampDetailScreen>
 
   @override
   Widget build(BuildContext context) {
+    final campModel = Provider.of<CampModel>(context);
     Widget _buildFloatingActionButton() {
       return _controller.index == 1
           ? FloatingActionButton(
               child: Icon(Icons.add_comment),
               onPressed: () =>
                   Navigator.push(context, MaterialPageRoute(builder: (context) {
-                return ChangeNotifierProxyProvider2<FirestoreService, CampModel,
-                    CommentModel>(
-                  create: (_) => CommentModel(
-                      firestore: context.read<FirestoreService>(),
-                      campModel: context.read<CampModel>()),
-                  update: (_, firestore, campModel, commentModel) =>
-                      commentModel
-                        ..firestore = firestore
-                        ..campModel = campModel,
-                  builder: (_, __) => AddCommentScreen(),
+                return ChangeNotifierProvider(
+                  create: (context) =>
+                      CommentModel(comment: campModel.userComment),
+                  builder: (context, child) => AddCommentScreen(),
                 );
               })),
             )
@@ -151,6 +147,7 @@ class CampInfo extends StatelessWidget {
 class UserRatingView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final campModel = Provider.of<CampModel>(context);
     return Column(children: [
       Text(
         'Rate',
@@ -158,24 +155,28 @@ class UserRatingView extends StatelessWidget {
       ),
       Padding(
         padding: const EdgeInsets.all(8.0),
-        child: UserRatingWidget(),
+        child: UserRatingWidget(
+          onRatedCallback: campModel.onRated,
+          score: campModel.score,
+        ),
       ),
     ]);
   }
 }
 
 class UserRatingWidget extends StatelessWidget {
-
+  final Function(double score) onRatedCallback;
+  final double score;
+  UserRatingWidget({this.onRatedCallback, this.score});
   @override
   Widget build(BuildContext context) {
-    final campModel = Provider.of<CampModel>(context);
     return StarRating(
       key: UniqueKey(),
-      rating: campModel.score,
+      rating: score,
       size: 50,
       color: Colors.amber,
       borderColor: Colors.amber,
-      onRated: campModel.setScore,
+      onRated: onRatedCallback,
     );
   }
 }
