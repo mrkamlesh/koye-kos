@@ -241,7 +241,7 @@ class FirestoreService {
         .delete();*/
   }
 
-  Stream<bool> campFavoritedStream(String campId) {
+  Stream<bool> getCampFavoritedStream(String campId) {
     return _firestore
         .collection(FirestorePath.getFavoritePath(uid))
         .doc(campId)

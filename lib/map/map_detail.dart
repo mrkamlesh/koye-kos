@@ -1,15 +1,11 @@
 import 'dart:math';
 
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:koye_kos/camp/providers/camp_model.dart';
 import 'package:provider/provider.dart';
-import 'package:latlong/latlong.dart';
 
 import '../camp/add_camp.dart';
-import '../services/db.dart';
-import '../models/camp.dart';
-import '../models/user.dart';
 import '../utils.dart';
 import '../camp/star_rating.dart';
 
@@ -39,7 +35,7 @@ class MarkerBottomSheet extends StatelessWidget {
 class CampDescription extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final camp = Provider.of<Camp>(context);
+    final camp = Provider.of<CampModel>(context).camp;
     return Padding(
       // Rest of camp description / rating view
       padding: const EdgeInsets.all(8.0),
@@ -65,7 +61,7 @@ class CampDescription extends StatelessWidget {
 class ImageListSmall extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final List<String> imageUrls = context.select((Camp camp) => camp.imageUrls);
+    final List<String> imageUrls = context.select((CampModel campModel) => campModel.camp.imageUrls);
     return Container(
       height: 120, // restrict image height
       child: ListView.builder(
@@ -88,18 +84,12 @@ class ImageListSmall extends StatelessWidget {
 class FavoriteWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final firestoreService = Provider.of<FirestoreService>(context);
-    final String campId = context.select((Camp camp) => camp.id);
-    final bool isFavorited = Provider.of<bool>(context);
-
+    final campModel = Provider.of<CampModel>(context);
     return IconButton(
-      icon: isFavorited
+      icon: campModel.favorited
           ? Icon(Icons.favorite, color: Colors.redAccent)
           : Icon(Icons.favorite_border),
-      onPressed: () {
-        firestoreService.setFavorited(campId,
-            favorited: !isFavorited);
-      },
+      onPressed: campModel.toggleFavorited,
     );
   }
 }

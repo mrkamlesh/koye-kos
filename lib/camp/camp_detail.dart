@@ -2,13 +2,14 @@ import 'dart:collection';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:koye_kos/camp/providers/camp_model.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:provider/provider.dart';
 
 import '../services/db.dart';
 import '../map/map_detail.dart';
 import '../models/camp.dart';
-import '../models/user.dart';
+import 'providers/comment_model.dart';
 import 'comment.dart';
 import 'star_rating.dart';
 
@@ -30,17 +31,22 @@ class _CampDetailScreenState extends State<CampDetailScreen>
 
   @override
   Widget build(BuildContext context) {
-    final Camp camp = Provider.of<Camp>(context);
-
     Widget _buildFloatingActionButton() {
       return _controller.index == 1
           ? FloatingActionButton(
               child: Icon(Icons.add_comment),
               onPressed: () =>
                   Navigator.push(context, MaterialPageRoute(builder: (context) {
-                return Provider<Camp>.value(
-                  value: camp,
-                  child: AddCommentScreen(),
+                return ChangeNotifierProxyProvider2<FirestoreService, CampModel,
+                    CommentModel>(
+                  create: (_) => CommentModel(
+                      firestore: context.read<FirestoreService>(),
+                      campModel: context.read<CampModel>()),
+                  update: (_, firestore, campModel, commentModel) =>
+                      commentModel
+                        ..firestore = firestore
+                        ..campModel = campModel,
+                  builder: (_, __) => AddCommentScreen(),
                 );
               })),
             )
@@ -116,7 +122,7 @@ class CampInfoPage extends StatelessWidget {
 class CampInfo extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final Camp camp = Provider.of<Camp>(context);
+    final Camp camp = Provider.of<CampModel>(context).camp;
     return Padding(
       // Rest of camp description / rating view
       padding: const EdgeInsets.all(8.0),
@@ -158,44 +164,18 @@ class UserRatingView extends StatelessWidget {
   }
 }
 
-class UserRatingWidget extends StatefulWidget {
-  @override
-  _UserRatingWidgetState createState() => _UserRatingWidgetState();
-}
-
-class _UserRatingWidgetState extends State<UserRatingWidget> {
-  double _score = 0;
-
-  @override
-  void initState() {
-    final String campId = context.read<Camp>().id;
-    context
-        .read<FirestoreService>()
-        .getCampRating(campId)
-        .then((double score) {
-      setState(() {
-        _score = score;
-      });
-    });
-    super.initState();
-  }
+class UserRatingWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final String campId = context.select((Camp camp) => camp.id);
-    final firestoreService = Provider.of<FirestoreService>(context);
+    final campModel = Provider.of<CampModel>(context);
     return StarRating(
       key: UniqueKey(),
-      rating: _score,
+      rating: campModel.score,
       size: 50,
       color: Colors.amber,
       borderColor: Colors.amber,
-      onRated: (rating) {
-        firestoreService.updateRating(campId, rating);
-        setState(() {
-          _score = rating;
-        });
-      },
+      onRated: campModel.setScore,
     );
   }
 }
@@ -240,7 +220,7 @@ class _ImageListState extends State<ImageList> {
   @override
   Widget build(BuildContext context) {
     final List<String> imageUrls =
-        context.select((Camp camp) => camp.imageUrls);
+        context.select((CampModel campModel) => campModel.camp.imageUrls);
     return Container(
       height: 200, // restrict image height
       child: ListView.builder(
@@ -306,8 +286,6 @@ class Gallery extends StatelessWidget {
 class DeleteCamp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final String campId = context.select((Camp camp) => camp.id);
-    final firestoreService = Provider.of<FirestoreService>(context);
     return Center(
       child: RaisedButton(
         child: Text(
@@ -316,7 +294,7 @@ class DeleteCamp extends StatelessWidget {
         ),
         color: Colors.red,
         onPressed: () {
-          firestoreService.deleteCamp(campId);
+          context.read<CampModel>().deleteCamp();
           Navigator.pop(context);
         },
       ),

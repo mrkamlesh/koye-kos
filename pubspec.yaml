@@ -23,7 +23,7 @@ dependencies:
   provider: ^4.3.1
 
   # Flutter map
-  mapbox_gl: ^0.7.0
+  mapbox_gl: ^0.8.0
   latlong: ^0.6.1
 
   # image
