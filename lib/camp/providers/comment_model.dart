@@ -11,7 +11,7 @@ abstract class RatingProvider {
 }
 
 class CommentModel extends RatingProvider with ChangeNotifier {
-  CampComment comment;
+  CampComment comment = CampComment(commentText: '');
   CommentModel({this.comment}) {
   }
 
@@ -22,7 +22,7 @@ class CommentModel extends RatingProvider with ChangeNotifier {
 
   @override
   void onRated(double score) {
-    comment.score = score;
+    comment?.score = score;
     notifyListeners();
   }
 }

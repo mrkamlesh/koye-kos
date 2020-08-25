@@ -1,12 +1,12 @@
 import 'package:animations/animations.dart';
 import 'package:flutter/material.dart';
+import 'package:koye_kos/services/auth.dart';
 import 'package:provider/provider.dart';
 
 import '../models/camp.dart';
 import '../services/db.dart';
 import 'camp_detail.dart';
 import 'providers/camp_model.dart';
-
 
 class OpenContainerCamp extends StatelessWidget {
   final Camp camp;
@@ -22,16 +22,28 @@ class OpenContainerCamp extends StatelessWidget {
       closedElevation: 0,
       openElevation: 0,
       closedBuilder: (_, __) {
-        return ChangeNotifierProxyProvider<FirestoreService, CampModel>(
-            create: (context) => CampModel(firestore: context.read<FirestoreService>(), camp: camp),
-            update: (_, firestore, campModel) => campModel..setFirestore(firestore),
+        return ChangeNotifierProxyProvider2<AuthProvider, FirestoreService,
+            CampModel>(
+          create: (context) => CampModel(
+              auth: context.read<AuthProvider>(),
+              firestore: context.read<FirestoreService>(),
+              camp: camp),
+          update: (_, auth, firestore, campModel) => campModel
+            ..setAuth(auth)
+            ..setFirestore(firestore),
           child: closedScreen,
         );
       },
       openBuilder: (_, __) {
-        return ChangeNotifierProxyProvider<FirestoreService, CampModel>(
-          create: (context) => CampModel(firestore: context.read<FirestoreService>(), camp: camp),
-          update: (_, firestore, campModel) => campModel..setFirestore(firestore),
+        return ChangeNotifierProxyProvider2<AuthProvider, FirestoreService,
+            CampModel>(
+          create: (context) => CampModel(
+              auth: context.read<AuthProvider>(),
+              firestore: context.read<FirestoreService>(),
+              camp: camp),
+          update: (_, auth, firestore, campModel) => campModel
+            ..setAuth(auth)
+            ..setFirestore(firestore),
           child: CampDetailScreen(),
         );
       },

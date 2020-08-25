@@ -9,28 +9,23 @@ import 'package:transparent_image/transparent_image.dart';
 
 import '../services/db.dart';
 import '../utils.dart';
+import 'providers/add_camp_model.dart';
 
 class AddCampScreen extends StatelessWidget {
-  final Point<double> location;
-
-  AddCampScreen(this.location);
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-            'Add camp (${location.toReadableString(precision: 4, separator: ', ')})'),
+          'Add camp (${context.select((AddModel addModel) => addModel.readableLocation)})',
+        ),
       ),
-      body: CampForm(location),
+      body: CampForm(),
     );
   }
 }
 
 class CampForm extends StatefulWidget {
-  final Point<double> _location;
-  CampForm(this._location);
-
   @override
   _CampFormState createState() => _CampFormState();
 }
@@ -40,7 +35,6 @@ class _CampFormState extends State<CampForm> {
   final _listKey = GlobalKey<AnimatedListState>();
   final descriptionController = TextEditingController();
   final picker = ImagePicker();
-  final List<File> _images = [];
 
   @override
   void initState() {
@@ -50,14 +44,9 @@ class _CampFormState extends State<CampForm> {
 
   Future getImage() async {
     // Could throw error if no camera available!
-    picker
-        .getImage(
-      source: ImageSource.camera,
-    )
-        .then((PickedFile pickedFile) {
-      if (pickedFile == null) return;
-      _images.add(File(pickedFile.path));
-      _listKey.currentState.insertItem(_images.length - 1);
+    context.read<AddModel>().getNewImage().then((newIndex) {
+      if (newIndex == -1) return;
+      _listKey.currentState.insertItem(newIndex - 1);
     }).catchError((error) {
       Scaffold.of(context)
         ..removeCurrentSnackBar()
@@ -67,41 +56,39 @@ class _CampFormState extends State<CampForm> {
     });
   }
 
-  Future<File> cropImage(File file, int index) {
+  Future<File> cropImage(int index) {
     ImageCropper.cropImage(
-        sourcePath: file.path,
-        compressFormat: ImageCompressFormat.jpg, // default
-        compressQuality: 100, // default 90, do compression on image upload
-        aspectRatio: CropAspectRatio(ratioX: 4, ratioY: 3),
-        androidUiSettings: AndroidUiSettings(
-          toolbarTitle: 'Crop image',
-          toolbarColor: Theme.of(context).primaryColor,
-          toolbarWidgetColor: Colors.white,
-          lockAspectRatio: true,
-          hideBottomControls: true,
-        ),
-        iosUiSettings: IOSUiSettings(
-          aspectRatioPickerButtonHidden: true,
-          aspectRatioLockEnabled: true,
-          title: 'Crop image',
-        )).then((File image) {
-      if (image == null) return;
-      setState(() {
-        // TODO: CampImage is not updated with the new image file
-        // TODO use two image lists to represent cropped and original file?
-        _images[index] = file;
-      });
+      sourcePath: context.read<AddModel>().getImage(index).path,
+      compressFormat: ImageCompressFormat.jpg,
+      // default
+      compressQuality: 100,
+      // default 90, do compression on image upload
+      aspectRatio: CropAspectRatio(ratioX: 4, ratioY: 3),
+      androidUiSettings: AndroidUiSettings(
+        toolbarTitle: 'Crop image',
+        toolbarColor: Theme.of(context).primaryColor,
+        toolbarWidgetColor: Colors.white,
+        lockAspectRatio: true,
+        hideBottomControls: true,
+      ),
+      iosUiSettings: IOSUiSettings(
+        aspectRatioPickerButtonHidden: true,
+        aspectRatioLockEnabled: true,
+        title: 'Crop image',
+      ),
+    ).then((File image) {
+      context.read<AddModel>().updateImage(index, image);
     });
   }
 
   void deleteImage(int index, {bool animate = false}) {
-    final image = _images.removeAt(index);
+    final image = context.read<AddModel>().removeImage(index);
     _listKey.currentState.removeItem(index, (context, animation) {
       return animate
           ? SizeTransition(
               axis: Axis.horizontal,
               sizeFactor: animation,
-              child: CampImage(image, key: Key(image.toString())),
+              child: CampImage(index: index, key: Key(image.toString())),
             )
           : SizedBox.shrink();
     });
@@ -109,15 +96,20 @@ class _CampFormState extends State<CampForm> {
 
   @override
   Widget build(BuildContext context) {
-    final firestoreService = Provider.of<FirestoreService>(context);
+    final addModel = Provider.of<AddModel>(context);
     return Form(
       key: _formKey,
       child: Padding(
         padding: const EdgeInsets.only(top: 8.0),
         child: Column(
           children: [
-            ImageList(_listKey, _images, getImage, deleteImage, cropImage,
-                key: UniqueKey()),
+            ImageList(
+              listKey: _listKey,
+              addCallback: getImage,
+              deleteCallback: deleteImage,
+              onEditCallback: cropImage,
+              key: UniqueKey(),
+            ),
             Padding(
               padding: const EdgeInsets.all(8.0),
               child: Column(
@@ -153,11 +145,12 @@ class _CampFormState extends State<CampForm> {
                       color: Theme.of(context).primaryColor,
                       onPressed: () {
                         if (_formKey.currentState.validate()) {
-                          bool wasAdded = firestoreService.addCamp(
+                          bool wasAdded = addModel.addCamp(
+                            descriptionController.text,
+                          );
+                          /*.addCamp(
                               description: descriptionController.text,
-                              location: widget._location,
-                              userModel: null,  // FIXME
-                              images: _images);
+                              images: _images);*/
 
                           wasAdded
                               ? Navigator.pop(context, true)
@@ -187,18 +180,20 @@ class _CampFormState extends State<CampForm> {
 }
 
 class ImageList extends StatelessWidget {
-  final GlobalKey<AnimatedListState> _listKey;
+  final GlobalKey<AnimatedListState> listKey;
   final ScrollController _controller = ScrollController();
-  final List<File> _images;
-  final Function _addCallback;
-  final Function(File, int) _onEditCallback;
-  final Function(int, {bool animate}) _deleteCallback;
+  final Function addCallback;
+  final Function(int) onEditCallback;
+  final Function(int, {bool animate}) deleteCallback;
   double imageHeight;
   double imageWidth;
 
-  ImageList(this._listKey, this._images, this._addCallback,
-      this._deleteCallback, this._onEditCallback,
-      {Key key})
+  ImageList(
+      {@required this.listKey,
+      @required this.addCallback,
+      @required this.deleteCallback,
+      @required this.onEditCallback,
+      Key key})
       : super(key: key) {
     // Show images in a 4x3 aspect ratio, reflecting the uploaded image.
     this.imageHeight = 210;
@@ -207,20 +202,19 @@ class ImageList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final addModel = Provider.of<AddModel>(context);
     return Container(
       height: imageHeight,
       child: AnimatedList(
-          key: _listKey,
+          key: listKey,
           controller: _controller,
           scrollDirection: Axis.horizontal,
           initialItemCount: 1, // add extra for 'add image' button
           shrinkWrap:
               true, // if true, list wil be centered when only 1 items is added
           itemBuilder: (context, index, animation) {
-            bool isButtonIndex = _images.length == index;
-            if (!isButtonIndex) {
-              final File image = _images[index];
-              final Key key = Key(image.toString());
+            if (!addModel.isLastElement(index)) {
+              final Key key = Key(index.toString());
               return SizeTransition(
                 axis: Axis.horizontal,
                 sizeFactor: animation,
@@ -228,7 +222,7 @@ class ImageList extends StatelessWidget {
                   key: key,
                   direction: DismissDirection.up,
                   onDismissed: (direction) {
-                    _deleteCallback(index);
+                    deleteCallback(index);
                   },
                   child: Container(
                     width: imageWidth,
@@ -236,7 +230,7 @@ class ImageList extends StatelessWidget {
                     child: Stack(
                       fit: StackFit.expand,
                       children: [
-                        CampImage(image, key: key),
+                        CampImage(index: index, key: key),
                         Positioned(
                           left: 0,
                           top: 0,
@@ -246,7 +240,7 @@ class ImageList extends StatelessWidget {
                                 color: Colors.white,
                               ),
                               onPressed: () {
-                                _onEditCallback(image, index);
+                                onEditCallback(index);
                               }),
                         ),
                         Positioned(
@@ -258,7 +252,7 @@ class ImageList extends StatelessWidget {
                               color: Colors.white,
                             ),
                             onPressed: () =>
-                                _deleteCallback(index, animate: true),
+                                deleteCallback(index, animate: true),
                           ),
                         ),
                       ],
@@ -274,7 +268,7 @@ class ImageList extends StatelessWidget {
                     child: Icon(Icons.add),
                     borderSide:
                         BorderSide(color: Theme.of(context).primaryColor),
-                    onPressed: () => _addCallback(),
+                    onPressed: () => addCallback(),
                     highlightedBorderColor: Theme.of(context)
                         .colorScheme
                         .onSurface
@@ -287,37 +281,32 @@ class ImageList extends StatelessWidget {
 }
 
 class CampImage extends StatefulWidget {
-  final File _image;
-  CampImage(this._image, {Key key}) : super(key: key);
+  final int index;
+  CampImage({this.index, Key key}) : super(key: key);
 
   @override
-  _CampImageState createState() => _CampImageState(_image);
+  _CampImageState createState() => _CampImageState();
 }
 
 class _CampImageState extends State<CampImage>
     with AutomaticKeepAliveClientMixin {
-  FileImage _fileImage;
   bool _loading = true;
-
-  _CampImageState(File file) {
-    _fileImage = FileImage(file);
-  }
+  FileImage _fileImage;
 
   @override
   bool get wantKeepAlive => true;
 
   @override
   void initState() {
+    _fileImage = context.read<AddModel>().getFileImage(widget.index)
+      ..resolve(ImageConfiguration()).addListener(ImageStreamListener((_, __) {
+        if (mounted) {
+          setState(() {
+            _loading = false;
+          });
+        }
+      }));
     super.initState();
-    _fileImage
-        .resolve(ImageConfiguration())
-        .addListener(ImageStreamListener((_, __) {
-      if (mounted) {
-        setState(() {
-          _loading = false;
-        });
-      }
-    }));
   }
 
   @override

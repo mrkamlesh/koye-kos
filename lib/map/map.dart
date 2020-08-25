@@ -36,7 +36,6 @@ class MapState extends State<Map> {
               //mapModel.onMapLongClick(coordinates);
               _showBottomSheetBuilder(coordinates.toPoint());
             },
-
             onMapClick: (_, coordinates) {
               print('click');
               //mapModel.onMapClick(coordinates);
@@ -77,9 +76,13 @@ class MapState extends State<Map> {
 
   void _showBottomSheetBuilder(Point<double> coordinates) {
     showBottomSheet<void>(
-        context: context,
-        backgroundColor: Colors.transparent,
-        builder: (context) => PointBottomSheet(coordinates));
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Provider<Point<double>>.value(
+        value: coordinates,
+        child: PointBottomSheet(),
+      ),
+    );
   }
 
   @override
@@ -87,5 +90,4 @@ class MapState extends State<Map> {
     _mapController?.onSymbolTapped?.remove(_onSymbolTapped);
     super.dispose();
   }
-
 }

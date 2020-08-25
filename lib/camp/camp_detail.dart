@@ -38,13 +38,13 @@ class _CampDetailScreenState extends State<CampDetailScreen>
           ? FloatingActionButton(
               child: Icon(Icons.add_comment),
               onPressed: () =>
-                  Navigator.push(context, MaterialPageRoute(builder: (context) {
+                  Navigator.push<CampComment>(context, MaterialPageRoute(builder: (context) {
                 return ChangeNotifierProvider(
                   create: (context) =>
                       CommentModel(comment: campModel.userComment),
                   builder: (context, child) => AddCommentScreen(),
                 );
-              })),
+              })).then(campModel.onCampCommentResult),
             )
           : SizedBox.shrink();
     }

@@ -2,7 +2,10 @@ import 'dart:math';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:koye_kos/camp/providers/add_camp_model.dart';
 import 'package:koye_kos/camp/providers/camp_model.dart';
+import 'package:koye_kos/services/auth.dart';
+import 'package:koye_kos/services/db.dart';
 import 'package:provider/provider.dart';
 
 import '../camp/add_camp.dart';
@@ -10,7 +13,6 @@ import '../utils.dart';
 import '../camp/star_rating.dart';
 
 class MarkerBottomSheet extends StatelessWidget {
-
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
@@ -61,7 +63,8 @@ class CampDescription extends StatelessWidget {
 class ImageListSmall extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final List<String> imageUrls = context.select((CampModel campModel) => campModel.camp.imageUrls);
+    final List<String> imageUrls =
+        context.select((CampModel campModel) => campModel.camp.imageUrls);
     return Container(
       height: 120, // restrict image height
       child: ListView.builder(
@@ -105,10 +108,11 @@ class RatingViewSmall extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        if (showDetails) Padding(
-          padding: const EdgeInsets.only(right: 4.0),
-          child: Text('${score.toStringAsFixed(1)}'),
-        ),
+        if (showDetails)
+          Padding(
+            padding: const EdgeInsets.only(right: 4.0),
+            child: Text('${score.toStringAsFixed(1)}'),
+          ),
         StarRating(
           key: UniqueKey(),
           isReadOnly: true,
@@ -116,10 +120,11 @@ class RatingViewSmall extends StatelessWidget {
           color: Colors.amber,
           borderColor: Colors.amber,
         ),
-        if (showDetails) Padding(
-          padding: const EdgeInsets.only(left: 4.0),
-          child: Text('($ratings)'),
-        ),
+        if (showDetails)
+          Padding(
+            padding: const EdgeInsets.only(left: 4.0),
+            child: Text('($ratings)'),
+          ),
       ],
     );
   }
@@ -163,11 +168,9 @@ class _MarkerCachedImageState extends State<MarkerCachedImage>
 }
 
 class PointBottomSheet extends StatelessWidget {
-  final Point<double> _point;
-  PointBottomSheet(this._point);
-
   @override
   Widget build(BuildContext context) {
+    final Point<double> point = Provider.of<Point<double>>(context);
     return Card(
       semanticContainer: true,
       clipBehavior: Clip.antiAliasWithSaveLayer,
@@ -180,7 +183,7 @@ class PointBottomSheet extends StatelessWidget {
           child: ListTile(
               leading: Icon(Icons.location_on, color: Colors.red),
               title:
-              Text(_point.toReadableString(precision: 4, separator: ', ')),
+                  Text(point.toReadableString(precision: 4, separator: ', ')),
               trailing: FlatButton(
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(18.0),
@@ -193,8 +196,19 @@ class PointBottomSheet extends StatelessWidget {
                     Navigator.push(
                         context,
                         MaterialPageRoute<bool>(
-                            builder: (context) => AddCampScreen(_point)))
-                        .then((bool campAdded) {
+                          builder: (_) => ChangeNotifierProxyProvider2<
+                              AuthProvider, FirestoreService, AddModel>(
+                            create: (context) => AddModel(
+                              auth: context.read<AuthProvider>(),
+                              firestore: context.read<FirestoreService>(),
+                              location: point,
+                            ),
+                            update: (_, auth, firestore, addModel) => addModel
+                              ..setAuth(auth)
+                              ..setFirestore(firestore),
+                            child: AddCampScreen(),
+                          ),
+                        )).then((bool campAdded) {
                       if (campAdded ?? false) {
                         Navigator.pop(context);
                         Scaffold.of(context)

@@ -1,13 +1,13 @@
-
-
 import 'dart:async';
 
 import 'package:flutter/cupertino.dart';
 import 'package:koye_kos/camp/providers/comment_model.dart';
 import 'package:koye_kos/models/camp.dart';
+import 'package:koye_kos/services/auth.dart';
 import 'package:koye_kos/services/db.dart';
 
 class CampModel extends RatingProvider with ChangeNotifier {
+  AuthProvider auth;
   FirestoreService firestore;
   Camp camp;
   bool _favorited = false;
@@ -18,18 +18,21 @@ class CampModel extends RatingProvider with ChangeNotifier {
   StreamSubscription _favoritedSubscription;
   StreamSubscription _commentsSubscription;
 
-  CampModel({@required this.firestore, @required this.camp}) {
+  CampModel({@required this.auth, @required this.firestore, @required this.camp}) {
     _campSubscription = firestore.getCampStream(camp.id).listen(_onCampStream);
-    _favoritedSubscription = firestore.getCampFavoritedStream(camp.id).listen(_onFavoriteStream);
-    _commentsSubscription = firestore.getCommentsStream(camp.id).listen(_onComments);
+    _favoritedSubscription =
+        firestore.getCampFavoritedStream(camp.id).listen(_onFavoriteStream);
+    _commentsSubscription =
+        firestore.getCommentsStream(camp.id).listen(_onComments);
     firestore.getCampRating(camp.id).then((value) {
       _score = value;
       notifyListeners();
     });
   }
 
+  void setAuth(AuthProvider auth) => this.auth = auth;
   void setFirestore(FirestoreService firestore) => this.firestore = firestore;
-  
+
   void toggleFavorited() {
     _favorited = !_favorited;
     notifyListeners();
@@ -38,9 +41,15 @@ class CampModel extends RatingProvider with ChangeNotifier {
 
   bool get favorited => _favorited;
   double get score => _score;
-  Stream<List<CampComment>> get comments => firestore.getCommentsStream(camp.id);
-  bool isCreator(String commentId) => commentId == firestore.uid;
+  Stream<List<CampComment>> get comments =>
+      firestore.getCommentsStream(camp.id);
   CampComment get userComment => _userComment;
+  bool isCreator(String commentId) => commentId == firestore.uid;
+
+  void onCampCommentResult(CampComment comment) {
+    if (comment != null)
+      firestore.addCampComment(campId: camp.id, comment: comment.commentText, userModel: auth.user);
+  }
 
   void deleteCamp() {
     firestore.deleteCamp(camp.id);
@@ -55,10 +64,13 @@ class CampModel extends RatingProvider with ChangeNotifier {
 
   void _onComments(List<CampComment> comments) {
     _comments = comments;
-    if (comments.isEmpty) _userComment = null;
-    else _userComment = _comments.firstWhere((element) => element.userId == firestore.uid, orElse: null);
+    if (comments.isEmpty)
+      _userComment = null;
+    else
+      _userComment = _comments.firstWhere(
+          (element) => element.userId == firestore.uid,
+          orElse: null);
   }
-
 
   void _onCampStream(Camp camp) {
     this.camp = camp;

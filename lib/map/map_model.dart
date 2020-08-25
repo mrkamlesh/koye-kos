@@ -4,6 +4,7 @@ import 'dart:math';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:koye_kos/models/camp.dart';
+import 'package:koye_kos/services/auth.dart';
 import 'package:koye_kos/services/db.dart';
 import 'package:mapbox_gl/mapbox_gl.dart';
 

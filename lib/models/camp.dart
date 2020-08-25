@@ -70,7 +70,7 @@ class CampComment {
   final DateTime date;
   double score;
 
-  CampComment({this.commentText, this.userId, this.userName, this.userPhotoUrl, this.date,
+  CampComment({@required this.commentText, this.userId, this.userName, this.userPhotoUrl, this.date,
   this.score});
 
   factory CampComment.fromFirestore(DocumentSnapshot document) {
