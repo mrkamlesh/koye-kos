@@ -44,8 +44,10 @@ class _CampFormState extends State<CampForm> {
 
   Future getImage() async {
     // Could throw error if no camera available!
-    context.read<AddModel>().getNewImage().then((newIndex) {
-      if (newIndex == -1) return;
+    picker.getImage(source: ImageSource.camera).then((PickedFile pickedFile) {
+      if (pickedFile == null) return;
+      final int newIndex = context.read<AddModel>().addImage(pickedFile.path);
+      print(newIndex);
       _listKey.currentState.insertItem(newIndex - 1);
     }).catchError((error) {
       Scaffold.of(context)
@@ -88,7 +90,7 @@ class _CampFormState extends State<CampForm> {
           ? SizeTransition(
               axis: Axis.horizontal,
               sizeFactor: animation,
-              child: CampImage(index: index, key: Key(image.toString())),
+              child: CampImageWidget(index: index, key: Key(image.toString())),
             )
           : SizedBox.shrink();
     });
@@ -230,7 +232,7 @@ class ImageList extends StatelessWidget {
                     child: Stack(
                       fit: StackFit.expand,
                       children: [
-                        CampImage(index: index, key: key),
+                        CampImageWidget(index: index, key: key),
                         Positioned(
                           left: 0,
                           top: 0,
@@ -280,45 +282,30 @@ class ImageList extends StatelessWidget {
   }
 }
 
-class CampImage extends StatefulWidget {
+class CampImageWidget extends StatefulWidget {
   final int index;
-  CampImage({this.index, Key key}) : super(key: key);
+  CampImageWidget({this.index, Key key}) : super(key: key);
 
   @override
-  _CampImageState createState() => _CampImageState();
+  _CampImageWidgetState createState() => _CampImageWidgetState();
 }
 
-class _CampImageState extends State<CampImage>
+class _CampImageWidgetState extends State<CampImageWidget>
     with AutomaticKeepAliveClientMixin {
-  bool _loading = true;
-  FileImage _fileImage;
-
   @override
   bool get wantKeepAlive => true;
 
   @override
-  void initState() {
-    _fileImage = context.read<AddModel>().getFileImage(widget.index)
-      ..resolve(ImageConfiguration()).addListener(ImageStreamListener((_, __) {
-        if (mounted) {
-          setState(() {
-            _loading = false;
-          });
-        }
-      }));
-    super.initState();
-  }
-
-  @override
   Widget build(BuildContext context) {
     super.build(context);
-    if (_loading) {
+    if (context.select((AddModel addModel) => addModel.imageIsLoading(widget.index))) {
       return Center(
         child: CircularProgressIndicator(),
       );
     } else {
       return FadeInImage(
-        image: _fileImage,
+        image: context
+            .select((AddModel addModel) => addModel.getFileImage(widget.index)),
         placeholder: MemoryImage(kTransparentImage),
         fit: BoxFit.cover,
       );
