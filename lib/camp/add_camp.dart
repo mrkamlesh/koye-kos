@@ -47,7 +47,6 @@ class _CampFormState extends State<CampForm> {
     picker.getImage(source: ImageSource.camera).then((PickedFile pickedFile) {
       if (pickedFile == null) return;
       final int newIndex = context.read<AddModel>().addImage(pickedFile.path);
-      print(newIndex);
       _listKey.currentState.insertItem(newIndex - 1);
     }).catchError((error) {
       Scaffold.of(context)
@@ -60,7 +59,7 @@ class _CampFormState extends State<CampForm> {
 
   Future<File> cropImage(int index) {
     ImageCropper.cropImage(
-      sourcePath: context.read<AddModel>().getImage(index).path,
+      sourcePath: context.read<AddModel>().getSourceImage(index).path,
       compressFormat: ImageCompressFormat.jpg,
       // default
       compressQuality: 100,
@@ -84,13 +83,13 @@ class _CampFormState extends State<CampForm> {
   }
 
   void deleteImage(int index, {bool animate = false}) {
-    final image = context.read<AddModel>().removeImage(index);
+    final CampImage deletedImage = context.read<AddModel>().removeImage(index);
     _listKey.currentState.removeItem(index, (context, animation) {
       return animate
           ? SizeTransition(
               axis: Axis.horizontal,
               sizeFactor: animation,
-              child: CampImageWidget(index: index, key: Key(image.toString())),
+              child: CampImageWidget(campImage: deletedImage,),
             )
           : SizedBox.shrink();
     });
@@ -232,7 +231,7 @@ class ImageList extends StatelessWidget {
                     child: Stack(
                       fit: StackFit.expand,
                       children: [
-                        CampImageWidget(index: index, key: key),
+                        CampImageWidget(campImage: addModel.getCampImage(index),),
                         Positioned(
                           left: 0,
                           top: 0,
@@ -283,8 +282,8 @@ class ImageList extends StatelessWidget {
 }
 
 class CampImageWidget extends StatefulWidget {
-  final int index;
-  CampImageWidget({this.index, Key key}) : super(key: key);
+  final CampImage campImage;
+  CampImageWidget({this.campImage, Key key}) : super(key: key);
 
   @override
   _CampImageWidgetState createState() => _CampImageWidgetState();
@@ -298,14 +297,13 @@ class _CampImageWidgetState extends State<CampImageWidget>
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    if (context.select((AddModel addModel) => addModel.imageIsLoading(widget.index))) {
+    if (widget.campImage.isLoading) {
       return Center(
         child: CircularProgressIndicator(),
       );
     } else {
       return FadeInImage(
-        image: context
-            .select((AddModel addModel) => addModel.getFileImage(widget.index)),
+        image: widget.campImage.fileImage,
         placeholder: MemoryImage(kTransparentImage),
         fit: BoxFit.cover,
       );

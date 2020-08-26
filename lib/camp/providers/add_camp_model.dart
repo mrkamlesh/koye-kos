@@ -1,10 +1,8 @@
-import 'dart:async';
 import 'dart:io';
 import 'dart:math';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/painting.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:koye_kos/services/auth.dart';
 import 'package:koye_kos/services/db.dart';
 import '../../utils.dart';
@@ -32,14 +30,13 @@ class AddModel with ChangeNotifier {
       location.toReadableString(precision: 4, separator: ', ');
   List<File> get images =>
       _campImages.map((campImage) => campImage.file).toList();
+  File getSourceImage(int index) => _campImages[index].sourceFile;
   File getImage(int index) => _campImages[index].file;
-  FileImage getFileImage(int index) => _campImages[index].fileImage;
   CampImage getCampImage(int index) => _campImages[index];
-  bool imageIsLoading(int index) => _campImages[index].loadState == ImageLoadState.Loading;
 
   int addImage(String imagePath) {
     final index = _campImages.length;
-    _campImages.add(CampImage(file: File(imagePath)));
+    _campImages.add(CampImage(sourceFile: File(imagePath)));
     _campImages[index].fileImage
         .resolve(ImageConfiguration())
         .addListener(ImageStreamListener((_, __) {
@@ -62,8 +59,8 @@ class AddModel with ChangeNotifier {
     notifyListeners();
   }
 
-  File removeImage(int index) {
-    return _campImages.removeAt(index).file;
+  CampImage removeImage(int index) {
+    return _campImages.removeAt(index);
   }
 
   bool addCamp(String description) {
@@ -79,12 +76,13 @@ class AddModel with ChangeNotifier {
 }
 
 class CampImage {
+  File sourceFile;
   File file;
   FileImage fileImage;
   ImageLoadState loadState;
 
-  CampImage({this.file}) {
-    fileImage = FileImage(file);
+  CampImage({this.sourceFile}) {
+    fileImage = FileImage(sourceFile);
     this.loadState = ImageLoadState.Loading;
   }
 
@@ -93,4 +91,6 @@ class CampImage {
     this.loadState = ImageLoadState.Loading;
     return this.fileImage = FileImage(file);
   }
+
+  bool get isLoading => loadState == ImageLoadState.Loading;
 }
