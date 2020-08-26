@@ -88,6 +88,7 @@ class CampImage {
   ImageLoadState loadState;
 
   CampImage({this.sourceFile}) {
+    file = sourceFile;
     fileImage = FileImage(sourceFile);
     this.loadState = ImageLoadState.Loading;
   }
