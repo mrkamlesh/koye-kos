@@ -37,7 +37,8 @@ class AddModel with ChangeNotifier {
   int addImage(String imagePath) {
     final index = _campImages.length;
     _campImages.add(CampImage(sourceFile: File(imagePath)));
-    _campImages[index].fileImage
+    _campImages[index]
+        .fileImage
         .resolve(ImageConfiguration())
         .addListener(ImageStreamListener((_, __) {
       _campImages[index].loadState = ImageLoadState.Loaded;
@@ -64,7 +65,12 @@ class AddModel with ChangeNotifier {
   }
 
   bool addCamp(String description) {
-    return true;
+    final images = _campImages.map((campImage) => campImage.file).toList();
+    return firestore.addCamp(
+      description: description,
+      location: location,
+      images: images,
+    );
   }
 
   bool isLastElement(int index) => index == _campImages.length;

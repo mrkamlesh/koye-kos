@@ -149,10 +149,6 @@ class _CampFormState extends State<CampForm> {
                           bool wasAdded = addModel.addCamp(
                             descriptionController.text,
                           );
-                          /*.addCamp(
-                              description: descriptionController.text,
-                              images: _images);*/
-
                           wasAdded
                               ? Navigator.pop(context, true)
                               : Scaffold.of(context).showSnackBar(

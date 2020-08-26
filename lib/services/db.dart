@@ -6,7 +6,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
-import 'package:latlong/latlong.dart';
 
 import '../models/camp.dart';
 import '../models/user.dart';
@@ -14,8 +13,8 @@ import '../utils.dart';
 import 'firestore_paths.dart';
 
 class FirestoreService {
-  final String uid;
-  FirestoreService({@required this.uid});
+  final UserModel user;
+  FirestoreService({@required this.user});
 
   final _firestore = FirebaseFirestore.instance;
 
@@ -42,7 +41,6 @@ class FirestoreService {
     @required String description,
     @required Point<double> location,
     @required List<File> images,
-    @required UserModel userModel,
   }) {
     // Get a reference to new camp
     DocumentReference campRef =
@@ -56,8 +54,6 @@ class FirestoreService {
       campRef: campRef,
       description: description,
       location: location,
-      creatorId: uid,
-      creatorName: userModel.name,
       images: images,
     );
     return true;
@@ -67,8 +63,6 @@ class FirestoreService {
     @required DocumentReference campRef,
     @required String description,
     @required Point<double> location,
-    @required String creatorId,
-    @required String creatorName,
     @required List<File> images,
   }) async {
     // Compress images
@@ -109,8 +103,8 @@ class FirestoreService {
         imageUrls: imageUrls,
         location: location,
         description: description,
-        creatorId: creatorId,
-        creatorName: creatorName);
+        creatorId: user.id,
+        creatorName: user.name);
 
     campRef.set(camp.toFirestoreMap(), SetOptions(merge: true)).then((value) {
       print('Uploaded camp complete!');
@@ -130,7 +124,7 @@ class FirestoreService {
         _firestore.collection(FirestorePath.campsPath).doc(campId);
 
     final DocumentReference userRatingRef =
-        campRef.collection(FirestorePath.ratingsPath).doc(uid);
+        campRef.collection(FirestorePath.ratingsPath).doc(user.id);
 
     return _firestore
         .runTransaction((Transaction transaction) async {
@@ -167,20 +161,19 @@ class FirestoreService {
   Future<void> addCampComment(
       {@required String campId,
       @required String comment,
-      @required UserModel userModel,
       double score}) {
     Map<String, dynamic> data = {
       'comment': comment,
-      'user_name': userModel.name,
-      'user_id': uid,
-      'user_photo_url': userModel.photoUrl,
+      'user_name': user.name,
+      'user_id': user.id,
+      'user_photo_url': user.photoUrl,
       'date': Timestamp.now(),
     };
     if (score != null) data['score'] = score;
 
     return _firestore
         .collection(FirestorePath.getCommentsPath(campId))
-        .doc(uid)
+        .doc(user.id)
         .set(data);
   }
 
@@ -198,7 +191,7 @@ class FirestoreService {
   Future<double> getCampRating(String campId) {
     return _firestore
         .collection(FirestorePath.getRatingPath(campId))
-        .doc(uid)
+        .doc(user.id)
         .get()
         .then((DocumentSnapshot snapshot) {
       return snapshot.exists ? (snapshot.get('score') as num).toDouble() : 0;
@@ -243,7 +236,7 @@ class FirestoreService {
 
   Stream<bool> getCampFavoritedStream(String campId) {
     return _firestore
-        .collection(FirestorePath.getFavoritePath(uid))
+        .collection(FirestorePath.getFavoritePath(user.id))
         .doc(campId)
         .snapshots()
         .map((DocumentSnapshot documentSnapshot) => documentSnapshot.exists);
@@ -251,7 +244,7 @@ class FirestoreService {
 
   Stream<List<Favorite>> campIdsFavoritedStream() {
     return _firestore
-        .collection(FirestorePath.getFavoritePath(uid))
+        .collection(FirestorePath.getFavoritePath(user.id))
         .orderBy('time', descending: true)
         .snapshots()
         .map((QuerySnapshot snapshot) => snapshot.docs
@@ -262,7 +255,7 @@ class FirestoreService {
 
   Stream<List<Camp>> campsFavoritedStream() async* {
     List<String> ids = await _firestore
-        .collection(FirestorePath.getFavoritePath(uid))
+        .collection(FirestorePath.getFavoritePath(user.id))
         .get()
         .then((QuerySnapshot snapshot) =>
             snapshot.docs.map((e) => e.id).toList());
@@ -279,7 +272,7 @@ class FirestoreService {
       {bool favorited = true}) async {
     if (favorited) {}
     DocumentReference ref = await _firestore
-        .collection(FirestorePath.getFavoritePath(uid))
+        .collection(FirestorePath.getFavoritePath(user.id))
         .doc(campId);
 
     favorited
@@ -290,14 +283,14 @@ class FirestoreService {
   Future<void> addUser(UserModel userModel) async {
     return _firestore
         .collection(FirestorePath.usersPath)
-        .doc(uid)
+        .doc(user.id)
         .set(userModel.toFirestoreMap());
   }
 
   Stream<UserModel> getUserStream() {
     return _firestore
         .collection(FirestorePath.usersPath)
-        .doc(uid)
+        .doc(user.id)
         .snapshots()
         .map((DocumentSnapshot document) => UserModel.fromFirestore(document));
   }

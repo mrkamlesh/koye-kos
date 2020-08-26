@@ -33,7 +33,8 @@ class _ApplicationState extends State<Application> {
                 lazy: false,
               ),
               ProxyProvider<AuthProvider, FirestoreService>(
-                update: (_, auth, __) => FirestoreService(uid: auth.user.id),
+                // TODO: create() ?
+                update: (_, auth, __) => FirestoreService(user: auth.user),
               )
             ],
             child: MyApp(),

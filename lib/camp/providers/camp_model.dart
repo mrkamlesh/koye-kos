@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:koye_kos/camp/providers/comment_model.dart';
 import 'package:koye_kos/models/camp.dart';
 import 'package:koye_kos/services/auth.dart';
@@ -44,11 +44,11 @@ class CampModel extends RatingProvider with ChangeNotifier {
   Stream<List<CampComment>> get comments =>
       firestore.getCommentsStream(camp.id);
   CampComment get userComment => _userComment;
-  bool isCreator(String commentId) => commentId == firestore.uid;
+  bool isCreator(String commentId) => commentId == auth.user.id;
 
   void onCampCommentResult(CampComment comment) {
     if (comment != null)
-      firestore.addCampComment(campId: camp.id, comment: comment.commentText, userModel: auth.user);
+      firestore.addCampComment(campId: camp.id, comment: comment.commentText);
   }
 
   void deleteCamp() {
@@ -68,7 +68,7 @@ class CampModel extends RatingProvider with ChangeNotifier {
       _userComment = null;
     else
       _userComment = _comments.firstWhere(
-          (element) => element.userId == firestore.uid,
+          (element) => element.userId == auth.user.id,
           orElse: null);
   }
 
