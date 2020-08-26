@@ -23,12 +23,12 @@ class MapModel extends ChangeNotifier {
   Point<double> clickCoordinates;
   ClickState _clickState;
   Set<MapSymbolMarker> _campSymbols;
+  Stream<Set<MapSymbolMarker>> _campSymbolsStream;
   Map<String, Camp> _campMap;
-  StreamSubscription _campsSubscription;
-  
+
   MapModel({@required this.firestore}) {
     _clickState = ClickState.None;
-    _campsSubscription = firestore.getCampListStream().listen(_onCampStream);
+    _campSymbolsStream = firestore.getCampListStream().map(_campToSymbolMarker);
   }
 
   void setFirestore(FirestoreService firestore) => this.firestore = firestore;
@@ -36,12 +36,11 @@ class MapModel extends ChangeNotifier {
   ClickState get clickState => _clickState;
 
   Set<MapSymbolMarker> get campSymbols => _campSymbols;
+  Stream<Set<MapSymbolMarker>> get campSymbolsStream => _campSymbolsStream;
   Camp getCamp(String id) => _campMap[id];
 
-  Stream<Camp> campStream(String campId) => firestore.getCampStream(campId);
-  Stream<bool> campFavoritedStream(String campId) => firestore.getCampFavoritedStream(campId);
-
-  void _onCampStream(List<Camp> camps) {
+  Set<MapSymbolMarker> _campToSymbolMarker(List<Camp> camps) {
+    print('_campToSymbolMarker!');
     _campMap = camps.asMap().map((_, camp) => MapEntry(camp.id, camp));
     _campSymbols = camps.map((Camp camp) =>
         MapSymbolMarker(
@@ -51,9 +50,9 @@ class MapModel extends ChangeNotifier {
             iconSize: 3,
           ),
           id: camp.id,
-        ))
-        .toSet();
+        )).toSet();
     notifyListeners();
+    return _campSymbols;
   }
 
   void onMapLongClick(LatLng coordinates) {
@@ -70,7 +69,6 @@ class MapModel extends ChangeNotifier {
 
   @override
   void dispose() {
-    _campsSubscription.cancel();
     super.dispose();
   }
 }

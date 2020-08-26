@@ -27,20 +27,26 @@ class MapState extends State<Map> {
     return Consumer<MapModel>(
       builder: (context, mapModel, _) {
         return Scaffold(
-          body: MapboxMap(
-            onMapCreated: _onMapCreated,
-            onStyleLoadedCallback: _onStyleLoaded,
-            initialCameraPosition:
-                const CameraPosition(target: LatLng(59.81, 10.44), zoom: 11.0),
-            onMapLongClick: (_, coordinates) {
-              //mapModel.onMapLongClick(coordinates);
-              _showBottomSheetBuilder(coordinates.toPoint());
-            },
-            onMapClick: (_, coordinates) {
-              print('click');
-              //mapModel.onMapClick(coordinates);
-              //Navigator.popUntil(context, ModalRoute.withName('/'));
-            },
+          body: StreamBuilder<Set<MapSymbolMarker>>(
+              stream: mapModel.campSymbolsStream,
+              builder: (context, snapshot) {
+                print('build steam');
+                return MapboxMap(
+                  onMapCreated: _onMapCreated,
+                  onStyleLoadedCallback: _onStyleLoaded,
+                  initialCameraPosition:
+                  const CameraPosition(target: LatLng(59.81, 10.44), zoom: 11.0),
+                  onMapLongClick: (_, coordinates) {
+                    //mapModel.onMapLongClick(coordinates);
+                    _showBottomSheetBuilder(coordinates.toPoint());
+                  },
+                  onMapClick: (_, coordinates) {
+                    print('click');
+                    //mapModel.onMapClick(coordinates);
+                    //Navigator.popUntil(context, ModalRoute.withName('/'));
+                  },
+                );
+              }
           ),
         );
       },
@@ -48,8 +54,17 @@ class MapState extends State<Map> {
   }
 
   void _onStyleLoaded() {
+    // Load symbols first time
     context.read<MapModel>().campSymbols.forEach((element) {
       _mapController.addSymbol(element.options, {'id': element.id});
+    });
+    // Subscribe to stream events
+    context.read<MapModel>().campSymbolsStream.listen((element) {
+      // TODO: batch add with addSymbols
+      element.forEach((element) {
+        _mapController.addSymbol(element.options, {'id': element.id});
+      });
+      _mapController.clearSymbols();
     });
   }
 
