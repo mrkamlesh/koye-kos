@@ -35,12 +35,10 @@ class MapModel extends ChangeNotifier {
 
   ClickState get clickState => _clickState;
 
-  Set<MapSymbolMarker> get campSymbols => _campSymbols;
   Stream<Set<MapSymbolMarker>> get campSymbolsStream => _campSymbolsStream;
   Camp getCamp(String id) => _campMap[id];
 
   Set<MapSymbolMarker> _campToSymbolMarker(List<Camp> camps) {
-    print('_campToSymbolMarker!');
     _campMap = camps.asMap().map((_, camp) => MapEntry(camp.id, camp));
     _campSymbols = camps.map((Camp camp) =>
         MapSymbolMarker(
@@ -51,7 +49,6 @@ class MapModel extends ChangeNotifier {
           ),
           id: camp.id,
         )).toSet();
-    notifyListeners();
     return _campSymbols;
   }
 
