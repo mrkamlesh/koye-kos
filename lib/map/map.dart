@@ -62,7 +62,7 @@ class MapState extends State<Map> {
     }
     mapModel.onMapClick(coordinates);
     // TODO: does not work until symbol tap is consumed before propogating here
-    Navigator.popUntil(context, ModalRoute.withName('/'));
+    //Navigator.popUntil(context, ModalRoute.withName('/'));
   }
 
   // TODO: disable propagation.
