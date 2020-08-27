@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -17,6 +19,7 @@ enum AuthStatus {
 class AuthProvider extends ChangeNotifier {
   AuthService _authService;
   AuthStatus _status = AuthStatus.Uninitialized;
+  StreamSubscription<User> _userStreamSubscription;
 
   Stream<UserModel> get userStream => _authService.userStream.map(_mapUserStream);
   UserModel get user => _mapUserStream(_authService.user);
@@ -24,20 +27,19 @@ class AuthProvider extends ChangeNotifier {
 
   AuthProvider() {
     _authService = AuthService.instance;
-    _authService.userStream.listen(_onAuthStateChanged);
+    _userStreamSubscription = _authService.userStream.listen(_onAuthStateChanged);
     _authService.signInAnonymously();
   }
 
   void signInWithGoogle() async {
     _status = AuthStatus.Authenticating;
     notifyListeners();
-    bool signedIn = await _authService.signInWithGoogle();
-    _status = signedIn ? AuthStatus.Authenticated : AuthStatus.Unauthenticated;
-    notifyListeners();
+    _authService.signInWithGoogle();
   }
 
   void signOut() async {
-    _authService.signOut();  // _onAuthStateChanged already changes _status
+    await _authService.signOut();  // _onAuthStateChanged already changes _status
+    _authService.signInAnonymously();
   }
 
   UserModel _mapUserStream(User user) {
@@ -53,6 +55,7 @@ class AuthProvider extends ChangeNotifier {
   void _onAuthStateChanged(User user) {
     if (user == null) {
       _status = AuthStatus.Unauthenticated;
+      return;
     }
     if (user.isAnonymous) {
       _status = AuthStatus.Anonymous;
@@ -62,6 +65,12 @@ class AuthProvider extends ChangeNotifier {
       _status = AuthStatus.Unauthenticated;
     }
     notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    _userStreamSubscription?.cancel();
+    super.dispose();
   }
 }
 
@@ -77,8 +86,8 @@ class AuthService {
   Stream<User> get userStream => _auth.userChanges();
 
   void signOut() async {
-    _googleSignIn.signOut();
-    _auth.signOut();
+    await _googleSignIn.signOut();
+    await _auth.signOut();
   }
 
   Future<User> signInAnonymously() async {

@@ -57,21 +57,21 @@ class MyApp extends StatelessWidget {
         return user == null
             ? SplashScreen()
             : MaterialApp(
-          title: 'Køye Kos',
-          initialRoute: '/',
-          routes: {
-            '/': (context) => Home(),
-            '/profile': (context) => Profile(),
-            '/detail': (context) => CampDetailScreen(),
-          },
-          theme: ThemeData().copyWith(
-            pageTransitionsTheme: const PageTransitionsTheme(
-              builders: <TargetPlatform, PageTransitionsBuilder>{
-                TargetPlatform.android: ZoomPageTransitionsBuilder(),
-              },
-            ),
-          ),
-        );
+                title: 'Køye Kos',
+                initialRoute: '/',
+                routes: {
+                  '/': (context) => Home(),
+                  '/profile': (context) => Profile(),
+                  '/detail': (context) => CampDetailScreen(),
+                },
+                theme: ThemeData().copyWith(
+                  pageTransitionsTheme: const PageTransitionsTheme(
+                    builders: <TargetPlatform, PageTransitionsBuilder>{
+                      TargetPlatform.android: ZoomPageTransitionsBuilder(),
+                    },
+                  ),
+                ),
+              );
       },
     );
   }
@@ -112,7 +112,7 @@ class Home extends StatelessWidget {
         create: (context) =>
             MapModel(firestore: context.read<FirestoreService>()),
         update: (_, firestore, mapModel) => mapModel..setFirestore(firestore),
-        child:  Map(),
+        child: Map(),
       ),
     );
   }
