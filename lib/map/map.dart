@@ -24,52 +24,55 @@ class MapState extends State<Map> {
 
   @override
   Widget build(BuildContext context) {
-    print('build');
+    //print('-build');
+
     return Consumer<MapModel>(
       builder: (context, mapModel, _) {
-        print('consumer!');
+        //print('-consumer!');
         return Scaffold(
           body: MapboxMap(
             onMapCreated: _onMapCreated,
             onStyleLoadedCallback: _onStyleLoaded,
             initialCameraPosition:
             const CameraPosition(target: LatLng(59.81, 10.44), zoom: 11.0),
-            onMapLongClick: (_, coordinates) {
-              //mapModel.onMapLongClick(coordinates);
-              _showBottomSheetBuilder(coordinates.toPoint());
-            },
-            onMapClick: (_, coordinates) {
-              print('click');
-              //mapModel.onMapClick(coordinates);
-              //Navigator.popUntil(context, ModalRoute.withName('/'));
-            },
+            onMapLongClick: _onMapLongClick,
+            onMapClick: _onMapClick,
           ),
         );
       },
     );
   }
 
-  void _onStyleLoaded() {
-    // Subscribe to stream events
-    _symbolsSubscription = context.read<MapModel>().campSymbolsStream.listen((element) {
-      _mapController.clearSymbols();
-
-      // TODO: batch add with addSymbols
-      element.forEach((element) {
-        _mapController.addSymbol(element.options, {'id': element.id});
-      });
-    });
+  void _onMapLongClick(_, LatLng coordinates) {
+    print('longclick');
+    final mapModel = context.read<MapModel>();
+    if (mapModel.clickState == ClickState.LongClick) {
+      _mapController.removeSymbol(mapModel.longCLickSymbol);
+    }
+    SymbolOptions symbolOptions = mapModel.onMapLongClick(coordinates);
+    _mapController.addSymbol(symbolOptions).then(mapModel.setLongClickSymbol);
+    _showBottomSheetBuilder(coordinates.toPoint());
   }
 
-  void _onMapCreated(MapboxMapController controller) {
-    _mapController = controller;
-    // TODO: disable tap event propagating to mapCLick listener https://github.com/tobrun/flutter-mapbox-gl/pull/381
-    _mapController.onSymbolTapped.add(_onSymbolTapped);
+  void _onMapClick(_, LatLng coordinates) {
+    print('click');
+    final mapModel = context.read<MapModel>();
+    if (mapModel.clickState == ClickState.LongClick) {
+      _mapController.removeSymbol(mapModel.longCLickSymbol);
+    }
+    mapModel.onMapClick(coordinates);
+    // TODO: does not work until symbol tap is consumed before propogating here
+    Navigator.popUntil(context, ModalRoute.withName('/'));
   }
 
+  // TODO: disable propagation.
   void _onSymbolTapped(Symbol symbol) {
+    print('symbol tapped');
+    final mapModel = context.read<MapModel>();
+    mapModel.onSymbolTapped();
+    if (!symbol.data.containsKey('id')) return;
     final String campId = symbol.data['id'] as String;
-    final Camp camp = context.read<MapModel>().getCamp(campId);
+    final Camp camp = mapModel.getCamp(campId);
     showBottomSheet<void>(
       context: context,
       backgroundColor: Colors.transparent,
@@ -81,6 +84,27 @@ class MapState extends State<Map> {
       },
     );
   }
+
+  void _onStyleLoaded() {
+    // Subscribe to stream events
+    _symbolsSubscription =
+        context.read<MapModel>().campSymbolsStream.listen((element) {
+          _mapController.clearSymbols();
+
+          // TODO: batch add with addSymbols
+          element.forEach((element) {
+            _mapController.addSymbol(element.options, {'id': element.id});
+          });
+        });
+  }
+
+  void _onMapCreated(MapboxMapController controller) {
+    _mapController = controller;
+    // TODO: disable tap event propagating to mapCLick listener https://github.com/tobrun/flutter-mapbox-gl/pull/381
+    _mapController.onSymbolTapped.add(_onSymbolTapped);
+  }
+
+
 
   void _showBottomSheetBuilder(Point<double> coordinates) {
     showBottomSheet<void>(
