@@ -145,6 +145,16 @@ class _AddCommentScreenState extends State<AddCommentScreen> {
   final _formKey = GlobalKey<FormState>();
   final _textEditingController = TextEditingController();
 
+
+  @override
+  void initState() {
+    super.initState();
+    _textEditingController.addListener(() {
+      final String commentText = _textEditingController.text;
+      Provider.of<CommentModel>(context, listen: false).onTextChange(commentText);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final commentModel = Provider.of<CommentModel>(context);
@@ -164,8 +174,8 @@ class _AddCommentScreenState extends State<AddCommentScreen> {
               ),
               onPressed: () {
                 if (_formKey.currentState.validate()) {
-                  //commentModel.addComment();
-                  Navigator.pop(context);
+                  final text = _textEditingController.text;
+                  Navigator.pop(context, commentModel.getComment());
                 }
               },
             ),
@@ -217,4 +227,12 @@ class _AddCommentScreenState extends State<AddCommentScreen> {
       ),
     );
   }
+
+  @override
+  void dispose() {
+    _textEditingController.dispose();
+    super.dispose();
+  }
+
+
 }

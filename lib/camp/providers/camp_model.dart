@@ -18,7 +18,8 @@ class CampModel extends RatingProvider with ChangeNotifier {
   StreamSubscription _favoritedSubscription;
   StreamSubscription _commentsSubscription;
 
-  CampModel({@required this.auth, @required this.firestore, @required this.camp}) {
+  CampModel(
+      {@required this.auth, @required this.firestore, @required this.camp}) {
     _campSubscription = firestore.getCampStream(camp.id).listen(_onCampStream);
     _favoritedSubscription =
         firestore.getCampFavoritedStream(camp.id).listen(_onFavoriteStream);
@@ -47,8 +48,13 @@ class CampModel extends RatingProvider with ChangeNotifier {
   bool isCreator(String commentId) => commentId == auth.user.id;
 
   void onCampCommentResult(CampComment comment) {
-    if (comment != null)
+    if (comment != null) {
       firestore.addCampComment(campId: camp.id, comment: comment.commentText);
+      if (comment.score != null) {
+        firestore.updateRating(camp.id, comment.score);
+        _score = comment.score;
+      }
+    }
   }
 
   void deleteCamp() {
@@ -68,10 +74,11 @@ class CampModel extends RatingProvider with ChangeNotifier {
       _userComment = null;
     else
       _userComment = _comments.firstWhere(
-          (element) => element.userId == auth.user.id,
+              (element) => element.userId == auth.user.id,
           orElse: null);
   }
 
+  // TODO: use streams instead on calling notifylisteners forcing whole tree rebuild
   void _onCampStream(Camp camp) {
     this.camp = camp;
     notifyListeners();
