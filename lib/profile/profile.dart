@@ -35,35 +35,35 @@ class _SignUpViewState extends State<SignUpView> {
           child: auth.status == AuthStatus.Authenticating
               ? CircularProgressIndicator()
               : Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    SizedBox(
-                      height: 100,
-                    ),
-                    Container(
-                      child: Icon(
-                        Icons.person_pin,
-                        size: 100,
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.only(top: 16, bottom: 8),
-                      child: Container(
-                        child: Text(
-                          'Select sign up method',
-                          style: Theme.of(context).textTheme.headline5,
-                        ),
-                      ),
-                    ),
-                    Divider(),
-                    RaisedButton(
-                      child: Text('GOOGLE'),
-                      color: Colors.red,
-                      onPressed: () =>
-                          context.read<AuthProvider>().signInWithGoogle()
-                    ),
-                  ],
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              SizedBox(
+                height: 100,
+              ),
+              Container(
+                child: Icon(
+                  Icons.person_pin,
+                  size: 100,
                 ),
+              ),
+              Padding(
+                padding: const EdgeInsets.only(top: 16, bottom: 8),
+                child: Container(
+                  child: Text(
+                    'Select sign up method',
+                    style: Theme.of(context).textTheme.headline5,
+                  ),
+                ),
+              ),
+              Divider(),
+              RaisedButton(
+                  child: Text('GOOGLE'),
+                  color: Colors.red,
+                  onPressed: () =>
+                      context.read<AuthProvider>().signInWithGoogle()
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -162,10 +162,17 @@ class ProfileWidget extends StatelessWidget {
                 children: [
                   Padding(
                     padding: const EdgeInsets.symmetric(vertical: 16),
-                    child: ClipOval(
-                      child: CachedNetworkImage(
-                        imageUrl: user.photoUrl,
-                        placeholder: (context, url) => Center(child: CircularProgressIndicator(),),
+                    child: CachedNetworkImage(
+                      imageUrl: user.photoUrl,
+                      placeholder: (context, url) => Center(child: CircularProgressIndicator()),
+                      imageBuilder: (context, imageProvider) => Container(
+                        width: 80.0,
+                        height: 80.0,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          image: DecorationImage(
+                              image: imageProvider, fit: BoxFit.cover),
+                        ),
                       ),
                     ),
                   ),
