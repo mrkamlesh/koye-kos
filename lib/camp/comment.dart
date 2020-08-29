@@ -98,13 +98,13 @@ class CommentWidget extends StatelessWidget {
                     icon: Icon(Icons.edit),
                     onPressed: () => Navigator.push<CampComment>(context,
                         MaterialPageRoute(builder: (context) {
-                      return ChangeNotifierProvider(
-                        create: (context) => CommentModel(
-                            originalText: comment.commentText,
-                            originalScore: campModel.score),
-                        builder: (context, child) => AddCommentScreen(),
-                      );
-                    })).then(campModel.onCampCommentResult),
+                          return ChangeNotifierProvider(
+                            create: (context) => CommentModel(
+                                originalText: comment.commentText,
+                                originalScore: campModel.score),
+                            builder: (context, child) => AddCommentScreen(),
+                          );
+                        })).then(campModel.onCampCommentResult),
                   )
               ],
             ),
@@ -154,7 +154,8 @@ class _AddCommentScreenState extends State<AddCommentScreen> {
   @override
   Widget build(BuildContext context) {
     final commentModel = Provider.of<CommentModel>(context);
-    if (commentModel.originalText != null)
+    final user = Provider.of<AuthProvider>(context).user;
+    if (!commentModel.isNewComment)
       _textEditingController.text = commentModel.originalText;
 
     return Scaffold(
@@ -188,6 +189,18 @@ class _AddCommentScreenState extends State<AddCommentScreen> {
                 SizedBox(
                   height: 20,
                 ),
+                ClipOval(
+                  child: CachedNetworkImage(
+                    imageUrl: user.photoUrl,
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  child: Text('${user.name}'),
+                ),
+                SizedBox(
+                  height: 8,
+                ),
                 UserRatingWidget(
                   onRatedCallback: commentModel.onRated,
                   score: commentModel.score,
@@ -216,7 +229,7 @@ class _AddCommentScreenState extends State<AddCommentScreen> {
                     return null;
                   },
                 ),
-                Center(
+                if (!commentModel.isNewComment) Center(
                   child: RaisedButton(
                     child: Text(
                       'Delete comment',

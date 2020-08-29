@@ -17,7 +17,9 @@ class CommentModel extends RatingProvider with ChangeNotifier {
     campScore = originalScore ?? null;
   }
 
-  String get title => originalText == null ? 'Add comment' : 'Edit comment';
+  String get title => isNewComment ? 'Add comment' : 'Edit comment';
+
+  bool get isNewComment =>  originalText == null;
 
   void onTextChange(String text) {
     commentText = text;

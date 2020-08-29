@@ -78,7 +78,7 @@ class CampModel extends RatingProvider with ChangeNotifier {
     else
       _userComment = _comments.firstWhere(
               (element) => element.userId == auth.user.id,
-          orElse: null);
+          orElse: () => null);
   }
 
   // TODO: use streams instead on calling notifylisteners forcing whole tree rebuild
