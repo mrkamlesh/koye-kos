@@ -268,6 +268,7 @@ class PhotoGallery extends StatelessWidget {
   Widget build(BuildContext context) {
     final photoModel = Provider.of<CampPhotoModel>(context);
     return Scaffold(
+      backgroundColor: Colors.black,
       extendBodyBehindAppBar: true,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
