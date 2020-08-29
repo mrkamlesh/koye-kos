@@ -1,5 +1,7 @@
 import 'dart:async';
+import 'dart:collection';
 
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:koye_kos/camp/providers/comment_model.dart';
 import 'package:koye_kos/models/camp.dart';
@@ -99,4 +101,29 @@ class CampModel extends RatingProvider with ChangeNotifier {
     _commentsSubscription.cancel();
     super.dispose();
   }
+}
+
+class CampPhotoModel with ChangeNotifier {
+  final List<String> imageUrls;
+  Map<int, ImageProvider> imagesMap = {};
+  int startIndex;
+  CampPhotoModel({@required this.imageUrls});
+
+  String getUrl(int index) => imageUrls[index];
+
+  ImageProvider getImageProvider(int index) => imagesMap[index];
+
+  void onPhotoLoad(ImageProvider image, int index) {
+    imagesMap[index] = image;
+  }
+
+  void onPhotoTap(int photoIndex) {
+    startIndex = photoIndex;
+  }
+
+  bool finishedLoading(int index) => imagesMap.containsKey(index);
+}
+
+class CampSimplePhoto with ChangeNotifier {
+
 }

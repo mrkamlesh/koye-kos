@@ -38,11 +38,13 @@ class _CampDetailScreenState extends State<CampDetailScreen>
       return _controller.index == 1
           ? FloatingActionButton(
         child: Icon(Icons.add_comment),
-        onPressed: () =>
-            Navigator.push<CampComment>(context, MaterialPageRoute(builder: (context) {
+        onPressed: () => Navigator.push<CampComment>(context,
+            MaterialPageRoute(builder: (context) {
               return ChangeNotifierProvider(
-                create: (context) =>
-                    CommentModel(originalText: campModel.userComment?.commentText, originalScore: campModel.userComment?.score),                 builder: (context, child) => AddCommentScreen(),
+                create: (context) => CommentModel(
+                    originalText: campModel.userComment?.commentText,
+                    originalScore: campModel.userComment?.score),
+                builder: (context, child) => AddCommentScreen(),
               );
             })).then(campModel.onCampCommentResult),
       )
@@ -95,11 +97,15 @@ class _CampDetailScreenState extends State<CampDetailScreen>
 class CampInfoPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final imageUrls =
+    context.select((CampModel campModel) => campModel.camp.imageUrls);
     return SingleChildScrollView(
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          ImageList(),
+          ChangeNotifierProvider(
+              create: (context) => CampPhotoModel(imageUrls: imageUrls),
+              child: ImageList()),
           CampInfo(),
           Padding(
             padding: const EdgeInsets.all(8.0),
@@ -217,11 +223,11 @@ class ImageList extends StatefulWidget {
 }
 
 class _ImageListState extends State<ImageList> {
-  final Map<int, ImageProvider> images = HashMap();
+
   @override
   Widget build(BuildContext context) {
-    final List<String> imageUrls =
-    context.select((CampModel campModel) => campModel.camp.imageUrls);
+    final photoModel = Provider.of<CampPhotoModel>(context);
+    final imageUrls = photoModel.imageUrls;
     return Container(
       height: 200, // restrict image height
       child: ListView.builder(
@@ -236,38 +242,17 @@ class _ImageListState extends State<ImageList> {
               padding: !last ? EdgeInsets.only(right: 2) : null,
               child: MarkerCachedImage(
                 imageUrls[index],
-                onLoadCallback: (ImageProvider provider) {
-                  images[index] = provider;
-                },
+                onLoadCallback: (imageProvider) => photoModel.onPhotoLoad(imageProvider, index),
               ),
             ),
             onTap: () {
-              // TODO: make gallery out of images
-              if (!images.containsKey(index)) return;
+              photoModel.onPhotoTap(index);
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (_) => Scaffold(
-                    extendBodyBehindAppBar: true,
-                    appBar: AppBar(
-                      backgroundColor: Colors.transparent,
-                      elevation: 0,
-                    ),
-                    body: Container(
-                      child: PhotoViewGallery.builder(
-                        scrollPhysics: const BouncingScrollPhysics(),
-                        builder: (context, index) {
-                          return PhotoViewGalleryPageOptions(
-                            imageProvider: images[index],
-                            minScale: PhotoViewComputedScale.contained * 0.8,
-                            maxScale: PhotoViewComputedScale.covered * 1.8,
-                            heroAttributes: PhotoViewHeroAttributes(tag: images[index].toString()),
-                          );
-                        },
-                        itemCount: images.length,
-                      ),
-                    ),
-                  ),
+                  builder: (_) => ChangeNotifierProvider<CampPhotoModel>.value(
+                      value: photoModel,
+                      child: PhotoGallery()),
                 ),
               );
             },
@@ -278,16 +263,10 @@ class _ImageListState extends State<ImageList> {
   }
 }
 
-
-class Gallery extends StatelessWidget {
-  final ImageProvider provider;
-  const Gallery({
-    this.provider,
-    Key key,
-  }) : super(key: key);
-
+class PhotoGallery extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final photoModel = Provider.of<CampPhotoModel>(context);
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
@@ -295,10 +274,19 @@ class Gallery extends StatelessWidget {
         elevation: 0,
       ),
       body: Container(
-        child: PhotoView(
-          minScale: PhotoViewComputedScale.contained * 0.8,
-          maxScale: PhotoViewComputedScale.covered * 1.8,
-          imageProvider: provider,
+        child: PhotoViewGallery.builder(
+          pageController:
+          PageController(initialPage: photoModel.startIndex), // TODO: should release?
+          builder: (context, index) {
+            // TODO: There could be a bug laying here, when trying to view an image that is not loaded yet..
+            return PhotoViewGalleryPageOptions(
+              imageProvider: photoModel.getImageProvider(index),
+              minScale: PhotoViewComputedScale.contained * 0.8,
+              maxScale: PhotoViewComputedScale.covered * 1.8,
+              heroAttributes: PhotoViewHeroAttributes(tag: index),
+            );
+          },
+          itemCount: photoModel.imagesMap.length,
         ),
       ),
     );
