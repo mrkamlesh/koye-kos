@@ -5,6 +5,7 @@ import 'package:flutter/widgets.dart';
 import 'package:koye_kos/camp/providers/camp_model.dart';
 import 'package:koye_kos/services/auth.dart';
 import 'package:photo_view/photo_view.dart';
+import 'package:photo_view/photo_view_gallery.dart';
 import 'package:provider/provider.dart';
 
 import '../services/db.dart';
@@ -36,15 +37,15 @@ class _CampDetailScreenState extends State<CampDetailScreen>
     Widget _buildFloatingActionButton() {
       return _controller.index == 1
           ? FloatingActionButton(
-              child: Icon(Icons.add_comment),
-              onPressed: () =>
-                  Navigator.push<CampComment>(context, MaterialPageRoute(builder: (context) {
-                return ChangeNotifierProvider(
-                  create: (context) =>
-                      CommentModel(originalText: campModel.userComment?.commentText, originalScore: campModel.userComment?.score),                 builder: (context, child) => AddCommentScreen(),
-                );
-              })).then(campModel.onCampCommentResult),
-            )
+        child: Icon(Icons.add_comment),
+        onPressed: () =>
+            Navigator.push<CampComment>(context, MaterialPageRoute(builder: (context) {
+              return ChangeNotifierProvider(
+                create: (context) =>
+                    CommentModel(originalText: campModel.userComment?.commentText, originalScore: campModel.userComment?.score),                 builder: (context, child) => AddCommentScreen(),
+              );
+            })).then(campModel.onCampCommentResult),
+      )
           : SizedBox.shrink();
     }
 
@@ -220,7 +221,7 @@ class _ImageListState extends State<ImageList> {
   @override
   Widget build(BuildContext context) {
     final List<String> imageUrls =
-        context.select((CampModel campModel) => campModel.camp.imageUrls);
+    context.select((CampModel campModel) => campModel.camp.imageUrls);
     return Container(
       height: 200, // restrict image height
       child: ListView.builder(
@@ -246,7 +247,27 @@ class _ImageListState extends State<ImageList> {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (_) => Gallery(provider: images[index]),
+                  builder: (_) => Scaffold(
+                    extendBodyBehindAppBar: true,
+                    appBar: AppBar(
+                      backgroundColor: Colors.transparent,
+                      elevation: 0,
+                    ),
+                    body: Container(
+                      child: PhotoViewGallery.builder(
+                        scrollPhysics: const BouncingScrollPhysics(),
+                        builder: (context, index) {
+                          return PhotoViewGalleryPageOptions(
+                            imageProvider: images[index],
+                            minScale: PhotoViewComputedScale.contained * 0.8,
+                            maxScale: PhotoViewComputedScale.covered * 1.8,
+                            heroAttributes: PhotoViewHeroAttributes(tag: images[index].toString()),
+                          );
+                        },
+                        itemCount: images.length,
+                      ),
+                    ),
+                  ),
                 ),
               );
             },
@@ -256,6 +277,7 @@ class _ImageListState extends State<ImageList> {
     );
   }
 }
+
 
 class Gallery extends StatelessWidget {
   final ImageProvider provider;

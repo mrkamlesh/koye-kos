@@ -34,7 +34,7 @@ class MapState extends State<Map> {
             onMapCreated: _onMapCreated,
             onStyleLoadedCallback: _onStyleLoaded,
             initialCameraPosition:
-            const CameraPosition(target: LatLng(59.81, 10.44), zoom: 11.0),
+            const CameraPosition(target: LatLng(63.4, 10.23), zoom: 11.0),
             onMapLongClick: _onMapLongClick,
             onMapClick: _onMapClick,
           ),
