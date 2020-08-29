@@ -96,10 +96,12 @@ class CommentWidget extends StatelessWidget {
                 if (campModel.isCreator(comment.userId))
                   IconButton(
                     icon: Icon(Icons.edit),
-                    onPressed: () => Navigator.push<CampComment>(context, MaterialPageRoute(builder: (context) {
+                    onPressed: () => Navigator.push<CampComment>(context,
+                        MaterialPageRoute(builder: (context) {
                       return ChangeNotifierProvider(
-                        create: (context) =>
-                            CommentModel(originalText: comment.commentText, originalScore: campModel.score),
+                        create: (context) => CommentModel(
+                            originalText: comment.commentText,
+                            originalScore: campModel.score),
                         builder: (context, child) => AddCommentScreen(),
                       );
                     })).then(campModel.onCampCommentResult),
@@ -113,6 +115,9 @@ class CommentWidget extends StatelessWidget {
                     score: comment.score,
                     showDetails: false,
                   ),
+                SizedBox(
+                  width: 8,
+                ),
                 Text('${DateFormat('dd/MM/yyyy').format(comment.date)}'),
               ],
             ),
@@ -136,13 +141,13 @@ class _AddCommentScreenState extends State<AddCommentScreen> {
   final _formKey = GlobalKey<FormState>();
   final _textEditingController = TextEditingController();
 
-
   @override
   void initState() {
     super.initState();
     _textEditingController.addListener(() {
       final String commentText = _textEditingController.text;
-      Provider.of<CommentModel>(context, listen: false).onTextChange(commentText);
+      Provider.of<CommentModel>(context, listen: false)
+          .onTextChange(commentText);
     });
   }
 
@@ -237,6 +242,4 @@ class _AddCommentScreenState extends State<AddCommentScreen> {
     _textEditingController.dispose();
     super.dispose();
   }
-
-
 }
