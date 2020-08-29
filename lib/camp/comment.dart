@@ -96,22 +96,13 @@ class CommentWidget extends StatelessWidget {
                 if (campModel.isCreator(comment.userId))
                   IconButton(
                     icon: Icon(Icons.edit),
-                    /*onPressed: () => Navigator.push(context,
-                        MaterialPageRoute(builder: (context) {
-                      return ChangeNotifierProxyProvider3<AuthProvider,
-                          FirestoreService, CampModel, CommentModel>(
-                        create: (_) => CommentModel(
-                            user: context.read<AuthProvider>().user,
-                            firestore: context.read<FirestoreService>(),
-                            campModel: context.read<CampModel>()),
-                        update: (_, auth, firestore, campModel, commentModel) =>
-                            commentModel
-                              ..user = auth.user
-                              ..firestore = firestore
-                              ..campModel = campModel,
-                        builder: (_, __) => AddCommentScreen(),
+                    onPressed: () => Navigator.push<CampComment>(context, MaterialPageRoute(builder: (context) {
+                      return ChangeNotifierProvider(
+                        create: (context) =>
+                            CommentModel(originalText: comment.commentText, originalScore: campModel.score),
+                        builder: (context, child) => AddCommentScreen(),
                       );
-                    })),*/
+                    })).then(campModel.onCampCommentResult),
                   )
               ],
             ),
@@ -158,8 +149,8 @@ class _AddCommentScreenState extends State<AddCommentScreen> {
   @override
   Widget build(BuildContext context) {
     final commentModel = Provider.of<CommentModel>(context);
-    if (commentModel.comment != null)
-      _textEditingController.text = commentModel.comment.commentText;
+    if (commentModel.originalText != null)
+      _textEditingController.text = commentModel.originalText;
 
     return Scaffold(
       appBar: AppBar(
@@ -219,9 +210,22 @@ class _AddCommentScreenState extends State<AddCommentScreen> {
                     }
                     return null;
                   },
-                )
+                ),
+                Center(
+                  child: RaisedButton(
+                    child: Text(
+                      'Delete comment',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                    color: Colors.red,
+                    onPressed: () {
+                      commentModel.deleteComment();
+                      Navigator.pop(context, commentModel.getComment());
+                    },
+                  ),
+                ),
               ],
-            ), // TODO: should not post to firebase until user presses 'POST'
+            ), //
           ),
         ),
       ),

@@ -8,15 +8,16 @@ abstract class RatingProvider {
 }
 
 class CommentModel extends RatingProvider with ChangeNotifier {
-  CampComment comment;
+  final String originalText;
+  final double originalScore;
   String commentText;
   double campScore;
-  CommentModel({this.comment}) {
-    commentText = comment?.commentText;
-    campScore = comment?.score;
+  CommentModel({this.originalText, this.originalScore}) {
+    commentText = originalText ?? '';
+    campScore = originalScore ?? null;
   }
 
-  String get title => comment == null ? 'Add comment' : 'Edit comment';
+  String get title => originalText == null ? 'Add comment' : 'Edit comment';
 
   void onTextChange(String text) {
     commentText = text;
@@ -24,6 +25,11 @@ class CommentModel extends RatingProvider with ChangeNotifier {
 
   CampComment getComment() {
     return CampComment(commentText: commentText, score: score);
+  }
+
+  void deleteComment() {
+    // TODO:
+    commentText = '';
   }
 
   @override

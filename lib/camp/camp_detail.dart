@@ -41,8 +41,7 @@ class _CampDetailScreenState extends State<CampDetailScreen>
                   Navigator.push<CampComment>(context, MaterialPageRoute(builder: (context) {
                 return ChangeNotifierProvider(
                   create: (context) =>
-                      CommentModel(comment: campModel.userComment),
-                  builder: (context, child) => AddCommentScreen(),
+                      CommentModel(originalText: campModel.userComment?.commentText, originalScore: campModel.userComment?.score),                 builder: (context, child) => AddCommentScreen(),
                 );
               })).then(campModel.onCampCommentResult),
             )

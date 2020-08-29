@@ -126,8 +126,7 @@ class FirestoreService {
     final DocumentReference userRatingRef =
         campRef.collection(FirestorePath.ratingsPath).doc(user.id);
 
-    return _firestore
-        .runTransaction((Transaction transaction) async {
+    return _firestore.runTransaction((Transaction transaction) async {
       DocumentSnapshot campSnapshot = await transaction.get(campRef);
       if (campSnapshot.exists) {
         // Get current camp scores
@@ -158,10 +157,15 @@ class FirestoreService {
     });
   }
 
+  Future<void> deleteCampComment({@required String campId}) {
+    return _firestore
+        .collection(FirestorePath.getCommentsPath(campId))
+        .doc(user.id)
+        .delete();
+  }
+
   Future<void> addCampComment(
-      {@required String campId,
-      @required String comment,
-      double score}) {
+      {@required String campId, @required String comment, double score}) {
     Map<String, dynamic> data = {
       'comment': comment,
       'user_name': user.name,
@@ -220,10 +224,7 @@ class FirestoreService {
 
   Future<void> deleteCamp(String campId) async {
     // compute new score
-        _firestore
-        .collection(FirestorePath.campsPath)
-        .doc(campId)
-        .delete();
+    _firestore.collection(FirestorePath.campsPath).doc(campId).delete();
 
     /*
     Firebase storage does not support client side deletion of buckets..
@@ -268,8 +269,7 @@ class FirestoreService {
             .toList());
   }
 
-  Future<void> setFavorited(String campId,
-      {bool favorited = true}) async {
+  Future<void> setFavorited(String campId, {bool favorited = true}) async {
     if (favorited) {}
     DocumentReference ref = await _firestore
         .collection(FirestorePath.getFavoritePath(user.id))
