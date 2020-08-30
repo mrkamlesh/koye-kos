@@ -14,6 +14,21 @@ import '../utils.dart';
 
 enum ClickState { None, Click, LongClick, SymbolClick }
 
+enum MapStyle { Outdoors, Satellite }
+
+class MapBoxMapStyle {
+  static const OUTDOORS = MapboxStyles.OUTDOORS;
+  static const SATELLITE = MapboxStyles.SATELLITE;
+  
+  static String getMapStyle(MapStyle style) {
+    switch(style) {
+      case MapStyle.Outdoors: return OUTDOORS;
+      case MapStyle.Satellite: return SATELLITE;
+      default: return OUTDOORS;
+    }
+  }
+}
+
 class MapModel extends ChangeNotifier {
   FirestoreService firestore;
   Point<double> longClickCoordinates;
@@ -23,11 +38,17 @@ class MapModel extends ChangeNotifier {
   Stream<Set<MapSymbolMarker>> _campSymbolsStream;
   Map<String, Camp> _campMap;
   Symbol _longClickSymbol;
-  bool locationTracking = false;
+  bool _locationTracking = false;
+  String _styleString = MapBoxMapStyle.OUTDOORS;
 
   MapModel({@required this.firestore}) {
     _clickState = ClickState.None;
     _campSymbolsStream = firestore.getCampListStream().map(_campToSymbolMarker);
+  }
+  
+  void onStyleSelected(MapStyle style) {
+    _styleString = MapBoxMapStyle.getMapStyle(style);
+    notifyListeners();
   }
 
   void setFirestore(FirestoreService firestore) => this.firestore = firestore;
@@ -37,9 +58,13 @@ class MapModel extends ChangeNotifier {
   Stream<Set<MapSymbolMarker>> get campSymbolsStream => _campSymbolsStream;
   Camp getCamp(String id) => _campMap[id];
 
-  MyLocationTrackingMode get trackingMode => locationTracking
+  bool get locationTracking => _locationTracking;
+
+  MyLocationTrackingMode get trackingMode => _locationTracking
       ? MyLocationTrackingMode.Tracking
       : MyLocationTrackingMode.None;
+
+  String get mapStyle => _styleString;
 
   Set<MapSymbolMarker> _campToSymbolMarker(List<Camp> camps) {
     _campMap = camps.asMap().map((_, camp) => MapEntry(camp.id, camp));
@@ -96,11 +121,8 @@ class MapModel extends ChangeNotifier {
   }
 
   void _toggleLocationTracking() {
-    locationTracking = !locationTracking;
+    _locationTracking = !_locationTracking;
     notifyListeners();
-  }
-
-  void onCameraTrackingDismissed() {
   }
 
   @override
