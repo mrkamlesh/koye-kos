@@ -154,7 +154,7 @@ class _AddCommentScreenState extends State<AddCommentScreen> {
   @override
   Widget build(BuildContext context) {
     final commentModel = Provider.of<CommentModel>(context);
-    final user = Provider.of<AuthProvider>(context).user;
+    final user = Provider.of<Auth>(context).user;
     if (!commentModel.isNewComment)
       _textEditingController.text = commentModel.originalText;
 

@@ -22,5 +22,4 @@ extension PointHelper on Point {
 
 extension LatLngHelper on LatLng {
   Point<double> toPoint() => Point(latitude, longitude);
-
 }

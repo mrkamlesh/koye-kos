@@ -9,7 +9,7 @@ import 'package:koye_kos/services/auth.dart';
 import 'package:koye_kos/services/db.dart';
 
 class CampModel extends RatingProvider with ChangeNotifier {
-  AuthProvider auth;
+  Auth auth;
   FirestoreService firestore;
   Camp camp;
   bool _favorited = false;
@@ -33,7 +33,7 @@ class CampModel extends RatingProvider with ChangeNotifier {
     });
   }
 
-  void setAuth(AuthProvider auth) => this.auth = auth;
+  void setAuth(Auth auth) => this.auth = auth;
   void setFirestore(FirestoreService firestore) => this.firestore = firestore;
 
   void toggleFavorited() {

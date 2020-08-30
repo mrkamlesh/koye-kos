@@ -13,7 +13,7 @@ enum ImageLoadState {
 }
 
 class AddModel with ChangeNotifier {
-  AuthProvider auth;
+  Auth auth;
   FirestoreService firestore;
   Point<double> location;
   final List<CampImage> _campImages = [];
@@ -23,7 +23,7 @@ class AddModel with ChangeNotifier {
       @required this.firestore,
       @required this.location}) {}
 
-  void setAuth(AuthProvider auth) => this.auth = auth;
+  void setAuth(Auth auth) => this.auth = auth;
   void setFirestore(FirestoreService firestore) => this.firestore = firestore;
 
   String get readableLocation =>

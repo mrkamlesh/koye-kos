@@ -10,8 +10,8 @@ import 'favorites.dart';
 class Profile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final AuthProvider auth = Provider.of<AuthProvider>(context);
-    return auth.status == AuthStatus.Authenticated ? AccountView() : SignUpView();
+    final Auth auth = Provider.of<Auth>(context);
+    return auth.status == AuthStatus.LoggedIn ? AccountView() : SignUpView();
   }
 }
 
@@ -23,7 +23,7 @@ class SignUpView extends StatefulWidget {
 class _SignUpViewState extends State<SignUpView> {
   @override
   Widget build(BuildContext context) {
-    final auth = Provider.of<AuthProvider>(context);
+    final auth = Provider.of<Auth>(context);
 
     return Scaffold(
       appBar: AppBar(
@@ -60,7 +60,7 @@ class _SignUpViewState extends State<SignUpView> {
                   child: Text('GOOGLE'),
                   color: Colors.red,
                   onPressed: () =>
-                      context.read<AuthProvider>().signInWithGoogle()
+                      context.read<Auth>().signInWithGoogle()
               ),
             ],
           ),
@@ -80,7 +80,7 @@ class AccountView extends StatelessWidget {
           title: Text('Account'),
           actions: [
             FlatButton(
-              onPressed: () => context.read<AuthProvider>().signOut(),
+              onPressed: () => context.read<Auth>().signOut(),
               child: Text(
                 'Log out',
                 style: TextStyle(color: Colors.white),
@@ -141,7 +141,7 @@ class CreatedView extends StatelessWidget {
 class ProfileWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Consumer<AuthProvider>(
+    return Consumer<Auth>(
       builder: (_, auth, __) {
         final user = auth.user;
         if (user == null || user.name == null) {  // should user ever be null here?

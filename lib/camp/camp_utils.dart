@@ -22,10 +22,10 @@ class OpenContainerCamp extends StatelessWidget {
       closedElevation: 0,
       openElevation: 0,
       closedBuilder: (_, __) {
-        return ChangeNotifierProxyProvider2<AuthProvider, FirestoreService,
+        return ChangeNotifierProxyProvider2<Auth, FirestoreService,
             CampModel>(
           create: (context) => CampModel(
-              auth: context.read<AuthProvider>(),
+              auth: context.read<Auth>(),
               firestore: context.read<FirestoreService>(),
               camp: camp),
           update: (_, auth, firestore, campModel) => campModel
@@ -35,10 +35,10 @@ class OpenContainerCamp extends StatelessWidget {
         );
       },
       openBuilder: (_, __) {
-        return ChangeNotifierProxyProvider2<AuthProvider, FirestoreService,
+        return ChangeNotifierProxyProvider2<Auth, FirestoreService,
             CampModel>(
           create: (context) => CampModel(
-              auth: context.read<AuthProvider>(),
+              auth: context.read<Auth>(),
               firestore: context.read<FirestoreService>(),
               camp: camp),
           update: (_, auth, firestore, campModel) => campModel
