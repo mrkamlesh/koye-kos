@@ -166,30 +166,32 @@ class MapStyleButtonWidget extends StatelessWidget {
     return Positioned(
       top: 14,
       right: 14,
-      child: SizedBox(
-        width: 35,
-        height: 35,
-        child: PopupMenuButton<MapStyle>(
-          child: FloatingActionButton(
-            onPressed: null,
-            backgroundColor: Colors.grey.shade50,
+      child: Material(
+        type: MaterialType.circle,
+        clipBehavior: Clip.antiAlias,
+        elevation: 6,
+        color: Colors.grey.shade50,
+        child: SizedBox(
+          width: 35,
+          height: 35,
+          child: PopupMenuButton<MapStyle>(
             child: Icon(
               Icons.layers,
               size: 20,
               color: Colors.black87,
             ),
+            onSelected: mapModel.onStyleSelected,
+            itemBuilder: (context) => <PopupMenuEntry<MapStyle>>[
+              PopupMenuItem<MapStyle>(
+                value: MapStyle.Outdoors,
+                child: Text('Outdoor'),
+              ),
+              PopupMenuItem<MapStyle>(
+                value: MapStyle.Satellite,
+                child: Text('Satellite'),
+              ),
+            ],
           ),
-          onSelected: mapModel.onStyleSelected,
-          itemBuilder: (context) => <PopupMenuEntry<MapStyle>>[
-            PopupMenuItem<MapStyle>(
-              value: MapStyle.Outdoors,
-              child: Text('Outdoor'),
-            ),
-            PopupMenuItem<MapStyle>(
-              value: MapStyle.Satellite,
-              child: Text('Satellite'),
-            ),
-          ],
         ),
       ),
     );
