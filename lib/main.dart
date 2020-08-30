@@ -1,3 +1,4 @@
+import 'package:connectivity/connectivity.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -28,16 +29,20 @@ class _ApplicationState extends State<Application> {
         if (snapshot.connectionState == ConnectionState.done) {
           return MultiProvider(
             providers: [
-              ChangeNotifierProvider<AuthProvider>(
-                create: (_) => AuthProvider(),
+              ChangeNotifierProvider<Auth>(
+                create: (_) => Auth(),
                 lazy: false,
               ),
-              ProxyProvider<AuthProvider, FirestoreService>(
+              ProxyProvider<Auth, FirestoreService>(
                 // TODO: create() ?
                 update: (_, auth, __) => FirestoreService(user: auth.user),
               )
             ],
-            child: MyApp(),
+            builder: (context, child) {
+              return context.watch<Auth>().status == AuthStatus.Uninitialized
+                  ? SplashScreen()
+                  : MyApp();
+            },
           );
         }
         return SplashScreen();
@@ -49,31 +54,59 @@ class _ApplicationState extends State<Application> {
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final auth = Provider.of<AuthProvider>(context);
-    return StreamBuilder<UserModel>(
-      stream: auth.userStream,
-      builder: (_, snapshot) {
-        final user = snapshot.data;
-        return user == null
-            ? SplashScreen()
-            : MaterialApp(
-                title: 'Køye Kos',
-                initialRoute: '/',
-                routes: {
-                  '/': (context) => Home(),
-                  '/profile': (context) => Profile(),
-                  '/detail': (context) => CampDetailScreen(),
+    print(context.watch<Auth>().status);
+    return context.watch<Auth>().isInitialized
+        ? MaterialApp(
+            title: 'Køye Kos',
+            initialRoute: '/',
+            routes: {
+              '/': (context) => Home(),
+              '/profile': (context) => Profile(),
+              '/detail': (context) => CampDetailScreen(),
+            },
+            theme: ThemeData().copyWith(
+              pageTransitionsTheme: const PageTransitionsTheme(
+                builders: <TargetPlatform, PageTransitionsBuilder>{
+                  TargetPlatform.android: ZoomPageTransitionsBuilder(),
                 },
-                theme: ThemeData().copyWith(
-                  pageTransitionsTheme: const PageTransitionsTheme(
-                    builders: <TargetPlatform, PageTransitionsBuilder>{
-                      TargetPlatform.android: ZoomPageTransitionsBuilder(),
-                    },
-                  ),
+              ),
+            ),
+          )
+        : ConnectionInfoScreen();
+  }
+}
+
+class ConnectionInfoScreen extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder<ConnectivityResult>(
+        stream: Connectivity().onConnectivityChanged,
+        builder: (context, snapshot) {
+          if (snapshot.hasData) {
+            if (snapshot.data != ConnectivityResult.none) {
+              context.watch<Auth>().initialize();
+              return Container(
+                color: Colors.green,
+                child: Center(
+                  child: CircularProgressIndicator(),
                 ),
               );
-      },
-    );
+            }
+          }
+          return Container(
+            color: Colors.green,
+            padding: EdgeInsets.symmetric(horizontal: 8),
+            child: Center(
+              child: Directionality(
+                textDirection: TextDirection.ltr,
+                child: Text(
+                  'An internet connection is necessary for first time setup.',
+                  style: TextStyle(fontSize: 20),
+                ),
+              ),
+            ),
+          );
+        });
   }
 }
 

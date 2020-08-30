@@ -10,25 +10,35 @@ import '../models/camp.dart';
 
 enum AuthStatus {
   Uninitialized,
-  Anonymous,
-  Authenticating,
-  Authenticated,
-  Unauthenticated
+  Authenticating, // in process of logging in
+  Initialized, // initialized as anon or logged in
+  Anonymous, // initialized as anon user
+  LoggedIn, // user logged in
+  Unauthenticated // user = null
 }
 
-class AuthProvider extends ChangeNotifier {
+class Auth extends ChangeNotifier {
   AuthService _authService;
   AuthStatus _status = AuthStatus.Uninitialized;
   StreamSubscription<User> _userStreamSubscription;
 
-  Stream<UserModel> get userStream => _authService.userStream.map(_mapUserStream);
-  UserModel get user => _mapUserStream(_authService.user);
+  UserModel get user => _mapUser(_authService.user);
   AuthStatus get status => _status;
+  bool get isAuthenticated => _status == AuthStatus.LoggedIn;
+  bool get isInitialized =>
+      _status == AuthStatus.LoggedIn ||
+      _status == AuthStatus.Anonymous ||
+      _status == AuthStatus.Authenticating;
 
-  AuthProvider() {
+  Auth() {
     _authService = AuthService.instance;
-    _userStreamSubscription = _authService.userStream.listen(_onAuthStateChanged);
-    _authService.signInAnonymously();
+    _userStreamSubscription =
+        _authService.userStream.listen(_onAuthStateChanged);
+    _authService.initializeUser();
+  }
+
+  void initialize() {
+    _authService.initializeUser();
   }
 
   void signInWithGoogle() async {
@@ -38,38 +48,34 @@ class AuthProvider extends ChangeNotifier {
   }
 
   void signOut() async {
-    await _authService.signOut();  // _onAuthStateChanged already changes _status
-    _authService.signInAnonymously();
+    await _authService.signOut(); // _onAuthStateChanged already changes _status
+    _authService.initializeUser();
   }
 
-  UserModel _mapUserStream(User user) {
+  UserModel _mapUser(User user) {
     if (user == null) return null;
     return UserModel(
-      id: user.uid,
-      name: user.displayName,
-      photoUrl: user.photoURL,
-      email: user.email
-    );
+        id: user.uid,
+        name: user.displayName,
+        photoUrl: user.photoURL,
+        email: user.email);
   }
 
   void _onAuthStateChanged(User user) {
+    print('_onAuthStateChanged ${user}');
     if (user == null) {
       _status = AuthStatus.Unauthenticated;
-      return;
-    }
-    if (user.isAnonymous) {
+    } else if (user.isAnonymous) {
       _status = AuthStatus.Anonymous;
-    } else if (user.displayName != null) {
-      _status = AuthStatus.Authenticated;
     } else {
-      _status = AuthStatus.Unauthenticated;
+      _status = AuthStatus.LoggedIn;
     }
     notifyListeners();
   }
 
   @override
   void dispose() {
-    _userStreamSubscription?.cancel();
+    _userStreamSubscription.cancel();
     super.dispose();
   }
 }
@@ -90,17 +96,19 @@ class AuthService {
     await _auth.signOut();
   }
 
-  Future<User> signInAnonymously() async {
-    return user != null ? Future.microtask(() => user) : _auth.signInAnonymously().then((result) {
-      return result.user;
-    });
+  Future<User> initializeUser() async {
+    return user != null
+        ? Future.microtask(() => user)
+        : _auth.signInAnonymously().then((result) {
+            return result.user;
+          });
   }
 
   Future<bool> signInWithGoogle() async {
     final GoogleSignInAccount googleUser = await _googleSignIn.signIn();
     if (googleUser == null) return false; // user exited
     final GoogleSignInAuthentication googleAuth =
-    await googleUser.authentication;
+        await googleUser.authentication;
     final AuthCredential credential = GoogleAuthProvider.credential(
       accessToken: googleAuth.accessToken,
       idToken: googleAuth.idToken,
@@ -109,11 +117,10 @@ class AuthService {
     try {
       // Try to upgrade anonymous user, if fail, user already have an account, so sign them into that one.
       await _auth.currentUser.linkWithCredential(credential);
-      await _auth.currentUser.updateProfile(displayName: googleUser.displayName, photoURL: googleUser.photoUrl);
-
-    } on Exception catch(e) {
-      _auth.signInWithCredential(credential).then((result) async {
-      });
+      await _auth.currentUser.updateProfile(
+          displayName: googleUser.displayName, photoURL: googleUser.photoUrl);
+    } on Exception catch (e) {
+      _auth.signInWithCredential(credential).then((result) async {});
     }
     return true;
   }

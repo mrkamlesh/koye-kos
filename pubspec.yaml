@@ -38,7 +38,7 @@ dependencies:
   animations: ^1.1.2
   font_awesome_flutter: ^8.8.1
   implicitly_animated_reorderable_list: ^0.2.3
-  # smooth_star_rating: 1.1.1
+  connectivity: ^0.4.9+2
 
   cupertino_icons: ^0.1.3
 
