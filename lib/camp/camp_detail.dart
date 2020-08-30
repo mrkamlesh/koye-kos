@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:koye_kos/camp/providers/camp_model.dart';
 import 'package:koye_kos/services/auth.dart';
+import 'package:koye_kos/ui/dialog.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:photo_view/photo_view_gallery.dart';
 import 'package:provider/provider.dart';
@@ -154,6 +155,7 @@ class UserRatingView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final campModel = Provider.of<CampModel>(context);
+    final auth = Provider.of<Auth>(context);
     return Column(children: [
       Text(
         'Rate',
@@ -162,8 +164,19 @@ class UserRatingView extends StatelessWidget {
       Padding(
         padding: const EdgeInsets.all(8.0),
         child: UserRatingWidget(
-          onRatedCallback: campModel.onRated,
           score: campModel.score,
+          onRatedCallback: (score) {
+            if (auth.isAuthenticated) campModel.onRated(score);
+            else showDialog(
+              context: context,
+              builder: (context) {
+                return LogInDialog(actionText: 'rate a camp',);
+              },
+            ).then((_) {
+              if (auth.isAuthenticated) campModel.onRated(score);
+              else campModel.setScore(0);  // user did not log in -> reset score
+            });
+          },
         ),
       ),
     ]);

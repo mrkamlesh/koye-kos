@@ -66,6 +66,11 @@ class CampModel extends RatingProvider with ChangeNotifier {
     firestore.deleteCamp(camp.id);
   }
 
+  void setScore(double score) {
+    _score = score;
+    notifyListeners();
+  }
+
   @override
   void onRated(double score) {
     _score = score;

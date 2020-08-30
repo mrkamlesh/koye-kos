@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 class LogInDialog extends StatelessWidget {
   final String actionText;
 
-  LogInDialog({@required this.actionText})
+  LogInDialog({@required this.actionText});
 
   @override
   Widget build(BuildContext context) {
@@ -28,8 +28,10 @@ class LogInDialog extends StatelessWidget {
         FlatButton(
           child: Text('Log in / register'),
           onPressed: () {
-            Navigator.of(context).pop();
-            Navigator.of(context).pushNamed('/profile');
+            Navigator.of(context).pushNamed('/profile').whenComplete(() {
+              // Remove dialog after returning so it is possible to check if user is now authenticated or not
+              Navigator.of(context).pop();
+            });
           },
         ),
       ],

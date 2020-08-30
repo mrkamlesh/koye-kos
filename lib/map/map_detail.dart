@@ -6,6 +6,7 @@ import 'package:koye_kos/camp/providers/add_camp_model.dart';
 import 'package:koye_kos/camp/providers/camp_model.dart';
 import 'package:koye_kos/services/auth.dart';
 import 'package:koye_kos/services/db.dart';
+import 'package:koye_kos/ui/dialog.dart';
 import 'package:provider/provider.dart';
 
 import '../camp/add_camp.dart';
@@ -192,31 +193,38 @@ class PointBottomSheet extends StatelessWidget {
                   textColor: Colors.white,
                   child: Text('Add camp'),
                   onPressed: () {
-                    //Navigator.pop(context);  // removes bottomsheet
-                    Navigator.push(
-                        context,
-                        MaterialPageRoute<bool>(
-                          builder: (_) => ChangeNotifierProxyProvider2<
-                              AuthProvider, FirestoreService, AddModel>(
-                            create: (context) => AddModel(
-                              auth: context.read<AuthProvider>(),
-                              firestore: context.read<FirestoreService>(),
-                              location: point,
-                            ),
-                            update: (_, auth, firestore, addModel) => addModel
-                              ..setAuth(auth)
-                              ..setFirestore(firestore),
-                            child: AddCampScreen(),
-                          ),
-                        )).then((bool campAdded) {
-                      if (campAdded ?? false) {
-                        Navigator.pop(context);
-                        Scaffold.of(context)
-                          ..removeCurrentSnackBar()
-                          ..showSnackBar(
-                              SnackBar(content: Text('Camp added!')));
-                      }
-                    });
+                    context.read<Auth>().isAuthenticated
+                        ? Navigator.push(
+                            context,
+                            MaterialPageRoute<bool>(
+                              builder: (_) => ChangeNotifierProxyProvider2<
+                                  Auth, FirestoreService, AddModel>(
+                                create: (context) => AddModel(
+                                  auth: context.read<Auth>(),
+                                  firestore: context.read<FirestoreService>(),
+                                  location: point,
+                                ),
+                                update: (_, auth, firestore, addModel) =>
+                                    addModel
+                                      ..setAuth(auth)
+                                      ..setFirestore(firestore),
+                                child: AddCampScreen(),
+                              ),
+                            )).then((bool campAdded) {
+                            if (campAdded ?? false) {
+                              Navigator.pop(context);
+                              Scaffold.of(context)
+                                ..removeCurrentSnackBar()
+                                ..showSnackBar(
+                                    SnackBar(content: Text('Camp added!')));
+                            }
+                          })
+                        : showDialog(
+                            context: context,
+                            builder: (context) {
+                              return LogInDialog(actionText: 'add a camp',);
+                            },
+                          );
                   })),
         ),
       ),
