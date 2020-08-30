@@ -7,6 +7,7 @@ import 'package:koye_kos/camp/camp_utils.dart';
 import 'package:koye_kos/map/map_detail.dart';
 import 'package:koye_kos/models/camp.dart';
 import 'package:koye_kos/services/db.dart';
+import 'package:location/location.dart';
 import 'package:mapbox_gl/mapbox_gl.dart';
 import 'package:provider/provider.dart';
 
@@ -30,17 +31,37 @@ class MapState extends State<Map> {
       builder: (context, mapModel, _) {
         //print('-consumer!');
         return Scaffold(
-          body: MapboxMap(
-            onMapCreated: _onMapCreated,
-            onStyleLoadedCallback: _onStyleLoaded,
-            initialCameraPosition:
-            const CameraPosition(target: LatLng(63.4, 10.23), zoom: 11.0),
-            onMapLongClick: _onMapLongClick,
-            onMapClick: _onMapClick,
+          body: Stack(
+            children: [
+              MapboxMap(
+                onMapCreated: _onMapCreated,
+                onStyleLoadedCallback: _onStyleLoaded,
+                initialCameraPosition: const CameraPosition(
+                    target: LatLng(63.4, 10.23), zoom: 11.0),
+                onMapLongClick: _onMapLongClick,
+                onMapClick: _onMapClick,
+                rotateGesturesEnabled: false,
+                tiltGesturesEnabled: false,
+                myLocationEnabled: true,
+                compassEnabled: false,
+              ),
+              RaisedButton(
+                onPressed: () => _gpsClick(),
+                child: Text('Gps'),
+              ),
+            ],
           ),
         );
       },
     );
+  }
+
+  void _gpsClick() async {
+    final location = Location();
+    final hasPermissions = await location.hasPermission();
+    if (hasPermissions != PermissionStatus.granted) {
+      await location.requestPermission();
+    }
   }
 
   void _onMapLongClick(_, LatLng coordinates) {
@@ -89,13 +110,13 @@ class MapState extends State<Map> {
     // Subscribe to stream events
     _symbolsSubscription =
         context.read<MapModel>().campSymbolsStream.listen((element) {
-          _mapController.clearSymbols();
+      _mapController.clearSymbols();
 
-          // TODO: batch add with addSymbols
-          element.forEach((element) {
-            _mapController.addSymbol(element.options, {'id': element.id});
-          });
-        });
+      // TODO: batch add with addSymbols
+      element.forEach((element) {
+        _mapController.addSymbol(element.options, {'id': element.id});
+      });
+    });
   }
 
   void _onMapCreated(MapboxMapController controller) {
@@ -103,8 +124,6 @@ class MapState extends State<Map> {
     // TODO: disable tap event propagating to mapCLick listener https://github.com/tobrun/flutter-mapbox-gl/pull/381
     _mapController.onSymbolTapped.add(_onSymbolTapped);
   }
-
-
 
   void _showBottomSheetBuilder(Point<double> coordinates) {
     showBottomSheet<void>(

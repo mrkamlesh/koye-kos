@@ -25,6 +25,7 @@ dependencies:
   # Flutter map
   mapbox_gl: ^0.8.0
   latlong: ^0.6.1
+  location: ^3.0.2
 
   # image
   image_picker: ^0.6.7+7
