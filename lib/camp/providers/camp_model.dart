@@ -27,7 +27,7 @@ class CampModel extends RatingProvider with ChangeNotifier {
         firestore.getCampFavoritedStream(camp.id).listen(_onFavoriteStream);
     _commentsSubscription =
         firestore.getCommentsStream(camp.id).listen(_onComments);
-    firestore.getCampRating(camp.id).then((value) {
+    if (auth.isAuthenticated) firestore.getCampRating(camp.id).then((value) {
       _score = value;
       notifyListeners();
     });

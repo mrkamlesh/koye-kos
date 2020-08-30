@@ -40,7 +40,7 @@ class _CampDetailScreenState extends State<CampDetailScreen>
           ? FloatingActionButton(
               child: Icon(Icons.add_comment),
               onPressed: () {
-                if (context.watch<Auth>().isAuthenticated)
+                if (context.read<Auth>().isAuthenticated)
                   Navigator.push<CampComment>(context,
                       MaterialPageRoute(builder: (context) {
                     return ChangeNotifierProvider(
