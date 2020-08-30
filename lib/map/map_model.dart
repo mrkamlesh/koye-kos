@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:koye_kos/models/camp.dart';
 import 'package:koye_kos/services/auth.dart';
 import 'package:koye_kos/services/db.dart';
+import 'package:location/location.dart';
 import 'package:mapbox_gl/mapbox_gl.dart';
 
 import 'map_detail.dart';
@@ -22,6 +23,7 @@ class MapModel extends ChangeNotifier {
   Stream<Set<MapSymbolMarker>> _campSymbolsStream;
   Map<String, Camp> _campMap;
   Symbol _longClickSymbol;
+  bool locationTracking = false;
 
   MapModel({@required this.firestore}) {
     _clickState = ClickState.None;
@@ -35,17 +37,21 @@ class MapModel extends ChangeNotifier {
   Stream<Set<MapSymbolMarker>> get campSymbolsStream => _campSymbolsStream;
   Camp getCamp(String id) => _campMap[id];
 
+  MyLocationTrackingMode get trackingMode => locationTracking
+      ? MyLocationTrackingMode.Tracking
+      : MyLocationTrackingMode.None;
+
   Set<MapSymbolMarker> _campToSymbolMarker(List<Camp> camps) {
     _campMap = camps.asMap().map((_, camp) => MapEntry(camp.id, camp));
     _campSymbols = camps
         .map((Camp camp) => MapSymbolMarker(
-              options: SymbolOptions(
-                geometry: camp.location.toLatLng(),
-                iconImage: 'marker-15',
-                iconSize: 3,
-              ),
-              id: camp.id,
-            ))
+      options: SymbolOptions(
+        geometry: camp.location.toLatLng(),
+        iconImage: 'marker-15',
+        iconSize: 3,
+      ),
+      id: camp.id,
+    ))
         .toSet();
     return _campSymbols;
   }
@@ -55,9 +61,9 @@ class MapModel extends ChangeNotifier {
     _clickState = ClickState.LongClick;
     notifyListeners();
     return SymbolOptions(
-        geometry: coordinates,
-        iconImage: 'marker-15',
-        iconSize: 4,
+      geometry: coordinates,
+      iconImage: 'marker-15',
+      iconSize: 4,
     );
   }
 
@@ -77,6 +83,24 @@ class MapModel extends ChangeNotifier {
   void onSymbolTapped() {
     _clickState = ClickState.SymbolClick;
     notifyListeners();
+  }
+
+  void onGpsClick() async {
+    final location = Location();
+    final hasPermissions = await location.hasPermission();
+    if (hasPermissions == PermissionStatus.granted) _toggleLocationTracking();
+    else {
+      final PermissionStatus status = await location.requestPermission();
+      if (status == PermissionStatus.granted) _toggleLocationTracking();
+    }
+  }
+
+  void _toggleLocationTracking() {
+    locationTracking = !locationTracking;
+    notifyListeners();
+  }
+
+  void onCameraTrackingDismissed() {
   }
 
   @override

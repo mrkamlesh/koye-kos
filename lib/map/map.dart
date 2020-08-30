@@ -42,26 +42,17 @@ class MapState extends State<Map> {
                 onMapClick: _onMapClick,
                 rotateGesturesEnabled: false,
                 tiltGesturesEnabled: false,
-                myLocationEnabled: true,
+                myLocationEnabled: mapModel.locationTracking,
+                myLocationTrackingMode: mapModel.trackingMode,
                 compassEnabled: false,
+                onCameraTrackingDismissed: mapModel.onCameraTrackingDismissed,
               ),
-              RaisedButton(
-                onPressed: () => _gpsClick(),
-                child: Text('Gps'),
-              ),
+              GpsButtonWidget(),
             ],
           ),
         );
       },
     );
-  }
-
-  void _gpsClick() async {
-    final location = Location();
-    final hasPermissions = await location.hasPermission();
-    if (hasPermissions != PermissionStatus.granted) {
-      await location.requestPermission();
-    }
   }
 
   void _onMapLongClick(_, LatLng coordinates) {
@@ -141,5 +132,25 @@ class MapState extends State<Map> {
     _mapController?.onSymbolTapped?.remove(_onSymbolTapped);
     _symbolsSubscription?.cancel();
     super.dispose();
+  }
+}
+
+class GpsButtonWidget extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final mapModel = Provider.of<MapModel>(context);
+    return Positioned(
+      bottom: 14,
+      right: 14,
+      child: SizedBox(
+        width: 50,
+        height: 50,
+        child: FloatingActionButton(
+          onPressed: mapModel.onGpsClick,
+          backgroundColor: Colors.grey.shade50,
+          child: Icon(Icons.gps_fixed, color: mapModel.locationTracking ? Colors.blue : Colors.black87,),
+        ),
+      ),
+    );
   }
 }
