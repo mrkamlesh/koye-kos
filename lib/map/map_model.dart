@@ -40,6 +40,7 @@ class MapModel extends ChangeNotifier {
   Symbol _longClickSymbol;
   bool _locationTracking = false;
   String _styleString = MapBoxMapStyle.OUTDOORS;
+  bool _dialVisible = true;
 
   MapModel({@required this.firestore}) {
     _clickState = ClickState.None;
@@ -65,6 +66,7 @@ class MapModel extends ChangeNotifier {
       : MyLocationTrackingMode.None;
 
   String get mapStyle => _styleString;
+  bool get dialVisible => _dialVisible;
 
   Set<MapSymbolMarker> _campToSymbolMarker(List<Camp> camps) {
     _campMap = camps.asMap().map((_, camp) => MapEntry(camp.id, camp));
@@ -99,7 +101,11 @@ class MapModel extends ChangeNotifier {
   Symbol get longCLickSymbol => _longClickSymbol;
 
   void onMapClick(LatLng coordinates) {
+    print('click');
     clickCoordinates = coordinates.toPoint();
+    if (_clickState == ClickState.Click) {
+      _dialVisible = !_dialVisible;
+    }
     _clickState = ClickState.Click;
     _longClickSymbol = null;
     notifyListeners();

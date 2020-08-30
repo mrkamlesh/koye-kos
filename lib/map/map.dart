@@ -3,6 +3,7 @@ import 'dart:math';
 
 import 'package:animations/animations.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:koye_kos/camp/camp_utils.dart';
 import 'package:koye_kos/map/map_detail.dart';
 import 'package:koye_kos/models/camp.dart';
@@ -46,9 +47,18 @@ class MapState extends State<Map> {
                 myLocationTrackingMode: mapModel.trackingMode,
                 compassEnabled: false,
                 styleString: mapModel.mapStyle,
+                trackCameraPosition: true,
               ),
-              MapStyleButtonWidget(),
-              GpsButtonWidget(),
+            ],
+          ),
+          floatingActionButton: SpeedDial(
+            visible: mapModel.dialVisible,
+            overlayColor: Colors.transparent,
+            overlayOpacity: 0,
+            animatedIcon: AnimatedIcons.menu_close,
+            children: [
+              SpeedDialChild(child: GpsButtonWidget()),
+              SpeedDialChild(child: MapStyleButtonWidget()),
             ],
           ),
         );
@@ -115,7 +125,9 @@ class MapState extends State<Map> {
     _mapController = controller;
     // TODO: disable tap event propagating to mapCLick listener https://github.com/tobrun/flutter-mapbox-gl/pull/381
     _mapController.onSymbolTapped.add(_onSymbolTapped);
+    //_mapController.addListener(() {print('map changed.');});
   }
+
 
   void _showBottomSheetBuilder(Point<double> coordinates) {
     showBottomSheet<void>(
@@ -140,19 +152,15 @@ class GpsButtonWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final mapModel = Provider.of<MapModel>(context);
-    return Positioned(
-      bottom: 14,
-      right: 14,
-      child: SizedBox(
-        width: 50,
-        height: 50,
-        child: FloatingActionButton(
-          onPressed: mapModel.onGpsClick,
-          backgroundColor: Colors.grey.shade50,
-          child: Icon(
-            Icons.gps_fixed,
-            color: mapModel.locationTracking ? Colors.blue : Colors.black87,
-          ),
+    return SizedBox(
+      width: 50,
+      height: 50,
+      child: FloatingActionButton(
+        onPressed: mapModel.onGpsClick,
+        backgroundColor: Colors.grey.shade50,
+        child: Icon(
+          Icons.gps_fixed,
+          color: mapModel.locationTracking ? Colors.blue : Colors.black87,
         ),
       ),
     );
@@ -163,35 +171,31 @@ class MapStyleButtonWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final mapModel = Provider.of<MapModel>(context);
-    return Positioned(
-      top: 14,
-      right: 14,
-      child: Material(
-        type: MaterialType.circle,
-        clipBehavior: Clip.antiAlias,
-        elevation: 6,
-        color: Colors.grey.shade50,
-        child: SizedBox(
-          width: 35,
-          height: 35,
-          child: PopupMenuButton<MapStyle>(
-            child: Icon(
-              Icons.layers,
-              size: 20,
-              color: Colors.black87,
-            ),
-            onSelected: mapModel.onStyleSelected,
-            itemBuilder: (context) => <PopupMenuEntry<MapStyle>>[
-              PopupMenuItem<MapStyle>(
-                value: MapStyle.Outdoors,
-                child: Text('Outdoor'),
-              ),
-              PopupMenuItem<MapStyle>(
-                value: MapStyle.Satellite,
-                child: Text('Satellite'),
-              ),
-            ],
+    return Material(
+      type: MaterialType.circle,
+      clipBehavior: Clip.antiAlias,
+      elevation: 6,
+      color: Colors.grey.shade50,
+      child: SizedBox(
+        width: 35,
+        height: 35,
+        child: PopupMenuButton<MapStyle>(
+          child: Icon(
+            Icons.layers,
+            size: 20,
+            color: Colors.black87,
           ),
+          onSelected: mapModel.onStyleSelected,
+          itemBuilder: (context) => <PopupMenuEntry<MapStyle>>[
+            PopupMenuItem<MapStyle>(
+              value: MapStyle.Outdoors,
+              child: Text('Outdoor'),
+            ),
+            PopupMenuItem<MapStyle>(
+              value: MapStyle.Satellite,
+              child: Text('Satellite'),
+            ),
+          ],
         ),
       ),
     );
