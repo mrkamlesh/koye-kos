@@ -47,7 +47,10 @@ class FirestoreService {
         _firestore.collection(FirestorePath.campsPath).doc();
 
     // Write location data immediately, such that the camp location shows up on screen.
-    campRef.set(<String, dynamic>{'location': location.toGeoPoint()});
+    campRef.set(<String, dynamic>{
+      'location': location.toGeoPoint(),
+      'description': description,
+    });
 
     // Start long running compression and uploading. TODO: handle no internet connection.
     _uploadInBackground(

@@ -164,6 +164,20 @@ class UserRatingView extends StatelessWidget {
   Widget build(BuildContext context) {
     final campModel = Provider.of<CampModel>(context);
     final auth = Provider.of<Auth>(context);
+
+    // if authenticated; set score, otherwise ask user to log in and then set score based on action taken
+    void _onRatedCallback(double score) {
+      campModel.setScore(score);
+      auth.isAuthenticated
+          ? campModel.onRated(score)
+          : showDialog(
+              context: context,
+              builder: (_) => LogInDialog(actionText: 'rate a camp'),
+            ).then((_) => auth.isAuthenticated
+                  ? campModel.onRated(score)
+                  : campModel.setScore(0)); // user did not log in -> reset score
+    }
+
     return Column(children: [
       Text(
         'Rate',
@@ -173,24 +187,7 @@ class UserRatingView extends StatelessWidget {
         padding: const EdgeInsets.all(8.0),
         child: UserRatingWidget(
           score: campModel.score,
-          onRatedCallback: (score) {
-            if (auth.isAuthenticated)
-              campModel.onRated(score);
-            else
-              showDialog(
-                context: context,
-                builder: (context) {
-                  return LogInDialog(
-                    actionText: 'rate a camp',
-                  );
-                },
-              ).then((_) {
-                if (auth.isAuthenticated)
-                  campModel.onRated(score);
-                else
-                  campModel.setScore(0); // user did not log in -> reset score
-              });
-          },
+          onRatedCallback: _onRatedCallback,
         ),
       ),
     ]);

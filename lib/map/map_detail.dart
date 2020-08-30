@@ -193,38 +193,40 @@ class PointBottomSheet extends StatelessWidget {
                   textColor: Colors.white,
                   child: Text('Add camp'),
                   onPressed: () {
-                    context.read<Auth>().isAuthenticated
-                        ? Navigator.push(
-                            context,
-                            MaterialPageRoute<bool>(
-                              builder: (_) => ChangeNotifierProxyProvider2<
-                                  Auth, FirestoreService, AddModel>(
-                                create: (context) => AddModel(
-                                  auth: context.read<Auth>(),
-                                  firestore: context.read<FirestoreService>(),
-                                  location: point,
-                                ),
-                                update: (_, auth, firestore, addModel) =>
-                                    addModel
-                                      ..setAuth(auth)
-                                      ..setFirestore(firestore),
-                                child: AddCampScreen(),
+                    if (context.read<Auth>().isAuthenticated)
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute<bool>(
+                            builder: (_) => ChangeNotifierProxyProvider2<Auth,
+                                FirestoreService, AddModel>(
+                              create: (context) => AddModel(
+                                auth: context.read<Auth>(),
+                                firestore: context.read<FirestoreService>(),
+                                location: point,
                               ),
-                            )).then((bool campAdded) {
-                            if (campAdded ?? false) {
-                              Navigator.pop(context);
-                              Scaffold.of(context)
-                                ..removeCurrentSnackBar()
-                                ..showSnackBar(
-                                    SnackBar(content: Text('Camp added!')));
-                            }
-                          })
-                        : showDialog(
-                            context: context,
-                            builder: (context) {
-                              return LogInDialog(actionText: 'add a camp',);
-                            },
+                              update: (_, auth, firestore, addModel) => addModel
+                                ..setAuth(auth)
+                                ..setFirestore(firestore),
+                              child: AddCampScreen(),
+                            ),
+                          )).then((bool campAdded) {
+                        if (campAdded ?? false) {
+                          Navigator.pop(context);
+                          Scaffold.of(context)
+                            ..removeCurrentSnackBar()
+                            ..showSnackBar(
+                                SnackBar(content: Text('Camp added!')));
+                        }
+                      });
+                    else
+                      showDialog(
+                        context: context,
+                        builder: (context) {
+                          return LogInDialog(
+                            actionText: 'add a camp',
                           );
+                        },
+                      );
                   })),
         ),
       ),

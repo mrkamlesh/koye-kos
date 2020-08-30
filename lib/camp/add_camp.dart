@@ -154,7 +154,7 @@ class _CampFormState extends State<CampForm> {
                               : Scaffold.of(context).showSnackBar(
                                   SnackBar(
                                     content: Text(
-                                      'You need to have an account to add a camp!',
+                                      'Error uploading camp!',
                                     ),
                                   ),
                                 );
