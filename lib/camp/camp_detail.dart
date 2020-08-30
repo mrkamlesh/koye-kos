@@ -38,17 +38,25 @@ class _CampDetailScreenState extends State<CampDetailScreen>
     Widget _buildFloatingActionButton() {
       return _controller.index == 1
           ? FloatingActionButton(
-        child: Icon(Icons.add_comment),
-        onPressed: () => Navigator.push<CampComment>(context,
-            MaterialPageRoute(builder: (context) {
-              return ChangeNotifierProvider(
-                create: (context) => CommentModel(
-                    originalText: campModel.userComment?.commentText,
-                    originalScore: campModel.userComment?.score),
-                builder: (context, child) => AddCommentScreen(),
-              );
-            })).then(campModel.onCampCommentResult),
-      )
+              child: Icon(Icons.add_comment),
+              onPressed: () {
+                if (context.watch<Auth>().isAuthenticated)
+                  Navigator.push<CampComment>(context,
+                      MaterialPageRoute(builder: (context) {
+                    return ChangeNotifierProvider(
+                      create: (context) => CommentModel(
+                          originalText: campModel.userComment?.commentText,
+                          originalScore: campModel.userComment?.score),
+                      builder: (context, child) => AddCommentScreen(),
+                    );
+                  })).then(campModel.onCampCommentResult);
+                else
+                  showDialog(
+                    context: context,
+                    builder: (_) => LogInDialog(actionText: 'add comment'),
+                  );
+              },
+            )
           : SizedBox.shrink();
     }
 
@@ -99,7 +107,7 @@ class CampInfoPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final imageUrls =
-    context.select((CampModel campModel) => campModel.camp.imageUrls);
+        context.select((CampModel campModel) => campModel.camp.imageUrls);
     return SingleChildScrollView(
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -166,16 +174,22 @@ class UserRatingView extends StatelessWidget {
         child: UserRatingWidget(
           score: campModel.score,
           onRatedCallback: (score) {
-            if (auth.isAuthenticated) campModel.onRated(score);
-            else showDialog(
-              context: context,
-              builder: (context) {
-                return LogInDialog(actionText: 'rate a camp',);
-              },
-            ).then((_) {
-              if (auth.isAuthenticated) campModel.onRated(score);
-              else campModel.setScore(0);  // user did not log in -> reset score
-            });
+            if (auth.isAuthenticated)
+              campModel.onRated(score);
+            else
+              showDialog(
+                context: context,
+                builder: (context) {
+                  return LogInDialog(
+                    actionText: 'rate a camp',
+                  );
+                },
+              ).then((_) {
+                if (auth.isAuthenticated)
+                  campModel.onRated(score);
+                else
+                  campModel.setScore(0); // user did not log in -> reset score
+              });
           },
         ),
       ),
@@ -236,7 +250,6 @@ class ImageList extends StatefulWidget {
 }
 
 class _ImageListState extends State<ImageList> {
-
   @override
   Widget build(BuildContext context) {
     final photoModel = Provider.of<CampPhotoModel>(context);
@@ -255,7 +268,8 @@ class _ImageListState extends State<ImageList> {
               padding: !last ? EdgeInsets.only(right: 2) : null,
               child: MarkerCachedImage(
                 imageUrls[index],
-                onLoadCallback: (imageProvider) => photoModel.onPhotoLoad(imageProvider, index),
+                onLoadCallback: (imageProvider) =>
+                    photoModel.onPhotoLoad(imageProvider, index),
               ),
             ),
             onTap: () {
@@ -264,8 +278,7 @@ class _ImageListState extends State<ImageList> {
                 context,
                 MaterialPageRoute(
                   builder: (_) => ChangeNotifierProvider<CampPhotoModel>.value(
-                      value: photoModel,
-                      child: PhotoGallery()),
+                      value: photoModel, child: PhotoGallery()),
                 ),
               );
             },
@@ -289,8 +302,8 @@ class PhotoGallery extends StatelessWidget {
       ),
       body: Container(
         child: PhotoViewGallery.builder(
-          pageController:
-          PageController(initialPage: photoModel.startIndex), // TODO: should release?
+          pageController: PageController(
+              initialPage: photoModel.startIndex), // TODO: should release?
           builder: (context, index) {
             // TODO: There could be a bug laying here, when trying to view an image that is not loaded yet..
             return PhotoViewGalleryPageOptions(
