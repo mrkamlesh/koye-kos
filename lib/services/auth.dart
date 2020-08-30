@@ -9,17 +9,16 @@ import '../models/user.dart';
 import '../models/camp.dart';
 
 enum AuthStatus {
-  Uninitialized,
+  Unauthenticated, // user = null
   Authenticating, // in process of logging in
   Initialized, // initialized as anon or logged in
   Anonymous, // initialized as anon user
   LoggedIn, // user logged in
-  Unauthenticated // user = null
 }
 
 class Auth extends ChangeNotifier {
   AuthService _authService;
-  AuthStatus _status = AuthStatus.Uninitialized;
+  AuthStatus _status = AuthStatus.Unauthenticated;
   StreamSubscription<User> _userStreamSubscription;
 
   UserModel get user => _mapUser(_authService.user);
@@ -31,6 +30,7 @@ class Auth extends ChangeNotifier {
       _status == AuthStatus.Authenticating;
 
   Auth() {
+    print('AUTH CREATED');
     _authService = AuthService.instance;
     _userStreamSubscription =
         _authService.userStream.listen(_onAuthStateChanged);
@@ -92,11 +92,13 @@ class AuthService {
   Stream<User> get userStream => _auth.userChanges();
 
   void signOut() async {
+    print('SIGN OUT');
     await _googleSignIn.signOut();
     await _auth.signOut();
   }
 
   Future<User> initializeUser() async {
+    print('INIT USER');
     return user != null
         ? Future.microtask(() => user)
         : _auth.signInAnonymously().then((result) {

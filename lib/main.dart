@@ -39,8 +39,8 @@ class _ApplicationState extends State<Application> {
               )
             ],
             builder: (context, child) {
-              return context.watch<Auth>().status == AuthStatus.Uninitialized
-                  ? SplashScreen()
+              return context.watch<Auth>().status == AuthStatus.Unauthenticated
+                  ? LoadingScreen()
                   : MyApp();
             },
           );
@@ -54,58 +54,49 @@ class _ApplicationState extends State<Application> {
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    print(context.watch<Auth>().status);
-    return context.watch<Auth>().isInitialized
-        ? MaterialApp(
-            title: 'Køye Kos',
-            initialRoute: '/',
-            routes: {
-              '/': (context) => Home(),
-              '/profile': (context) => Profile(),
-              '/detail': (context) => CampDetailScreen(),
-            },
-            theme: ThemeData().copyWith(
-              pageTransitionsTheme: const PageTransitionsTheme(
-                builders: <TargetPlatform, PageTransitionsBuilder>{
-                  TargetPlatform.android: ZoomPageTransitionsBuilder(),
-                },
-              ),
-            ),
-          )
-        : ConnectionInfoScreen();
+    return MaterialApp(
+      title: 'Køye Kos',
+      initialRoute: '/',
+      routes: {
+        '/': (context) => Home(),
+        '/profile': (context) => Profile(),
+        '/detail': (context) => CampDetailScreen(),
+      },
+      theme: ThemeData().copyWith(
+        pageTransitionsTheme: const PageTransitionsTheme(
+          builders: <TargetPlatform, PageTransitionsBuilder>{
+            TargetPlatform.android: ZoomPageTransitionsBuilder(),
+          },
+        ),
+      ),
+    );
   }
 }
 
-class ConnectionInfoScreen extends StatelessWidget {
+class LoadingScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<ConnectivityResult>(
         stream: Connectivity().onConnectivityChanged,
         builder: (context, snapshot) {
+          print('------snap: $snapshot');
           if (snapshot.hasData) {
-            if (snapshot.data != ConnectivityResult.none) {
-              context.watch<Auth>().initialize();
-              return Container(
-                color: Colors.green,
-                child: Center(
-                  child: CircularProgressIndicator(),
-                ),
-              );
+            if (snapshot.data == ConnectivityResult.none) {
+              return ConnectivityInfo();
             }
+            context.watch<Auth>().initialize();
+            return SplashScreen();
           }
-          return Container(
-            color: Colors.green,
-            padding: EdgeInsets.symmetric(horizontal: 8),
-            child: Center(
-              child: Directionality(
-                textDirection: TextDirection.ltr,
-                child: Text(
-                  'An internet connection is necessary for first time setup.',
-                  style: TextStyle(fontSize: 20),
-                ),
-              ),
-            ),
-          );
+
+          return FutureBuilder(
+              future: Connectivity().checkConnectivity(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting ||
+                    snapshot?.data != ConnectivityResult.none) {
+                  return SplashScreen();
+                }
+                return ConnectivityInfo();
+              });
         });
   }
 }
@@ -118,15 +109,45 @@ class SplashScreen extends StatelessWidget {
       child: Center(
         child: Directionality(
           textDirection: TextDirection.ltr,
-          child: Text(
-            'Welcome to Køye Kos!',
-            style: TextStyle(fontSize: 40),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                'Welcome to Køye Kos!',
+                style: TextStyle(fontSize: 40),
+              ),
+              SizedBox(
+                height: 20,
+              ),
+              CircularProgressIndicator(),
+            ],
           ),
         ),
       ),
     );
   }
 }
+
+
+class ConnectivityInfo extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: Colors.green,
+      padding: EdgeInsets.symmetric(horizontal: 8),
+      child: Center(
+        child: Directionality(
+          textDirection: TextDirection.ltr,
+          child: Text(
+            'An internet connection is necessary for first time setup.',
+            style: TextStyle(fontSize: 20),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 
 class Home extends StatelessWidget {
   @override
