@@ -51,7 +51,6 @@ class CampModel extends RatingProvider with ChangeNotifier {
   bool isCreator(String commentId) => commentId == auth.user.id;
 
   void onCampCommentResult(CampComment comment) {
-    print(comment);
     if (comment == null) return;
     if (comment.commentText.isEmpty) {
       firestore.deleteCampComment(campId: camp.id);

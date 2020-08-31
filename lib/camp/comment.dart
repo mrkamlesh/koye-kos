@@ -92,7 +92,7 @@ class CommentWidget extends StatelessWidget {
             ),
             Row(
               children: [
-                if (comment.score != null)
+                if (comment.score != 0)
                   RatingViewSmall(
                     score: comment.score,
                     showDetails: false,

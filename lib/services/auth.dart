@@ -30,7 +30,7 @@ class Auth extends ChangeNotifier {
       _status == AuthStatus.Authenticating;
 
   Auth() {
-    print('AUTH CREATED');
+    //print('AUTH CREATED');
     _authService = AuthService.instance;
     _userStreamSubscription =
         _authService.userStream.listen(_onAuthStateChanged);
@@ -62,7 +62,7 @@ class Auth extends ChangeNotifier {
   }
 
   void _onAuthStateChanged(User user) {
-    print('_onAuthStateChanged ${user}');
+    //print('_onAuthStateChanged ${user}');
     if (user == null) {
       _status = AuthStatus.Unauthenticated;
     } else if (user.isAnonymous) {
@@ -92,13 +92,13 @@ class AuthService {
   Stream<User> get userStream => _auth.userChanges();
 
   void signOut() async {
-    print('SIGN OUT');
+    //print('SIGN OUT');
     await _googleSignIn.signOut();
     await _auth.signOut();
   }
 
   Future<User> initializeUser() async {
-    print('INIT USER');
+    //print('INIT USER');
     return user != null
         ? Future.microtask(() => user)
         : _auth.signInAnonymously().then((result) {

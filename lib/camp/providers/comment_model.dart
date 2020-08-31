@@ -16,7 +16,7 @@ class CommentModel extends RatingProvider with ChangeNotifier {
     campScore = originalScore ?? null;
   }
 
-  String get title => isNewComment ? 'Add comment' : 'Edit comment';
+  String get title => isNewComment ? 'Add comment or review' : 'Edit comment';
 
   bool get isNewComment =>  originalText == null;
 
@@ -31,6 +31,7 @@ class CommentModel extends RatingProvider with ChangeNotifier {
   void deleteComment() {
     // TODO:
     commentText = '';
+    campScore = 0;
   }
 
   @override
