@@ -165,16 +165,27 @@ class UserRatingView extends StatelessWidget {
     final campModel = Provider.of<CampModel>(context);
     final auth = Provider.of<Auth>(context);
 
+    void _toCommentPage(double score) {
+      Navigator.push<CampComment>(context,
+          MaterialPageRoute(builder: (context) {
+            return ChangeNotifierProvider(
+              create: (context) => CommentModel(
+                  originalText: campModel.userComment?.commentText,
+                  originalScore: score),
+              builder: (context, child) => AddCommentScreen(),
+            );
+          })).then(campModel.onCampCommentResult);
+    }
+
     // if authenticated; set score, otherwise ask user to log in and then set score based on action taken
     void _onRatedCallback(double score) {
-      campModel.setScore(score);
       auth.isAuthenticated
-          ? campModel.onRated(score)
+          ? _toCommentPage(score)
           : showDialog(
               context: context,
               builder: (_) => LogInDialog(actionText: 'rate a camp'),
             ).then((_) => auth.isAuthenticated
-                  ? campModel.onRated(score)
+                  ? _toCommentPage(score)
                   : campModel.setScore(0)); // user did not log in -> reset score
     }
 

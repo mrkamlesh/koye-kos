@@ -53,6 +53,7 @@ class CampModel extends RatingProvider with ChangeNotifier {
     if (comment == null) return;
     if (comment.commentText.isEmpty) {
       firestore.deleteCampComment(campId: camp.id);
+      firestore.updateRating(campId, score)
     } else {
       firestore.addCampComment(campId: camp.id, comment: comment.commentText, score: comment.score);
       if (comment.score != null) {
