@@ -79,7 +79,7 @@ class LoadingScreen extends StatelessWidget {
     return StreamBuilder<ConnectivityResult>(
         stream: Connectivity().onConnectivityChanged,
         builder: (context, snapshot) {
-          print('------snap: $snapshot');
+          //print('------snap: $snapshot');
           if (snapshot.hasData) {
             if (snapshot.data == ConnectivityResult.none) {
               return ConnectivityInfo();
