@@ -12,6 +12,7 @@ import 'package:provider/provider.dart';
 import '../services/db.dart';
 import '../map/map_detail.dart';
 import '../models/camp.dart';
+import 'add_comment.dart';
 import 'providers/comment_model.dart';
 import 'comment.dart';
 import 'star_rating.dart';
