@@ -53,14 +53,16 @@ class CampModel extends RatingProvider with ChangeNotifier {
     if (comment == null) return;
     if (comment.commentText.isEmpty) {
       firestore.deleteCampComment(campId: camp.id);
-      firestore.updateRating(campId, score)
+      firestore.updateRating(campId: camp.id, score: comment.score, delete: true);
+      _score = 0;
     } else {
       firestore.addCampComment(campId: camp.id, comment: comment.commentText, score: comment.score);
       if (comment.score != null) {
-        firestore.updateRating(camp.id, comment.score);
+        firestore.updateRating(campId: camp.id, score: comment.score);
         _score = comment.score;
       }
     }
+    notifyListeners();  // new score
   }
 
   void deleteCamp() {
@@ -76,7 +78,7 @@ class CampModel extends RatingProvider with ChangeNotifier {
   void onRated(double score) {
     _score = score;
     notifyListeners();
-    firestore.updateRating(camp.id, score);
+    firestore.updateRating(campId: camp.id, score: score);
   }
 
   void _onComments(List<CampComment> comments) {

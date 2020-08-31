@@ -121,7 +121,10 @@ class FirestoreService {
 
   // Subject to this: https://github.com/FirebaseExtended/flutterfire/issues/1969
   // Possible circumvention: do nout use await in transaction code
-  Future<void> updateRating(String campId, double score) async {
+  Future<void> updateRating(
+      {@required String campId,
+      @required double score,
+      bool delete = false}) async {
     // compute new score
     final DocumentReference campRef =
         _firestore.collection(FirestorePath.campsPath).doc(campId);
@@ -146,16 +149,24 @@ class FirestoreService {
             currentRatings -= 1;
           }
         });
+        if (delete) {
+          userRatingRef.delete(); // delete users score
+          // set score where this user's score is removed
+          return transaction.update(campRef, <String, dynamic>{
+            'ratings': currentRatings,
+            'score': currentTotalScore
+          });
+        } else {
+          // Set users new score
+          userRatingRef.set({'score': score});
 
-        // Set users new score
-        userRatingRef.set({'score': score});
+          // Calculate new camp score
+          int newRatings = currentRatings + 1;
+          double newScore = (currentTotalScore + score) / newRatings;
 
-        // Calculate new camp score
-        int newRatings = currentRatings + 1;
-        double newScore = (currentTotalScore + score) / newRatings;
-
-        return transaction.update(campRef,
-            <String, dynamic>{'ratings': newRatings, 'score': newScore});
+          return transaction.update(campRef,
+              <String, dynamic>{'ratings': newRatings, 'score': newScore});
+        }
       }
     });
   }
