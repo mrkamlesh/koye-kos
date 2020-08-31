@@ -85,6 +85,9 @@ class CampComment {
     if (data['score'] != null) comment.score = data['score'] as double;
     return comment;
   }
+
+  @override
+  String toString() => '[CampComment(comment: $commentText, score: $score, user: $userName)]';
 }
 
 

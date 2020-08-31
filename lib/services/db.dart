@@ -123,8 +123,7 @@ class FirestoreService {
   // Possible circumvention: do nout use await in transaction code
   Future<void> updateRating(
       {@required String campId,
-      @required double score,
-      bool delete = false}) async {
+      @required double score}) async {
     // compute new score
     final DocumentReference campRef =
         _firestore.collection(FirestorePath.campsPath).doc(campId);
@@ -149,7 +148,8 @@ class FirestoreService {
             currentRatings -= 1;
           }
         });
-        if (delete) {
+        // New score is 0, delete users score ref and set new camp score
+        if (score == 0) {
           userRatingRef.delete(); // delete users score
           // set score where this user's score is removed
           return transaction.update(campRef, <String, dynamic>{

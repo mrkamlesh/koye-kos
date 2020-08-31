@@ -27,10 +27,11 @@ class CampModel extends RatingProvider with ChangeNotifier {
         firestore.getCampFavoritedStream(camp.id).listen(_onFavoriteStream);
     _commentsSubscription =
         firestore.getCommentsStream(camp.id).listen(_onComments);
-    if (auth.isAuthenticated) firestore.getCampRating(camp.id).then((value) {
-      _score = value;
-      notifyListeners();
-    });
+    if (auth.isAuthenticated)
+      firestore.getCampRating(camp.id).then((value) {
+        _score = value;
+        notifyListeners();
+      });
   }
 
   void setAuth(Auth auth) => this.auth = auth;
@@ -50,19 +51,17 @@ class CampModel extends RatingProvider with ChangeNotifier {
   bool isCreator(String commentId) => commentId == auth.user.id;
 
   void onCampCommentResult(CampComment comment) {
+    print(comment);
     if (comment == null) return;
     if (comment.commentText.isEmpty) {
       firestore.deleteCampComment(campId: camp.id);
-      firestore.updateRating(campId: camp.id, score: comment.score, delete: true);
-      _score = 0;
     } else {
-      firestore.addCampComment(campId: camp.id, comment: comment.commentText, score: comment.score);
-      if (comment.score != null) {
-        firestore.updateRating(campId: camp.id, score: comment.score);
-        _score = comment.score;
-      }
+      firestore.addCampComment(
+          campId: camp.id, comment: comment.commentText, score: comment.score);
     }
-    notifyListeners();  // new score
+    firestore.updateRating(campId: camp.id, score: comment.score ?? 0);
+    _score = comment.score;
+    notifyListeners(); // new score
   }
 
   void deleteCamp() {
@@ -82,16 +81,15 @@ class CampModel extends RatingProvider with ChangeNotifier {
   }
 
   void _onComments(List<CampComment> comments) {
-    _comments = comments;
-    if (comments.isEmpty)
-      _userComment = null;
-    else
-      _userComment = _comments.firstWhere(
-              (element) => element.userId == auth.user.id,
-          orElse: () => null);
+    _comments = comments
+        ?.where((element) => element?.commentText?.isNotEmpty)
+        ?.toList();
+    _userComment = _comments?.firstWhere(
+            (element) => element.userId == auth.user.id,
+        orElse: () => null);
   }
 
-  // TODO: use streams instead on calling notifylisteners forcing whole tree rebuild
+// TODO: use streams instead on calling notifylisteners forcing whole tree rebuild
   void _onCampStream(Camp camp) {
     this.camp = camp;
     notifyListeners();
@@ -132,6 +130,4 @@ class CampPhotoModel with ChangeNotifier {
   bool finishedLoading(int index) => imagesMap.containsKey(index);
 }
 
-class CampSimplePhoto with ChangeNotifier {
-
-}
+class CampSimplePhoto with ChangeNotifier {}

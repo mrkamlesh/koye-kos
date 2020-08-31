@@ -47,7 +47,7 @@ class _CampDetailScreenState extends State<CampDetailScreen>
                     return ChangeNotifierProvider(
                       create: (context) => CommentModel(
                           originalText: campModel.userComment?.commentText,
-                          originalScore: campModel.userComment?.score),
+                          originalScore: campModel.score),
                       builder: (context, child) => AddCommentScreen(),
                     );
                   })).then(campModel.onCampCommentResult);
@@ -217,7 +217,7 @@ class UserRatingWidget extends StatelessWidget {
       rating: score,
       size: 50,
       color: Colors.amber,
-      borderColor: Colors.amber,
+      borderColor: score == 0 ? Colors.amber.shade300 : Colors.amber,
       onRated: onRatedCallback,
     );
   }
