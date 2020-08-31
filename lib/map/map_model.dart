@@ -74,8 +74,8 @@ class MapModel extends ChangeNotifier {
         .map((Camp camp) => MapSymbolMarker(
       options: SymbolOptions(
         geometry: camp.location.toLatLng(),
-        iconImage: 'marker-15',
-        iconSize: 3,
+        iconImage: 'marker-black',
+        iconSize: 1,
       ),
       id: camp.id,
     ))
@@ -89,8 +89,8 @@ class MapModel extends ChangeNotifier {
     notifyListeners();
     return SymbolOptions(
       geometry: coordinates,
-      iconImage: 'marker-15',
-      iconSize: 4,
+      iconImage: 'marker-red',
+      iconSize: 1,
     );
   }
 

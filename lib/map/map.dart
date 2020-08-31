@@ -1,9 +1,12 @@
 import 'dart:async';
 import 'dart:math';
+import 'dart:typed_data';
 
 import 'package:animations/animations.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:koye_kos/camp/camp_utils.dart';
 import 'package:koye_kos/map/map_detail.dart';
 import 'package:koye_kos/models/camp.dart';
@@ -119,6 +122,14 @@ class MapState extends State<Map> {
         _mapController.addSymbol(element.options, {'id': element.id});
       });
     });
+    addImageFromAsset('marker-red', 'assets/symbols/location_red_96.png');
+    addImageFromAsset('marker-black', 'assets/symbols/location_black_96.png');
+  }
+
+  Future<void> addImageFromAsset(String name, String assetName) async {
+    final ByteData bytes = await rootBundle.load(assetName);
+    final Uint8List list = bytes.buffer.asUint8List();
+    return _mapController.addImage(name, list);
   }
 
   void _onMapCreated(MapboxMapController controller) {
