@@ -17,9 +17,9 @@ enum ClickState { None, Click, LongClick, SymbolClick }
 enum MapStyle { Outdoors, Satellite }
 
 class MapBoxMapStyle {
-  static const OUTDOORS = MapboxStyles.OUTDOORS;
+  static const OUTDOORS = 'mapbox://styles/samudev/ckdxjbopx44gj1aorm1eumxo6'; /*MapboxStyles.OUTDOORS;*/
   static const SATELLITE = MapboxStyles.SATELLITE;
-  
+
   static String getMapStyle(MapStyle style) {
     switch(style) {
       case MapStyle.Outdoors: return OUTDOORS;
@@ -69,6 +69,7 @@ class MapModel extends ChangeNotifier {
   bool get dialVisible => _dialVisible;
 
   Set<MapSymbolMarker> _campToSymbolMarker(List<Camp> camps) {
+    print(camps);
     _campMap = camps.asMap().map((_, camp) => MapEntry(camp.id, camp));
     _campSymbols = camps
         .map((Camp camp) => MapSymbolMarker(
