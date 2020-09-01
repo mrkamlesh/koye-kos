@@ -77,7 +77,7 @@ class ImageListSmall extends StatelessWidget {
             width: 220,
             // insert right padding to all but the last list item
             padding: !last ? EdgeInsets.only(right: 2) : null,
-            child: MarkerCachedImage(imageUrls[index]),
+            child: CampCachedImage(imageUrls[index]),
           );
         },
       ),
@@ -131,16 +131,16 @@ class RatingViewSmall extends StatelessWidget {
   }
 }
 
-class MarkerCachedImage extends StatefulWidget {
+class CampCachedImage extends StatefulWidget {
   final String _imageUrl;
   final Function(ImageProvider) onLoadCallback;
-  MarkerCachedImage(this._imageUrl, {this.onLoadCallback});
+  CampCachedImage(this._imageUrl, {this.onLoadCallback, Key key}) : super(key: key);
 
   @override
-  _MarkerCachedImageState createState() => _MarkerCachedImageState();
+  _CampCachedImageState createState() => _CampCachedImageState();
 }
 
-class _MarkerCachedImageState extends State<MarkerCachedImage>
+class _CampCachedImageState extends State<CampCachedImage>
     with AutomaticKeepAliveClientMixin {
   @override
   Widget build(BuildContext context) {

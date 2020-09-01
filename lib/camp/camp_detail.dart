@@ -275,7 +275,7 @@ class _ImageListState extends State<ImageList> {
               width: 340,
               // insert right padding to all but the last list item
               padding: !last ? EdgeInsets.only(right: 2) : null,
-              child: MarkerCachedImage(
+              child: CampCachedImage(
                 imageUrls[index],
                 onLoadCallback: (imageProvider) =>
                     photoModel.onPhotoLoad(imageProvider, index),

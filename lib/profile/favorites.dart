@@ -96,7 +96,7 @@ class FavoriteListItem extends StatelessWidget {
           children: [
             Expanded(
               flex: 3,
-              child: MarkerCachedImage(camp.imageUrls.first),
+              child: CampCachedImage(camp.imageUrls.first, key: ValueKey(camp.id),),
             ),
             Expanded(
               flex: 4,
