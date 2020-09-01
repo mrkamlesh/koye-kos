@@ -1,8 +1,9 @@
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:image_cropper/image_cropper.dart';
-import 'package:image_picker/image_picker.dart';
+import 'package:multi_image_picker/multi_image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:transparent_image/transparent_image.dart';
 
@@ -31,7 +32,7 @@ class _CampFormState extends State<CampForm> {
   final _formKey = GlobalKey<FormState>();
   final _listKey = GlobalKey<AnimatedListState>();
   final descriptionController = TextEditingController();
-  final picker = ImagePicker();
+  //final picker = Multi();
 
   @override
   void initState() {
@@ -39,9 +40,12 @@ class _CampFormState extends State<CampForm> {
     //getImage(ImageSource.gallery); // TODO: show dialog to select camera/image picker, then remember the selection ?
   }
 
-  Future getImage(ImageSource source) async {
-    picker.getImage(source: source).then((PickedFile pickedFile) {
-      if (pickedFile == null) return;
+  Future getImage() async {
+    MultiImagePicker.pickImages(maxImages: 10).then((List<Asset> result) async {
+      if (result == null) return;
+      List<ByteData> bds = await Future.wait(result.map((e) => e.getByteData()));
+      bds.forEach((element) {File.fromRawPath(element.buffer.asUint8List());});
+      // TODO: refactor to work with bytedata instead of current pickedFile impl...
       final int newIndex = context.read<AddModel>().addImage(pickedFile.path);
       _listKey.currentState.insertItem(newIndex - 1);
     }).catchError((error) {
@@ -51,7 +55,7 @@ class _CampFormState extends State<CampForm> {
           content: Text('Could not add image: $error'),
         ));
     });
-  }
+}
 
   Future<File> cropImage(int index) {
     ImageCropper.cropImage(
@@ -177,7 +181,7 @@ class _CampFormState extends State<CampForm> {
 class ImageList extends StatelessWidget {
   final GlobalKey<AnimatedListState> listKey;
   final ScrollController _controller = ScrollController();
-  final Function(ImageSource) addCallback;
+  final Function addCallback;
   final Function(int) onEditCallback;
   final Function(int, {bool animate}) deleteCallback;
   double imageHeight;
@@ -270,7 +274,7 @@ class ImageList extends StatelessWidget {
                     Expanded(
                       child: FlatButton(
                         child: Icon(Icons.add_a_photo),
-                        onPressed: () => addCallback(ImageSource.camera),
+                        onPressed: () => addCallback(),
                       ),
                     ),
                     Container(
@@ -279,7 +283,7 @@ class ImageList extends StatelessWidget {
                     Expanded(
                       child: FlatButton(
                         child: Icon(Icons.add_photo_alternate),
-                        onPressed: () => addCallback(ImageSource.gallery),
+                        onPressed: () => addCallback(),
                       ),
                     )
                   ],

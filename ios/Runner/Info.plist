@@ -45,5 +45,9 @@
     <string>Shows your location on the map and helps improve the map</string>
     <key>NSLocationAlwaysUsageDescription</key>
     <string>Shows your location on the map and helps improve the map</string>
+    <key>NSPhotoLibraryUsageDescription</key>
+    <string>Example usage description</string>
+    <key>NSCameraUsageDescription</key>
+    <string>Example usage description</string>
 </dict>
 </plist>
