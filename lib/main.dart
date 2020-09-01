@@ -7,6 +7,7 @@ import 'camp/camp_detail.dart';
 import 'map/map_model.dart';
 import 'models/user.dart';
 import 'profile/profile.dart';
+import 'profile/profile_model.dart';
 import 'services/auth.dart';
 import 'services/db.dart';
 import 'map/map.dart';
@@ -59,7 +60,17 @@ class MyApp extends StatelessWidget {
       initialRoute: '/',
       routes: {
         '/': (context) => Home(),
-        '/profile': (context) => Profile(),
+        '/profile': (context) =>
+            ChangeNotifierProxyProvider2<Auth, FirestoreService, ProfileModel>(
+              create: (context) => ProfileModel(
+                auth: context.watch<Auth>(),
+                firestore: context.watch<FirestoreService>(),
+              ),
+              update: (context, auth, firestore, profileModel) => profileModel
+                ..setAuth(auth)
+                ..setFirestore(firestore),
+              child: Profile(),
+            ),
         '/detail': (context) => CampDetailScreen(),
       },
       theme: ThemeData().copyWith(
@@ -128,7 +139,6 @@ class SplashScreen extends StatelessWidget {
   }
 }
 
-
 class ConnectivityInfo extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -147,7 +157,6 @@ class ConnectivityInfo extends StatelessWidget {
     );
   }
 }
-
 
 class Home extends StatelessWidget {
   @override
