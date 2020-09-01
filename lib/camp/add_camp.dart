@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:image_cropper/image_cropper.dart';
@@ -7,8 +6,6 @@ import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:transparent_image/transparent_image.dart';
 
-import '../services/db.dart';
-import '../utils.dart';
 import 'providers/add_camp_model.dart';
 
 class AddCampScreen extends StatelessWidget {
@@ -39,12 +36,11 @@ class _CampFormState extends State<CampForm> {
   @override
   void initState() {
     super.initState();
-    getImage(); // TODO: show dialog to select camera/image picker, then remember the selection ?
+    //getImage(ImageSource.gallery); // TODO: show dialog to select camera/image picker, then remember the selection ?
   }
 
-  Future getImage() async {
-    // Could throw error if no camera available!
-    picker.getImage(source: ImageSource.camera).then((PickedFile pickedFile) {
+  Future getImage(ImageSource source) async {
+    picker.getImage(source: source).then((PickedFile pickedFile) {
       if (pickedFile == null) return;
       final int newIndex = context.read<AddModel>().addImage(pickedFile.path);
       _listKey.currentState.insertItem(newIndex - 1);
@@ -89,7 +85,9 @@ class _CampFormState extends State<CampForm> {
           ? SizeTransition(
               axis: Axis.horizontal,
               sizeFactor: animation,
-              child: CampImageWidget(campImage: deletedImage,),
+              child: CampImageWidget(
+                campImage: deletedImage,
+              ),
             )
           : SizedBox.shrink();
     });
@@ -179,7 +177,7 @@ class _CampFormState extends State<CampForm> {
 class ImageList extends StatelessWidget {
   final GlobalKey<AnimatedListState> listKey;
   final ScrollController _controller = ScrollController();
-  final Function addCallback;
+  final Function(ImageSource) addCallback;
   final Function(int) onEditCallback;
   final Function(int, {bool animate}) deleteCallback;
   double imageHeight;
@@ -227,7 +225,9 @@ class ImageList extends StatelessWidget {
                     child: Stack(
                       fit: StackFit.expand,
                       children: [
-                        CampImageWidget(campImage: addModel.getCampImage(index),),
+                        CampImageWidget(
+                          campImage: addModel.getCampImage(index),
+                        ),
                         Positioned(
                           left: 0,
                           top: 0,
@@ -261,15 +261,29 @@ class ImageList extends StatelessWidget {
               return Container(
                 width: imageWidth,
                 padding: EdgeInsets.all(1),
-                child: OutlineButton(
-                    child: Icon(Icons.add),
-                    borderSide:
-                        BorderSide(color: Theme.of(context).primaryColor),
-                    onPressed: () => addCallback(),
-                    highlightedBorderColor: Theme.of(context)
-                        .colorScheme
-                        .onSurface
-                        .withOpacity(0.12)),
+                decoration: BoxDecoration(
+                    border: Border.all(width: 1, color: Colors.blue),
+                    borderRadius: BorderRadius.all(Radius.circular(1))),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Expanded(
+                      child: FlatButton(
+                        child: Icon(Icons.add_a_photo),
+                        onPressed: () => addCallback(ImageSource.camera),
+                      ),
+                    ),
+                    Container(
+                        margin: EdgeInsets.symmetric(vertical: 10),
+                        child: VerticalDivider(width: 2)),
+                    Expanded(
+                      child: FlatButton(
+                        child: Icon(Icons.add_photo_alternate),
+                        onPressed: () => addCallback(ImageSource.gallery),
+                      ),
+                    )
+                  ],
+                ),
               );
             }
           }),
