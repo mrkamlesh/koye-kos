@@ -63,8 +63,8 @@ class MyApp extends StatelessWidget {
         '/profile': (context) =>
             ChangeNotifierProxyProvider2<Auth, FirestoreService, ProfileModel>(
               create: (context) => ProfileModel(
-                auth: context.watch<Auth>(),
-                firestore: context.watch<FirestoreService>(),
+                auth: context.read<Auth>(),
+                firestore: context.read<FirestoreService>(),
               ),
               update: (context, auth, firestore, profileModel) => profileModel
                 ..setAuth(auth)

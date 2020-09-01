@@ -6,12 +6,14 @@ import 'package:provider/provider.dart';
 import '../models/user.dart';
 import '../services/auth.dart';
 import 'favorites.dart';
+import 'profile_model.dart';
 
 class Profile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final Auth auth = Provider.of<Auth>(context);
-    return auth.status == AuthStatus.LoggedIn ? AccountView() : SignUpView();
+    return context.watch<ProfileModel>().loggedIn
+        ? AccountScreen()
+        : SignUpView();
   }
 }
 
@@ -23,7 +25,7 @@ class SignUpView extends StatefulWidget {
 class _SignUpViewState extends State<SignUpView> {
   @override
   Widget build(BuildContext context) {
-    final auth = Provider.of<Auth>(context);
+    final profileModel = Provider.of<ProfileModel>(context);
 
     return Scaffold(
       appBar: AppBar(
@@ -32,47 +34,47 @@ class _SignUpViewState extends State<SignUpView> {
       body: Padding(
         padding: const EdgeInsets.all(8.0),
         child: Center(
-          child: auth.status == AuthStatus.Authenticating
+          child: profileModel.authenticating
               ? CircularProgressIndicator()
               : Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              SizedBox(
-                height: 100,
-              ),
-              Container(
-                child: Icon(
-                  Icons.person_pin,
-                  size: 100,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    SizedBox(
+                      height: 100,
+                    ),
+                    Container(
+                      child: Icon(
+                        Icons.person_pin,
+                        size: 100,
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.only(top: 16, bottom: 8),
+                      child: Container(
+                        child: Text(
+                          'Select sign up method',
+                          style: Theme.of(context).textTheme.headline5,
+                        ),
+                      ),
+                    ),
+                    Divider(),
+                    RaisedButton(
+                      child: Text('GOOGLE'),
+                      color: Colors.red,
+                      onPressed: profileModel.google,
+                    ),
+                  ],
                 ),
-              ),
-              Padding(
-                padding: const EdgeInsets.only(top: 16, bottom: 8),
-                child: Container(
-                  child: Text(
-                    'Select sign up method',
-                    style: Theme.of(context).textTheme.headline5,
-                  ),
-                ),
-              ),
-              Divider(),
-              RaisedButton(
-                  child: Text('GOOGLE'),
-                  color: Colors.red,
-                  onPressed: () =>
-                      context.read<Auth>().signInWithGoogle()
-              ),
-            ],
-          ),
         ),
       ),
     );
   }
 }
 
-class AccountView extends StatelessWidget {
+class AccountScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final profileModel = Provider.of<ProfileModel>(context);
     return DefaultTabController(
       length: 4,
       child: Scaffold(
@@ -80,7 +82,7 @@ class AccountView extends StatelessWidget {
           title: Text('Account'),
           actions: [
             FlatButton(
-              onPressed: () => context.read<Auth>().signOut(),
+              onPressed: profileModel.signOut,
               child: Text(
                 'Log out',
                 style: TextStyle(color: Colors.white),
@@ -141,67 +143,58 @@ class CreatedView extends StatelessWidget {
 class ProfileWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Consumer<Auth>(
-      builder: (_, auth, __) {
-        final user = auth.user;
-        if (user == null || user.name == null) {  // should user ever be null here?
-          return Container(
-            child: Center(
-              child: CircularProgressIndicator(),
-            ),
-          );
-        } else {
-          return Center(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(
-                vertical: 8,
-                horizontal: 8,
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    child: CachedNetworkImage(
-                      imageUrl: user.photoUrl,
-                      placeholder: (context, url) => Center(child: CircularProgressIndicator()),
-                      imageBuilder: (context, imageProvider) => Container(
-                        width: 80.0,
-                        height: 80.0,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          image: DecorationImage(
-                              image: imageProvider, fit: BoxFit.cover),
-                        ),
-                      ),
-                    ),
+    final profileModel = Provider.of<ProfileModel>(context);
+    final user = profileModel.user;
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(
+          vertical: 8,
+          horizontal: 8,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              child: CachedNetworkImage(
+                imageUrl: user.photoUrl,
+                placeholder: (context, url) => Container(
+                    width: 80,
+                    height: 80,
+                    child: Center(child: CircularProgressIndicator())),
+                imageBuilder: (context, imageProvider) => Container(
+                  width: 80.0,
+                  height: 80.0,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    image: DecorationImage(
+                        image: imageProvider, fit: BoxFit.cover),
                   ),
-                  Text(
-                    '${user.name}',
-                    style: Theme.of(context).textTheme.headline6,
-                  ),
-                  Text('${user.email}',
-                      style: Theme.of(context).textTheme.headline6),
-                  Divider(height: 40),
-                  Expanded(
-                    child: Align(
-                      alignment: FractionalOffset.bottomCenter,
-                      child: RaisedButton(
-                        child: Text(
-                          'Log out',
-                          style: TextStyle(color: Colors.white),
-                        ),
-                        color: Theme.of(context).primaryColor,
-                        onPressed: () async => auth.signOut(),
-                      ),
-                    ),
-                  ),
-                ],
+                ),
               ),
             ),
-          );
-        }
-      },
+            Text(
+              '${user.name}',
+              style: Theme.of(context).textTheme.headline6,
+            ),
+            Text('${user.email}', style: Theme.of(context).textTheme.headline6),
+            Divider(height: 40),
+            Expanded(
+              child: Align(
+                alignment: FractionalOffset.bottomCenter,
+                child: RaisedButton(
+                  child: Text(
+                    'Log out',
+                    style: TextStyle(color: Colors.white),
+                  ),
+                  color: Theme.of(context).primaryColor,
+                  onPressed: profileModel.signOut,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
