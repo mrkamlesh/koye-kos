@@ -6,16 +6,15 @@ import 'package:provider/provider.dart';
 import '../models/camp.dart';
 import '../utils.dart';
 import '../camp/camp_utils.dart';
-import '../services/db.dart';
 import '../map/map_detail.dart';
-import 'providers/profile_model.dart';
+import 'providers/favorite_provider.dart';
 
 class FavoritedView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final profileModel = Provider.of<ProfileModel>(context);
+    final favoriteModel = Provider.of<FavoriteModel>(context);
     return StreamBuilder<List<Favorite>>(
-        stream: profileModel.favoriteCampIdsStream,
+        stream: favoriteModel.favoriteCampIdsStream,
         builder: (context, snapshot) {
           if (snapshot.hasData && snapshot.data.isNotEmpty) {
             return FavoriteListView();
@@ -48,9 +47,9 @@ class FavoritedView extends StatelessWidget {
 class FavoriteListView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final profileModel = Provider.of<ProfileModel>(context);
+    final favoriteModel = Provider.of<FavoriteModel>(context);
     return StreamBuilder<List<Camp>>(
-        stream: profileModel.favoriteCampsStream,
+        stream: favoriteModel.favoriteCampsStream,
         builder: (context, snapshot) {
           if (snapshot.hasData) {
             final List<Camp> camps = snapshot.data;
@@ -141,7 +140,7 @@ class FavoriteListItem extends StatelessWidget {
                       color: Colors.red,
                     ),
                     onPressed: () {
-                      context.read<ProfileModel>().unfavorite(camp.id);
+                      context.read<FavoriteModel>().unfavorite(camp.id);
                       // TODO: add undo
                     }),
               ),
