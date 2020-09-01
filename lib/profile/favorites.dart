@@ -4,21 +4,21 @@ import 'package:implicitly_animated_reorderable_list/transitions.dart';
 import 'package:provider/provider.dart';
 
 import '../models/camp.dart';
-import '../models/user.dart';
 import '../utils.dart';
 import '../camp/camp_utils.dart';
 import '../services/db.dart';
 import '../map/map_detail.dart';
+import 'providers/profile_model.dart';
 
 class FavoritedView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final firestoreService = Provider.of<FirestoreService>(context);
+    final profileModel = Provider.of<ProfileModel>(context);
     return StreamBuilder<List<Favorite>>(
-        stream: firestoreService.campIdsFavoritedStream(),
+        stream: profileModel.favoriteCampIdsStream,
         builder: (context, snapshot) {
           if (snapshot.hasData && snapshot.data.isNotEmpty) {
-            return FavoriteListView(favorites: snapshot.data);
+            return FavoriteListView();
           }
           if (snapshot.connectionState == ConnectionState.waiting) {
             return Container(
@@ -46,42 +46,40 @@ class FavoritedView extends StatelessWidget {
 }
 
 class FavoriteListView extends StatelessWidget {
-  final List<Favorite> favorites;
-
-  FavoriteListView({
-    @required this.favorites,
-  });
-
   @override
   Widget build(BuildContext context) {
-    final firestoreService = Provider.of<FirestoreService>(context);
-
+    final profileModel = Provider.of<ProfileModel>(context);
     return StreamBuilder<List<Camp>>(
-      stream: firestoreService
-          .getCampsStream(favorites.map((f) => f.campId).toList()),
-      builder: (context, snapshot) {
-        if (snapshot.hasData) {
-          final List<Camp> camps = snapshot.data; // un-ordered list of maps
-          return ImplicitlyAnimatedList<Camp>(
-            items: camps,
-            areItemsTheSame: (a, b) => a.id == b.id,
-            itemBuilder: (_, animation, item, index) {
-              return SizeFadeTransition(
-                animation: animation,
-                child: OpenContainerCamp(item,
+        stream: profileModel.favoriteCampsStream,
+        builder: (context, snapshot) {
+          if (snapshot.hasData) {
+            final List<Camp> camps = snapshot.data;
+            return ImplicitlyAnimatedList<Camp>(
+              items: camps,
+              areItemsTheSame: (a, b) => a.id == b.id,
+              itemBuilder: (_, animation, item, index) {
+                return SizeFadeTransition(
+                  animation: animation,
+                  child: OpenContainerCamp(item,
                       closedScreen: FavoriteListItem(camp: item)),
-              );
-            },
-          );
-        } else {
-          return Container(
-            child: Center(
-              child: Text('Error fetching camp data...'),
-            ),
-          );
-        }
-      },
-    );
+                );
+              },
+            );
+          } else {
+            return Container(
+              padding: EdgeInsets.only(top: 20),
+              child: Column(
+                children: [
+                  CircularProgressIndicator(),
+                  Padding(
+                    padding: const EdgeInsets.only(top: 16.0),
+                    child: Text('Loading favorites...'),
+                  ),
+                ],
+              ),
+            );
+          }
+        });
   }
 }
 
@@ -91,7 +89,6 @@ class FavoriteListItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final firestoreService = Provider.of<FirestoreService>(context);
     return InkWell(
       child: Container(
         height: 100,
@@ -128,6 +125,7 @@ class FavoriteListItem extends StatelessWidget {
                         fontStyle: FontStyle.italic,
                         fontWeight: FontWeight.w300,
                         fontSize: 13.0,
+
                       ),
                     ),
                   ],
@@ -143,8 +141,7 @@ class FavoriteListItem extends StatelessWidget {
                       color: Colors.red,
                     ),
                     onPressed: () {
-                      firestoreService.setFavorited(camp.id,
-                          favorited: false);
+                      context.read<ProfileModel>().unfavorite(camp.id);
                       // TODO: add undo
                     }),
               ),

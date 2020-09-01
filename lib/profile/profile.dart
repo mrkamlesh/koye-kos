@@ -6,7 +6,7 @@ import 'package:provider/provider.dart';
 import '../models/user.dart';
 import '../services/auth.dart';
 import 'favorites.dart';
-import 'profile_model.dart';
+import 'providers/profile_model.dart';
 
 class Profile extends StatelessWidget {
   @override

@@ -7,7 +7,7 @@ import 'camp/camp_detail.dart';
 import 'map/map_model.dart';
 import 'models/user.dart';
 import 'profile/profile.dart';
-import 'profile/profile_model.dart';
+import 'profile/providers/profile_model.dart';
 import 'services/auth.dart';
 import 'services/db.dart';
 import 'map/map.dart';

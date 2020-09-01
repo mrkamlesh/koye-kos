@@ -102,6 +102,9 @@ class Favorite {
         campId: document.id,
         time: document.data()['time'] as Timestamp);
   }
+
+  @override
+  String toString() => '[Favorite($campId)]';
 }
 
 

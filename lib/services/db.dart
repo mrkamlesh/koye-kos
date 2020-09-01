@@ -268,21 +268,6 @@ class FirestoreService {
             .toList());
   }
 
-  Stream<List<Camp>> campsFavoritedStream() async* {
-    List<String> ids = await _firestore
-        .collection(FirestorePath.getFavoritePath(user.id))
-        .get()
-        .then((QuerySnapshot snapshot) =>
-            snapshot.docs.map((e) => e.id).toList());
-    yield* _firestore
-        .collection(FirestorePath.campsPath)
-        .where('__name__', whereIn: ids)
-        .snapshots()
-        .map((QuerySnapshot snapshot) => snapshot.docs
-            .map((DocumentSnapshot document) => Camp.fromFirestore(document))
-            .toList());
-  }
-
   Future<void> setFavorited(String campId, {bool favorited = true}) async {
     if (favorited) {}
     DocumentReference ref = await _firestore
