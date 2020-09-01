@@ -124,7 +124,6 @@ class FavoriteListItem extends StatelessWidget {
                         fontStyle: FontStyle.italic,
                         fontWeight: FontWeight.w300,
                         fontSize: 13.0,
-
                       ),
                     ),
                   ],
@@ -141,7 +140,16 @@ class FavoriteListItem extends StatelessWidget {
                     ),
                     onPressed: () {
                       context.read<FavoriteModel>().unfavorite(camp.id);
-                      // TODO: add undo
+                      Scaffold.of(context)
+                        ..removeCurrentSnackBar()
+                        ..showSnackBar(SnackBar(
+                          content: Text('Camp unfavorited!'),
+                          action: SnackBarAction(
+                            label: 'UNDO',
+                            onPressed:
+                                context.read<FavoriteModel>().undoFavorite,
+                          ),
+                        ));
                     }),
               ),
             ),

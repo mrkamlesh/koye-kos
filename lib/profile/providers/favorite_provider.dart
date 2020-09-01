@@ -9,6 +9,7 @@ class FavoriteModel with ChangeNotifier {
   FirestoreService firestore;
   StreamSubscription<List<Favorite>> _favoriteCampIdsSub;
   List<String> _favoriteCampIds;
+  String _unfavoritedCampId;
 
   FavoriteModel({@required this.firestore}) {
     _favoriteCampIdsSub = firestore.campIdsFavoritedStream().listen(_onFavoriteCampIds);
@@ -26,6 +27,11 @@ class FavoriteModel with ChangeNotifier {
 
   void unfavorite(String campId) {
     firestore.setFavorited(campId, favorited: false);
+    _unfavoritedCampId = campId;
+  }
+
+  void undoFavorite() {
+    firestore.setFavorited(_unfavoritedCampId);
   }
 
   @override
