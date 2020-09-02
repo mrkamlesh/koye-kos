@@ -137,36 +137,6 @@ class _AddImageViewState extends State<AddImageView> {
   }
 }
 
-class CampForm extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    final addModel = Provider.of<AddModel>(context);
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 8.0),
-      child: Form(
-        child: TextFormField(
-          keyboardType: TextInputType.multiline,
-          minLines: 1,
-          maxLines: 5,
-          decoration: InputDecoration(
-              hintText: 'Enter a short camp description',
-              labelText: 'Description',
-              errorStyle: TextStyle(
-                color: Colors.red.shade700,
-                fontSize: 12,
-              ),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-                borderSide: BorderSide(),
-              )),
-          validator: (_) => addModel.descriptionValidator,
-          onChanged: (value) => addModel.onDescriptionChanged(value),
-          autovalidate: addModel.autoValidate,
-        ),
-      ),
-    );
-  }
-}
 
 class ImageList extends StatelessWidget {
   final GlobalKey<AnimatedListState> listKey;
@@ -177,8 +147,8 @@ class ImageList extends StatelessWidget {
 
   ImageList(
       {@required this.listKey,
-      @required this.addCallback,
-      @required this.onEditCallback});
+        @required this.addCallback,
+        @required this.onEditCallback});
 
   @override
   Widget build(BuildContext context) {
@@ -223,8 +193,8 @@ class ImageList extends StatelessWidget {
                                 }),
                           ),
                           Positioned(
-                            right: 0,
-                            top: 0,
+                            right: 2,
+                            top: 2,
                             child: IconButton(
                               icon: Icon(
                                 Icons.close,
@@ -305,3 +275,35 @@ class _CampImageWidgetState extends State<CampImageWidget>
     }
   }
 }
+
+class CampForm extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final addModel = Provider.of<AddModel>(context);
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+      child: Form(
+        child: TextFormField(
+          keyboardType: TextInputType.multiline,
+          minLines: 1,
+          maxLines: 5,
+          decoration: InputDecoration(
+              hintText: 'Enter a short camp description',
+              labelText: 'Description',
+              errorStyle: TextStyle(
+                color: Colors.red.shade700,
+                fontSize: 12,
+              ),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: BorderSide(),
+              )),
+          validator: (_) => addModel.descriptionValidator,
+          onChanged: (value) => addModel.onDescriptionChanged(value),
+          autovalidate: addModel.autoValidate,
+        ),
+      ),
+    );
+  }
+}
+
