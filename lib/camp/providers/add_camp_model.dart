@@ -17,6 +17,8 @@ class AddModel with ChangeNotifier {
   FirestoreService firestore;
   Point<double> location;
   final List<CampImage> _campImages = [];
+  String _description = '';
+  bool _postPressed = false;
 
   AddModel(
       {@required this.auth,
@@ -28,6 +30,9 @@ class AddModel with ChangeNotifier {
 
   String get readableLocation =>
       location.toReadableString(precision: 4, separator: ', ');
+  bool get canPost => _campImages.isNotEmpty && _description.isNotEmpty;
+  bool get showNoImageError => _postPressed && _campImages.isEmpty;
+  bool get autoValidate => _postPressed;
   List<File> get images =>
       _campImages.map((campImage) => campImage.file).toList();
   File getSourceImage(int index) => _campImages[index].sourceFile;
@@ -64,10 +69,27 @@ class AddModel with ChangeNotifier {
     return _campImages.removeAt(index);
   }
 
-  bool addCamp(String description) {
+  void postPressed() {
+    _postPressed = true;
+    notifyListeners();
+  }
+
+  void onDescriptionChanged(String value) {
+    _description = value.trim();
+    notifyListeners();
+  }
+
+  String get descriptionValidator {
+    print(_description);
+    return _description.length > 0
+        ? null
+        : 'Please enter a short description!';
+  }
+
+  bool addCamp() {
     final images = _campImages.map((campImage) => campImage.file).toList();
     return firestore.addCamp(
-      description: description,
+      description: _description,
       location: location,
       images: images,
     );

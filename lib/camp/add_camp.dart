@@ -9,35 +9,62 @@ import 'package:transparent_image/transparent_image.dart';
 import 'providers/add_camp_model.dart';
 
 class AddCampScreen extends StatelessWidget {
+  final _descriptionKey = GlobalKey<FormState>();
+
   @override
   Widget build(BuildContext context) {
+    final addModel = Provider.of<AddModel>(context);
+
     return Scaffold(
       appBar: AppBar(
         title: Text(
           'Add camp (${context.select((AddModel addModel) => addModel.readableLocation)})',
         ),
+        actions: [
+          FlatButton(
+            child: Text(
+              'POST',
+              style: TextStyle(
+                  color: addModel.canPost
+                      ? Colors.white
+                      : Colors.white.withOpacity(0.8)),
+            ),
+            onPressed: () {
+              addModel.postPressed();
+              if (_descriptionKey.currentState.validate()) {
+                bool wasAdded = addModel.addCamp();
+                wasAdded
+                    ? Navigator.pop(context, true)
+                    : Scaffold.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            'Error uploading camp!',
+                          ),
+                        ),
+                      );
+              }
+            },
+          )
+        ],
       ),
-      body: CampForm(),
+      body: CampForm(
+        descriptionKey: _descriptionKey,
+      ),
     );
   }
 }
 
 class CampForm extends StatefulWidget {
+  final GlobalKey<FormState> descriptionKey;
+  CampForm({@required this.descriptionKey});
   @override
   _CampFormState createState() => _CampFormState();
 }
 
 class _CampFormState extends State<CampForm> {
-  final _formKey = GlobalKey<FormState>();
   final _listKey = GlobalKey<AnimatedListState>();
   final descriptionController = TextEditingController();
   final picker = ImagePicker();
-
-  @override
-  void initState() {
-    super.initState();
-    //getImage(ImageSource.gallery); // TODO: show dialog to select camera/image picker, then remember the selection ?
-  }
 
   Future getImage(ImageSource source) async {
     picker.getImage(source: source).then((PickedFile pickedFile) {
@@ -97,7 +124,7 @@ class _CampFormState extends State<CampForm> {
   Widget build(BuildContext context) {
     final addModel = Provider.of<AddModel>(context);
     return Form(
-      key: _formKey,
+      key: widget.descriptionKey,
       child: Padding(
         padding: const EdgeInsets.only(top: 8.0),
         child: Column(
@@ -109,6 +136,17 @@ class _CampFormState extends State<CampForm> {
               onEditCallback: cropImage,
               key: UniqueKey(),
             ),
+            if (addModel.showNoImageError)
+              Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: Text(
+                  'Please add at least 1 image!',
+                  style: TextStyle(
+                    color: Colors.red.shade700,
+                    fontSize: 12,
+                  ),
+                ),
+              ),
             Padding(
               padding: const EdgeInsets.all(8.0),
               child: Column(
@@ -122,42 +160,19 @@ class _CampFormState extends State<CampForm> {
                     decoration: InputDecoration(
                         hintText: 'Enter a short camp description',
                         labelText: 'Description',
+                        errorStyle: TextStyle(
+                          color: Colors.red.shade700,
+                          fontSize: 12,
+                        ),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
                           borderSide: BorderSide(),
                         )),
-                    validator: (value) {
-                      if (value.length < 0) {
-                        // PROD: change to meaningful value
-                        return 'Please enter short a description!';
-                      }
-                      return null;
-                    },
+                    validator: (_) => addModel.descriptionValidator,
+                    onChanged: (value) => addModel.onDescriptionChanged(value),
+                    autovalidate: addModel.autoValidate,
                   ),
                   SizedBox(height: 8),
-                  RaisedButton(
-                      child: Text(
-                        'Add camp',
-                        style: TextStyle(
-                            color: Theme.of(context).colorScheme.onPrimary),
-                      ),
-                      color: Theme.of(context).primaryColor,
-                      onPressed: () {
-                        if (_formKey.currentState.validate()) {
-                          bool wasAdded = addModel.addCamp(
-                            descriptionController.text,
-                          );
-                          wasAdded
-                              ? Navigator.pop(context, true)
-                              : Scaffold.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text(
-                                      'Error uploading camp!',
-                                    ),
-                                  ),
-                                );
-                        }
-                      }),
                 ],
               ),
             ),
@@ -262,7 +277,7 @@ class ImageList extends StatelessWidget {
                 width: imageWidth,
                 padding: EdgeInsets.all(1),
                 decoration: BoxDecoration(
-                    border: Border.all(width: 1, color: Colors.blue),
+                    border: Border.all(width: 1, color: addModel.showNoImageError ? Colors.red.shade700 : Colors.blue),
                     borderRadius: BorderRadius.all(Radius.circular(1))),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
