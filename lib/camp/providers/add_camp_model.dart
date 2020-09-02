@@ -76,9 +76,10 @@ class AddModel with ChangeNotifier {
     _campImages.addAll(newItems);
   }
 
-  void postPressed() {
+  bool postPressed() {
     _postPressed = true;
     notifyListeners();
+    return canPost ? addCamp() : false;
   }
 
   void onDescriptionChanged(String value) {
@@ -87,7 +88,6 @@ class AddModel with ChangeNotifier {
   }
 
   String get descriptionValidator {
-    print(_description);
     return _description.length > 0
         ? null
         : 'Please enter a short description!';

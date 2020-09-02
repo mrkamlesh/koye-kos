@@ -10,12 +10,9 @@ import 'package:transparent_image/transparent_image.dart';
 import 'providers/add_camp_model.dart';
 
 class AddCampScreen extends StatelessWidget {
-  final _descriptionKey = GlobalKey<FormState>();
-
   @override
   Widget build(BuildContext context) {
     final addModel = Provider.of<AddModel>(context);
-
     return Scaffold(
       appBar: AppBar(
         title: Text(
@@ -31,44 +28,46 @@ class AddCampScreen extends StatelessWidget {
                       : Colors.white.withOpacity(0.8)),
             ),
             onPressed: () {
-              addModel.postPressed();
-              if (_descriptionKey.currentState.validate()) {
-                bool wasAdded = addModel.addCamp();
-                wasAdded
-                    ? Navigator.pop(context, true)
-                    : Scaffold.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(
-                      'Error uploading camp!',
-                    ),
-                  ),
-                );
-              }
+              bool wasAdded = addModel.postPressed();
+              wasAdded
+                  ? Navigator.pop(context, true)
+                  : Scaffold.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          'Error uploading camp!',
+                        ),
+                      ),
+                    );
             },
           )
         ],
       ),
-      body: CampForm(
-        descriptionKey: _descriptionKey,
+      body: Padding(
+        padding: const EdgeInsets.only(top: 8.0),
+        child: Column(
+          children: [
+            AddImageView(),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: CampForm(),
+            ),
+          ],
+        ),
       ),
     );
   }
 }
 
-class CampForm extends StatefulWidget {
-  final GlobalKey<FormState> descriptionKey;
-  CampForm({@required this.descriptionKey});
+class AddImageView extends StatefulWidget {
   @override
-  _CampFormState createState() => _CampFormState();
+  _AddImageViewState createState() => _AddImageViewState();
 }
 
-class _CampFormState extends State<CampForm> {
+class _AddImageViewState extends State<AddImageView> {
   final _listKey = GlobalKey<AnimatedListState>();
-  final descriptionController = TextEditingController();
-  final picker = ImagePicker();
 
   Future getImage(ImageSource source) async {
-    picker.getImage(source: source).then((PickedFile pickedFile) {
+    ImagePicker().getImage(source: source).then((PickedFile pickedFile) {
       if (pickedFile == null) return;
       context.read<AddModel>().addImage(pickedFile.path);
     }).catchError((error) {
@@ -108,21 +107,18 @@ class _CampFormState extends State<CampForm> {
   @override
   Widget build(BuildContext context) {
     final addModel = Provider.of<AddModel>(context);
-    return Form(
-      key: widget.descriptionKey,
-      child: Padding(
-        padding: const EdgeInsets.only(top: 8.0),
-        child: Column(
-          children: [
-            ImageList(
-              listKey: _listKey,
-              addCallback: getImage,
-              onEditCallback: cropImage,
-              key: UniqueKey(),
-            ),
-            if (addModel.showNoImageError)
-              Padding(
-                padding: const EdgeInsets.only(top: 8),
+
+    return Column(
+      children: [
+        ImageList(
+          listKey: _listKey,
+          addCallback: getImage,
+          onEditCallback: cropImage,
+        ),
+        SizedBox(height: 8),
+        addModel.showNoImageError
+            ? Container(
+                height: 16,
                 child: Text(
                   'Please add at least 1 image!',
                   style: TextStyle(
@@ -130,67 +126,52 @@ class _CampFormState extends State<CampForm> {
                     fontSize: 12,
                   ),
                 ),
-              ),
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Column(
-                children: [
-                  SizedBox(height: 8),
-                  TextFormField(
-                    controller: descriptionController,
-                    keyboardType: TextInputType.multiline,
-                    minLines: 1,
-                    maxLines: 5,
-                    decoration: InputDecoration(
-                        hintText: 'Enter a short camp description',
-                        labelText: 'Description',
-                        errorStyle: TextStyle(
-                          color: Colors.red.shade700,
-                          fontSize: 12,
-                        ),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: BorderSide(),
-                        )),
-                    validator: (_) => addModel.descriptionValidator,
-                    onChanged: (value) => addModel.onDescriptionChanged(value),
-                    autovalidate: addModel.autoValidate,
-                  ),
-                  SizedBox(height: 8),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
+              )
+            : SizedBox(height: 16)
+      ],
     );
   }
+}
 
+class CampForm extends StatelessWidget {
   @override
-  void dispose() {
-    super.dispose();
-    descriptionController.dispose();
+  Widget build(BuildContext context) {
+    final addModel = Provider.of<AddModel>(context);
+    return Form(
+      child: TextFormField(
+        keyboardType: TextInputType.multiline,
+        minLines: 1,
+        maxLines: 5,
+        decoration: InputDecoration(
+            hintText: 'Enter a short camp description',
+            labelText: 'Description',
+            errorStyle: TextStyle(
+              color: Colors.red.shade700,
+              fontSize: 12,
+            ),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8),
+              borderSide: BorderSide(),
+            )),
+        validator: (_) => addModel.descriptionValidator,
+        onChanged: (value) => addModel.onDescriptionChanged(value),
+        autovalidate: addModel.autoValidate,
+      ),
+    );
   }
 }
 
 class ImageList extends StatelessWidget {
   final GlobalKey<AnimatedListState> listKey;
-  final ScrollController _controller = ScrollController();
   final Function(ImageSource) addCallback;
   final Function(int) onEditCallback;
-  double imageHeight;
-  double imageWidth;
+  static const double imageHeight = 210;
+  static const double imageWidth = imageHeight * 4 / 3;
 
   ImageList(
       {@required this.listKey,
-        @required this.addCallback,
-        @required this.onEditCallback,
-        Key key})
-      : super(key: key) {
-    // Show images in a 4x3 aspect ratio, reflecting the uploaded image.
-    this.imageHeight = 210;
-    this.imageWidth = imageHeight * 4 / 3;
-  }
+      @required this.addCallback,
+      @required this.onEditCallback});
 
   @override
   Widget build(BuildContext context) {
@@ -200,7 +181,6 @@ class ImageList extends StatelessWidget {
       child: ImplicitlyAnimatedReorderableList<CampImage>(
         key: listKey,
         items: addModel.campImages,
-        controller: _controller,
         scrollDirection: Axis.horizontal,
         shrinkWrap: true,
         areItemsTheSame: (a, b) => a.sourceFile.path == b.sourceFile.path,
@@ -243,8 +223,7 @@ class ImageList extends StatelessWidget {
                                 Icons.close,
                                 color: Colors.white,
                               ),
-                              onPressed: () =>
-                                  addModel.removeImage(index),
+                              onPressed: () => addModel.removeImage(index),
                             ),
                           ),
                         ],
