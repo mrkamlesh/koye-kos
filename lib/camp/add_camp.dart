@@ -16,44 +16,46 @@ class AddCampScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          'Add camp (${context.select((AddModel addModel) => addModel.readableLocation)})',
+          'Add camp (${addModel.readableLocation})',
         ),
         actions: [
-          FlatButton(
-            child: Text(
-              'POST',
-              style: TextStyle(
-                  color: addModel.canPost
-                      ? Colors.white
-                      : Colors.white.withOpacity(0.8)),
-            ),
-            onPressed: () {
-              bool wasAdded = addModel.postPressed();
-              wasAdded
-                  ? Navigator.pop(context, true)
-                  : Scaffold.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          'Error uploading camp!',
-                        ),
-                      ),
-                    );
-            },
-          )
+          AddCampButton(),
         ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.only(top: 8.0),
-        child: Column(
-          children: [
-            AddImageView(),
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: CampForm(),
-            ),
-          ],
-        ),
+      body: Column(
+        children: [
+          AddImageView(),
+          CampForm(),
+        ],
       ),
+    );
+  }
+}
+
+class AddCampButton extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final addModel = Provider.of<AddModel>(context);
+    return FlatButton(
+      child: Text(
+        'POST',
+        style: TextStyle(
+            color: addModel.canPost
+                ? Colors.white
+                : Colors.white.withOpacity(0.8)),
+      ),
+      onPressed: () {
+        bool wasAdded = addModel.postPressed();
+        wasAdded
+            ? Navigator.pop(context, true)
+            : Scaffold.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(
+                    'Error uploading camp!',
+                  ),
+                ),
+              );
+      },
     );
   }
 }
@@ -110,24 +112,26 @@ class _AddImageViewState extends State<AddImageView> {
 
     return Column(
       children: [
+        SizedBox(height: 8),
         ImageList(
           listKey: _listKey,
           addCallback: getImage,
           onEditCallback: cropImage,
         ),
-        SizedBox(height: 8),
         addModel.showNoImageError
             ? Container(
-                height: 16,
-                child: Text(
-                  'Please add at least 1 image!',
-                  style: TextStyle(
-                    color: Colors.red.shade700,
-                    fontSize: 12,
+                height: 24,
+                child: Center(
+                  child: Text(
+                    'Please add at least 1 image!',
+                    style: TextStyle(
+                      color: Colors.red.shade700,
+                      fontSize: 12,
+                    ),
                   ),
                 ),
               )
-            : SizedBox(height: 16)
+            : SizedBox(height: 24),  // Empty space so error doesn't 'jump' in
       ],
     );
   }
@@ -137,25 +141,28 @@ class CampForm extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final addModel = Provider.of<AddModel>(context);
-    return Form(
-      child: TextFormField(
-        keyboardType: TextInputType.multiline,
-        minLines: 1,
-        maxLines: 5,
-        decoration: InputDecoration(
-            hintText: 'Enter a short camp description',
-            labelText: 'Description',
-            errorStyle: TextStyle(
-              color: Colors.red.shade700,
-              fontSize: 12,
-            ),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: BorderSide(),
-            )),
-        validator: (_) => addModel.descriptionValidator,
-        onChanged: (value) => addModel.onDescriptionChanged(value),
-        autovalidate: addModel.autoValidate,
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+      child: Form(
+        child: TextFormField(
+          keyboardType: TextInputType.multiline,
+          minLines: 1,
+          maxLines: 5,
+          decoration: InputDecoration(
+              hintText: 'Enter a short camp description',
+              labelText: 'Description',
+              errorStyle: TextStyle(
+                color: Colors.red.shade700,
+                fontSize: 12,
+              ),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: BorderSide(),
+              )),
+          validator: (_) => addModel.descriptionValidator,
+          onChanged: (value) => addModel.onDescriptionChanged(value),
+          autovalidate: addModel.autoValidate,
+        ),
       ),
     );
   }
