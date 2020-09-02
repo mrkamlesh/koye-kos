@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:implicitly_animated_reorderable_list/implicitly_animated_reorderable_list.dart';
 import 'package:provider/provider.dart';
 import 'package:transparent_image/transparent_image.dart';
 
@@ -36,12 +37,12 @@ class AddCampScreen extends StatelessWidget {
                 wasAdded
                     ? Navigator.pop(context, true)
                     : Scaffold.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(
-                            'Error uploading camp!',
-                          ),
-                        ),
-                      );
+                  SnackBar(
+                    content: Text(
+                      'Error uploading camp!',
+                    ),
+                  ),
+                );
               }
             },
           )
@@ -69,8 +70,7 @@ class _CampFormState extends State<CampForm> {
   Future getImage(ImageSource source) async {
     picker.getImage(source: source).then((PickedFile pickedFile) {
       if (pickedFile == null) return;
-      final int newIndex = context.read<AddModel>().addImage(pickedFile.path);
-      _listKey.currentState.insertItem(newIndex - 1);
+      context.read<AddModel>().addImage(pickedFile.path);
     }).catchError((error) {
       Scaffold.of(context)
         ..removeCurrentSnackBar()
@@ -105,21 +105,6 @@ class _CampFormState extends State<CampForm> {
     });
   }
 
-  void deleteImage(int index, {bool animate = false}) {
-    final CampImage deletedImage = context.read<AddModel>().removeImage(index);
-    _listKey.currentState.removeItem(index, (context, animation) {
-      return animate
-          ? SizeTransition(
-              axis: Axis.horizontal,
-              sizeFactor: animation,
-              child: CampImageWidget(
-                campImage: deletedImage,
-              ),
-            )
-          : SizedBox.shrink();
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     final addModel = Provider.of<AddModel>(context);
@@ -132,7 +117,6 @@ class _CampFormState extends State<CampForm> {
             ImageList(
               listKey: _listKey,
               addCallback: getImage,
-              deleteCallback: deleteImage,
               onEditCallback: cropImage,
               key: UniqueKey(),
             ),
@@ -194,16 +178,14 @@ class ImageList extends StatelessWidget {
   final ScrollController _controller = ScrollController();
   final Function(ImageSource) addCallback;
   final Function(int) onEditCallback;
-  final Function(int, {bool animate}) deleteCallback;
   double imageHeight;
   double imageWidth;
 
   ImageList(
       {@required this.listKey,
-      @required this.addCallback,
-      @required this.deleteCallback,
-      @required this.onEditCallback,
-      Key key})
+        @required this.addCallback,
+        @required this.onEditCallback,
+        Key key})
       : super(key: key) {
     // Show images in a 4x3 aspect ratio, reflecting the uploaded image.
     this.imageHeight = 210;
@@ -215,93 +197,95 @@ class ImageList extends StatelessWidget {
     final addModel = Provider.of<AddModel>(context);
     return Container(
       height: imageHeight,
-      child: AnimatedList(
-          key: listKey,
-          controller: _controller,
-          scrollDirection: Axis.horizontal,
-          initialItemCount: 1, // add extra for 'add image' button
-          shrinkWrap:
-              true, // if true, list wil be centered when only 1 items is added
-          itemBuilder: (context, index, animation) {
-            if (!addModel.isLastElement(index)) {
-              final Key key = Key(index.toString());
-              return SizeTransition(
-                axis: Axis.horizontal,
-                sizeFactor: animation,
-                child: Dismissible(
-                  key: key,
-                  direction: DismissDirection.up,
-                  onDismissed: (direction) {
-                    deleteCallback(index);
-                  },
-                  child: Container(
-                    width: imageWidth,
-                    padding: EdgeInsets.only(right: 2),
-                    child: Stack(
-                      fit: StackFit.expand,
-                      children: [
-                        CampImageWidget(
-                          campImage: addModel.getCampImage(index),
-                        ),
-                        Positioned(
-                          left: 0,
-                          top: 0,
-                          child: IconButton(
+      child: ImplicitlyAnimatedReorderableList<CampImage>(
+        key: listKey,
+        items: addModel.campImages,
+        controller: _controller,
+        scrollDirection: Axis.horizontal,
+        shrinkWrap: true,
+        areItemsTheSame: (a, b) => a.sourceFile.path == b.sourceFile.path,
+        onReorderFinished: addModel.onReorderFinished,
+        itemBuilder: (context, itemAnimation, item, index) {
+          return Reorderable(
+              key: ValueKey(item),
+              builder: (context, dragAnimation, inDrag) {
+                return SizeTransition(
+                  axis: Axis.horizontal,
+                  sizeFactor: itemAnimation,
+                  child: Handle(
+                    delay: const Duration(milliseconds: 500),
+                    child: Container(
+                      width: imageWidth,
+                      padding: EdgeInsets.only(right: 2),
+                      child: Stack(
+                        fit: StackFit.expand,
+                        children: [
+                          CampImageWidget(
+                            campImage: item,
+                          ),
+                          Positioned(
+                            left: 0,
+                            top: 0,
+                            child: IconButton(
+                                icon: Icon(
+                                  Icons.crop,
+                                  color: Colors.white,
+                                ),
+                                onPressed: () {
+                                  onEditCallback(index);
+                                }),
+                          ),
+                          Positioned(
+                            right: 0,
+                            top: 0,
+                            child: IconButton(
                               icon: Icon(
-                                Icons.crop,
+                                Icons.close,
                                 color: Colors.white,
                               ),
-                              onPressed: () {
-                                onEditCallback(index);
-                              }),
-                        ),
-                        Positioned(
-                          right: 0,
-                          top: 0,
-                          child: IconButton(
-                            icon: Icon(
-                              Icons.close,
-                              color: Colors.white,
+                              onPressed: () =>
+                                  addModel.removeImage(index),
                             ),
-                            onPressed: () =>
-                                deleteCallback(index, animate: true),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
+                );
+              });
+        },
+        footer: Container(
+          width: imageWidth,
+          padding: EdgeInsets.all(1),
+          decoration: BoxDecoration(
+              border: Border.all(
+                  width: 1,
+                  color: addModel.showNoImageError
+                      ? Colors.red.shade700
+                      : Colors.blue),
+              borderRadius: BorderRadius.all(Radius.circular(1))),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Expanded(
+                child: FlatButton(
+                  child: Icon(Icons.add_a_photo),
+                  onPressed: () => addCallback(ImageSource.camera),
                 ),
-              );
-            } else {
-              return Container(
-                width: imageWidth,
-                padding: EdgeInsets.all(1),
-                decoration: BoxDecoration(
-                    border: Border.all(width: 1, color: addModel.showNoImageError ? Colors.red.shade700 : Colors.blue),
-                    borderRadius: BorderRadius.all(Radius.circular(1))),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Expanded(
-                      child: FlatButton(
-                        child: Icon(Icons.add_a_photo),
-                        onPressed: () => addCallback(ImageSource.camera),
-                      ),
-                    ),
-                    Container(
-                        margin: EdgeInsets.symmetric(vertical: 10),
-                        child: VerticalDivider(width: 2)),
-                    Expanded(
-                      child: FlatButton(
-                        child: Icon(Icons.add_photo_alternate),
-                        onPressed: () => addCallback(ImageSource.gallery),
-                      ),
-                    )
-                  ],
+              ),
+              Container(
+                  margin: EdgeInsets.symmetric(vertical: 10),
+                  child: VerticalDivider(width: 2)),
+              Expanded(
+                child: FlatButton(
+                  child: Icon(Icons.add_photo_alternate),
+                  onPressed: () => addCallback(ImageSource.gallery),
                 ),
-              );
-            }
-          }),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

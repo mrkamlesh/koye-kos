@@ -37,6 +37,7 @@ class AddModel with ChangeNotifier {
       _campImages.map((campImage) => campImage.file).toList();
   File getSourceImage(int index) => _campImages[index].sourceFile;
   File getImage(int index) => _campImages[index].file;
+  List<CampImage> get campImages => _campImages;
   CampImage getCampImage(int index) => _campImages[index];
 
   int addImage(String imagePath) {
@@ -65,8 +66,14 @@ class AddModel with ChangeNotifier {
     notifyListeners();
   }
 
-  CampImage removeImage(int index) {
-    return _campImages.removeAt(index);
+  void removeImage(int index) {
+    _campImages.removeAt(index);
+    notifyListeners();
+  }
+
+  void onReorderFinished(CampImage item, int from, int to, List<CampImage> newItems) {
+    _campImages.clear();
+    _campImages.addAll(newItems);
   }
 
   void postPressed() {
