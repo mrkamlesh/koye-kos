@@ -14,6 +14,8 @@ import '../utils.dart';
 
 enum ClickState { None, Click, LongClick, SymbolClick }
 
+enum FilterChipId { Tent, Hammock }
+
 enum MapStyle { Outdoors, Satellite }
 
 class MapBoxMapStyle {
@@ -41,12 +43,14 @@ class MapModel extends ChangeNotifier {
   bool _locationTracking = false;
   String _styleString = MapBoxMapStyle.OUTDOORS;
   bool _dialVisible = true;
+  bool _tentSelected = false;
+  bool _hammockSelected = false;
 
   MapModel({@required this.firestore}) {
     _clickState = ClickState.None;
     _campSymbolsStream = firestore.getCampListStream().map(_campToSymbolMarker);
   }
-  
+
   void onStyleSelected(MapStyle style) {
     _styleString = MapBoxMapStyle.getMapStyle(style);
     notifyListeners();
@@ -55,18 +59,16 @@ class MapModel extends ChangeNotifier {
   void setFirestore(FirestoreService firestore) => this.firestore = firestore;
 
   ClickState get clickState => _clickState;
-
   Stream<Set<MapSymbolMarker>> get campSymbolsStream => _campSymbolsStream;
   Camp getCamp(String id) => _campMap[id];
-
   bool get locationTracking => _locationTracking;
-
   MyLocationTrackingMode get trackingMode => _locationTracking
       ? MyLocationTrackingMode.Tracking
       : MyLocationTrackingMode.None;
-
   String get mapStyle => _styleString;
   bool get dialVisible => _dialVisible;
+  bool get tentSelcted => _tentSelected;
+  bool get hammockSelcted => _hammockSelected;
 
   Set<MapSymbolMarker> _campToSymbolMarker(List<Camp> camps) {
     print(camps);
@@ -93,6 +95,16 @@ class MapModel extends ChangeNotifier {
       iconImage: 'assets/symbols/location_red.png',
       iconSize: 1,
     );
+  }
+
+  void onFilterChipSelected(bool selected, FilterChipId id) {
+    if (id == FilterChipId.Tent) {
+      _tentSelected = selected;
+    }
+    if (id == FilterChipId.Hammock) {
+      _hammockSelected = selected;
+    }
+    notifyListeners();
   }
 
   void setLongClickSymbol(Symbol symbol) {
