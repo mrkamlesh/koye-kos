@@ -22,32 +22,35 @@ class MapFilter extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final mapModel = Provider.of<MapModel>(context);
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        FilterChip(
-          selected: mapModel.tentSelcted,
-          label: Text('Tent', style: TextStyle(color: mapModel.tentSelcted ? Colors.white : Colors.black),),
-          onSelected: (value) => mapModel.onFilterChipSelected(value, FilterChipId.Tent),
-          backgroundColor: Colors.white,
-          selectedColor: Theme.of(context).primaryColor,
-          checkmarkColor: Colors.white,
-          elevation: 1,
-          materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+    return Padding(
+      padding: const EdgeInsets.all(8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          FilterChip(
+            selected: mapModel.tentSelcted,
+            label: Text('Tent', style: TextStyle(color: mapModel.tentSelcted ? Colors.white : Colors.black),),
+            onSelected: (value) => mapModel.onFilterChipSelected(value, FilterChipId.Tent),
+            backgroundColor: Colors.white,
+            selectedColor: Theme.of(context).primaryColor,
+            checkmarkColor: Colors.white,
+            elevation: 1,
+            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
 
-        ),
-        SizedBox(width: 4),
-        FilterChip(
-          selected: mapModel.hammockSelcted,
-          label: Text('Hammock', style: TextStyle(color: mapModel.hammockSelcted ? Colors.white : Colors.black),),
-          onSelected: (value) => mapModel.onFilterChipSelected(value, FilterChipId.Hammock),
-          backgroundColor: Colors.white,
-          selectedColor: Theme.of(context).primaryColor,
-          checkmarkColor: Colors.white,
-          elevation: 1,
-          materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-        ),
-      ],);
+          ),
+          SizedBox(width: 4),
+          FilterChip(
+            selected: mapModel.hammockSelcted,
+            label: Text('Hammock', style: TextStyle(color: mapModel.hammockSelcted ? Colors.white : Colors.black),),
+            onSelected: (value) => mapModel.onFilterChipSelected(value, FilterChipId.Hammock),
+            backgroundColor: Colors.white,
+            selectedColor: Theme.of(context).primaryColor,
+            checkmarkColor: Colors.white,
+            elevation: 1,
+            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          ),
+        ],),
+    );
   }
 }
 

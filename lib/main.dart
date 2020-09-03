@@ -164,7 +164,8 @@ class Home extends StatelessWidget {
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
-        backgroundColor: Colors.transparent,
+        backgroundColor: Colors.black.withOpacity(.1),
+        title: Text('Køye Kos'),
         elevation: 0,
         actions: [
           IconButton(
