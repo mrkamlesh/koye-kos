@@ -14,19 +14,21 @@ import '../utils.dart';
 
 enum ClickState { None, Click, LongClick, SymbolClick }
 
-enum FilterChipId { Tent, Hammock }
-
 enum MapStyle { Outdoors, Satellite }
 
 class MapBoxMapStyle {
-  static const OUTDOORS = 'mapbox://styles/samudev/ckdxjbopx44gj1aorm1eumxo6'; /*MapboxStyles.OUTDOORS;*/
+  static const OUTDOORS =
+      'mapbox://styles/samudev/ckdxjbopx44gj1aorm1eumxo6'; /*MapboxStyles.OUTDOORS;*/
   static const SATELLITE = MapboxStyles.SATELLITE;
 
   static String getMapStyle(MapStyle style) {
-    switch(style) {
-      case MapStyle.Outdoors: return OUTDOORS;
-      case MapStyle.Satellite: return SATELLITE;
-      default: return OUTDOORS;
+    switch (style) {
+      case MapStyle.Outdoors:
+        return OUTDOORS;
+      case MapStyle.Satellite:
+        return SATELLITE;
+      default:
+        return OUTDOORS;
     }
   }
 }
@@ -36,6 +38,7 @@ class MapModel extends ChangeNotifier {
   Point<double> longClickCoordinates;
   Point<double> clickCoordinates;
   ClickState _clickState;
+  Set<Camp> _camps;
   Set<MapSymbolMarker> _campSymbols;
   Stream<Set<MapSymbolMarker>> _campSymbolsStream;
   Map<String, Camp> _campMap;
@@ -43,12 +46,16 @@ class MapModel extends ChangeNotifier {
   bool _locationTracking = false;
   String _styleString = MapBoxMapStyle.OUTDOORS;
   bool _dialVisible = true;
+  Set<CampFeature> _selectedFeatures = {};
   bool _tentSelected = false;
   bool _hammockSelected = false;
 
+  StreamController<Set<MapSymbolMarker>> streamController = StreamController();
+  StreamSubscription ss;
+
   MapModel({@required this.firestore}) {
     _clickState = ClickState.None;
-    _campSymbolsStream = firestore.getCampListStream().map(_campToSymbolMarker);
+    ss = firestore.getCampListStream().listen(_campToSymbolMarker);
   }
 
   void onStyleSelected(MapStyle style) {
@@ -60,6 +67,7 @@ class MapModel extends ChangeNotifier {
 
   ClickState get clickState => _clickState;
   Stream<Set<MapSymbolMarker>> get campSymbolsStream => _campSymbolsStream;
+  Set<MapSymbolMarker> get campSymbolSet => _campSymbols;
   Camp getCamp(String id) => _campMap[id];
   bool get locationTracking => _locationTracking;
   MyLocationTrackingMode get trackingMode => _locationTracking
@@ -71,20 +79,21 @@ class MapModel extends ChangeNotifier {
   bool get hammockSelcted => _hammockSelected;
 
   Set<MapSymbolMarker> _campToSymbolMarker(List<Camp> camps) {
-    print(camps);
+    _camps = camps.toSet();
     _campMap = camps.asMap().map((_, camp) => MapEntry(camp.id, camp));
-    _campSymbols = camps
-        .map((Camp camp) => MapSymbolMarker(
-      options: SymbolOptions(
-        geometry: camp.location.toLatLng(),
-        iconImage: 'assets/symbols/location_black.png',
-        iconSize: 1,
-      ),
-      id: camp.id,
-    ))
-        .toSet();
+    _campSymbols = camps.map(_campToSymbol).toSet();
+    streamController.add(_campSymbols);
     return _campSymbols;
   }
+
+  MapSymbolMarker _campToSymbol(Camp camp) => MapSymbolMarker(
+        options: SymbolOptions(
+          geometry: camp.location.toLatLng(),
+          iconImage: 'assets/symbols/location_black.png',
+          iconSize: 1,
+        ),
+        id: camp.id,
+      );
 
   SymbolOptions onMapLongClick(LatLng coordinates) {
     longClickCoordinates = coordinates.toPoint();
@@ -97,13 +106,20 @@ class MapModel extends ChangeNotifier {
     );
   }
 
-  void onFilterChipSelected(bool selected, FilterChipId id) {
-    if (id == FilterChipId.Tent) {
-      _tentSelected = selected;
-    }
-    if (id == FilterChipId.Hammock) {
-      _hammockSelected = selected;
-    }
+  void onFilterChipSelected(bool selected, CampFeature feature) {
+    selected
+        ? _selectedFeatures.add(feature)
+        : _selectedFeatures.remove(feature);
+    print(_selectedFeatures);
+    _tentSelected = _selectedFeatures.contains(CampFeature.Tent);
+    _hammockSelected = _selectedFeatures.contains(CampFeature.Hammock);
+    _campSymbols = _selectedFeatures.isEmpty
+        ? _camps.map(_campToSymbol).toSet()
+        : _camps
+            .where((camp) => camp.features.contains(feature))
+            .map(_campToSymbol)
+            .toSet();
+    streamController.add(_campSymbols);
     notifyListeners();
   }
 
@@ -132,7 +148,8 @@ class MapModel extends ChangeNotifier {
   void onGpsClick() async {
     final location = Location();
     final hasPermissions = await location.hasPermission();
-    if (hasPermissions == PermissionStatus.granted) _toggleLocationTracking();
+    if (hasPermissions == PermissionStatus.granted)
+      _toggleLocationTracking();
     else {
       final PermissionStatus status = await location.requestPermission();
       if (status == PermissionStatus.granted) _toggleLocationTracking();
@@ -146,6 +163,7 @@ class MapModel extends ChangeNotifier {
 
   @override
   void dispose() {
+    streamController.close();
     super.dispose();
   }
 }

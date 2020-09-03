@@ -30,7 +30,7 @@ class MapFilter extends StatelessWidget {
           FilterChip(
             selected: mapModel.tentSelcted,
             label: Text('Tent', style: TextStyle(color: mapModel.tentSelcted ? Colors.white : Colors.black),),
-            onSelected: (value) => mapModel.onFilterChipSelected(value, FilterChipId.Tent),
+            onSelected: (value) => mapModel.onFilterChipSelected(value, CampFeature.Tent),
             backgroundColor: Colors.white,
             selectedColor: Theme.of(context).primaryColor,
             checkmarkColor: Colors.white,
@@ -42,7 +42,7 @@ class MapFilter extends StatelessWidget {
           FilterChip(
             selected: mapModel.hammockSelcted,
             label: Text('Hammock', style: TextStyle(color: mapModel.hammockSelcted ? Colors.white : Colors.black),),
-            onSelected: (value) => mapModel.onFilterChipSelected(value, FilterChipId.Hammock),
+            onSelected: (value) => mapModel.onFilterChipSelected(value, CampFeature.Hammock),
             backgroundColor: Colors.white,
             selectedColor: Theme.of(context).primaryColor,
             checkmarkColor: Colors.white,
@@ -150,7 +150,7 @@ class MapState extends State<Map> {
   void _onStyleLoaded() {
     // Subscribe to stream events
     _symbolsSubscription =
-        context.read<MapModel>().campSymbolsStream.listen((element) {
+        context.read<MapModel>().streamController.stream.listen((element) {
           _mapController.clearSymbols();
 
           // TODO: batch add with addSymbols
