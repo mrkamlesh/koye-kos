@@ -53,5 +53,7 @@ flutter:
   uses-material-design: true
 
   assets:
-    - assets/symbols/location_red_96.png
-    - assets/symbols/location_black_96.png
+    - assets/symbols/location_red.png
+    - assets/symbols/location_black.png
+    - assets/symbols/2.0x/location_black.png
+    - assets/symbols/3.0x/location_black.png

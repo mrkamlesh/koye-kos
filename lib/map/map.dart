@@ -123,8 +123,9 @@ class MapState extends State<Map> {
         _mapController.addSymbol(element.options, {'id': element.id});
       });
     });
-    addImageFromAsset('marker-red', 'assets/symbols/location_red_96.png');
-    addImageFromAsset('marker-black', 'assets/symbols/location_black_96.png');
+    //print(MediaQueryData.fromWindow(WidgetsBinding.instance.window).devicePixelRatio);
+    addImageFromAsset('marker-red', 'assets/symbols/location_red.png');
+    addImageFromAsset('marker-black', 'assets/symbols/location_black.png');
   }
 
   Future<void> addImageFromAsset(String name, String assetName) async {
