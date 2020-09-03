@@ -20,7 +20,7 @@ class AddModel with ChangeNotifier {
   final List<CampImage> _campImages = [];
   String _description = '';
   bool _postPressed = false;
-  Set<CampType> _types = {};
+  Set<CampFeature> _types = {};
 
   AddModel(
       {@required this.auth,
@@ -41,8 +41,9 @@ class AddModel with ChangeNotifier {
   File getImage(int index) => _campImages[index].file;
   List<CampImage> get campImages => _campImages;
   CampImage getCampImage(int index) => _campImages[index];
-  bool get tentSelected => _types.contains(CampType.Tent);
-  bool get hammockSelected => _types.contains(CampType.Hammock);
+  bool get tentSelected => _types.contains(CampFeature.Tent);
+  bool get hammockSelected => _types.contains(CampFeature.Hammock);
+  bool get waterSelected => _types.contains(CampFeature.Water);
 
   int addImage(String imagePath) {
     final index = _campImages.length;
@@ -97,7 +98,7 @@ class AddModel with ChangeNotifier {
         : 'Please enter a short description!';
   }
 
-  void onTypePressed(bool selected, CampType type) {
+  void onTypePressed(bool selected, CampFeature type) {
     selected
         ? _types.add(type)
         : _types.remove(type);

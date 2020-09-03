@@ -43,30 +43,40 @@ class CampFeatures extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16, left: 8, right: 8),
       child: Wrap(
+        spacing: 8,
+        runSpacing: 8,
         crossAxisAlignment: WrapCrossAlignment.start,
         children: [
           FilterChip(
             selected: addModel.tentSelected,
             label: Text('Tent', style: TextStyle(color: addModel.tentSelected ? Colors.white : Colors.black),),
-            onSelected: (value) => addModel.onTypePressed(value, CampType.Tent),
+            onSelected: (value) => addModel.onTypePressed(value, CampFeature.Tent),
             backgroundColor: Colors.white,
             selectedColor: Theme.of(context).primaryColor,
             checkmarkColor: Colors.white,
             elevation: 1,
             materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
           ),
-          SizedBox(width: 8,),
           FilterChip(
             selected: addModel.hammockSelected,
             label: Text('Hammock', style: TextStyle(color: addModel.hammockSelected ? Colors.white : Colors.black),),
-            onSelected: (value) => addModel.onTypePressed(value, CampType.Hammock),
+            onSelected: (value) => addModel.onTypePressed(value, CampFeature.Hammock),
             backgroundColor: Colors.white,
             selectedColor: Theme.of(context).primaryColor,
             checkmarkColor: Colors.white,
             elevation: 1,
             materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-          )
-
+          ),
+          FilterChip(
+            selected: addModel.waterSelected,
+            label: Text('Water nearby', style: TextStyle(color: addModel.waterSelected ? Colors.white : Colors.black),),
+            onSelected: (value) => addModel.onTypePressed(value, CampFeature.Water),
+            backgroundColor: Colors.white,
+            selectedColor: Theme.of(context).primaryColor,
+            checkmarkColor: Colors.white,
+            elevation: 1,
+            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          ),
         ],
       ),
     );

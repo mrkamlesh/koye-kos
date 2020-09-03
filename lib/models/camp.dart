@@ -5,7 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../utils.dart';
 
-enum CampType { Tent, Hammock }
+enum CampFeature { Tent, Hammock, Water }
 
 // TODO: this could need some code generation
 class Camp {
@@ -17,7 +17,7 @@ class Camp {
   final String description;
   final String creatorId;
   final String creatorName;
-  Set<CampType> types;
+  Set<CampFeature> types;
 
   Camp(
       {@required this.id,
@@ -36,9 +36,10 @@ class Camp {
     // Fix this when null safety comes to Dart..
     // TODO: hey look, it's 'serialization, the hack'
     final typeStrings = List<String>.from((data['types'] ?? []) as List);
-    Set<CampType> types = {
-      if (typeStrings.contains('tent')) CampType.Tent,
-      if (typeStrings.contains('hammock')) CampType.Hammock,
+    Set<CampFeature> types = {
+      if (typeStrings.contains('tent')) CampFeature.Tent,
+      if (typeStrings.contains('hammock')) CampFeature.Hammock,
+      if (typeStrings.contains('water')) CampFeature.Water,
     };
 
     return Camp(
@@ -58,8 +59,9 @@ class Camp {
 
     // TODO: Wow such deserialization
     final List<String> typeStrings = [
-      if (types.contains(CampType.Tent)) 'tent',
-      if (types.contains(CampType.Hammock)) 'hammock',
+      if (types.contains(CampFeature.Tent)) 'tent',
+      if (types.contains(CampFeature.Hammock)) 'hammock',
+      if (types.contains(CampFeature.Water)) 'water',
     ];
 
     map.addAll({
