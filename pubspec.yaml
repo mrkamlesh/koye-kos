@@ -54,6 +54,8 @@ flutter:
 
   assets:
     - assets/symbols/location_red.png
+    - assets/symbols/2.0x/location_red.png
+    - assets/symbols/3.0x/location_red.png
     - assets/symbols/location_black.png
     - assets/symbols/2.0x/location_black.png
     - assets/symbols/3.0x/location_black.png
