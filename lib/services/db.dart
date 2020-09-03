@@ -111,7 +111,7 @@ class FirestoreService {
         description: description,
         creatorId: user.id,
         creatorName: user.name,
-        types: types);
+        features: types);
 
     campRef.set(camp.toFirestoreMap(), SetOptions(merge: true)).then((value) {
       print('Uploaded camp complete!');

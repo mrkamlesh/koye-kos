@@ -17,7 +17,7 @@ class Camp {
   final String description;
   final String creatorId;
   final String creatorName;
-  Set<CampFeature> types;
+  Set<CampFeature> features;
 
   Camp(
       {@required this.id,
@@ -28,7 +28,7 @@ class Camp {
         @required this.description,
         @required this.creatorId,
         @required this.creatorName,
-        @required this.types});
+        @required this.features});
 
   factory Camp.fromFirestore(DocumentSnapshot document) {
     Map data = document.data();
@@ -51,7 +51,7 @@ class Camp {
         description: data['description'] as String ?? '',
         creatorId: data['creator_id'] as String ?? '',
         creatorName: data['creator_name'] as String ?? '',
-        types: types,);
+        features: types,);
   }
 
   Map<String, dynamic> toFirestoreMap() {
@@ -59,9 +59,9 @@ class Camp {
 
     // TODO: Wow such deserialization
     final List<String> typeStrings = [
-      if (types.contains(CampFeature.Tent)) 'tent',
-      if (types.contains(CampFeature.Hammock)) 'hammock',
-      if (types.contains(CampFeature.Water)) 'water',
+      if (features.contains(CampFeature.Tent)) 'tent',
+      if (features.contains(CampFeature.Hammock)) 'hammock',
+      if (features.contains(CampFeature.Water)) 'water',
     ];
 
     map.addAll({

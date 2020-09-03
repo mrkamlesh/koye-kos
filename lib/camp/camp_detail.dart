@@ -1,5 +1,6 @@
 import 'dart:collection';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:koye_kos/camp/providers/camp_model.dart';
@@ -151,9 +152,31 @@ class CampInfo extends StatelessWidget {
               FavoriteWidget(),
             ],
           ),
+          CampFeaturesWidget(),
           Text(camp.description),
           Divider(),
           Text('By: ${camp.creatorName ?? 'Anonymous'}'),
+        ],
+      ),
+    );
+  }
+}
+
+class CampFeaturesWidget extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final campModel = Provider.of<CampModel>(context);
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Wrap(
+        spacing: 8,
+        runSpacing: 8,
+        crossAxisAlignment: WrapCrossAlignment.start,
+        children: <Chip>[
+          ...campModel.camp.features.map((feature) => Chip(
+                label: Text(describeEnum(feature)), // FIXME: hey look a hack
+              ))
         ],
       ),
     );
@@ -169,13 +192,13 @@ class UserRatingView extends StatelessWidget {
     void _toCommentPage(double score) {
       Navigator.push<CampComment>(context,
           MaterialPageRoute(builder: (context) {
-            return ChangeNotifierProvider(
-              create: (context) => CommentModel(
-                  originalText: campModel.userComment?.commentText,
-                  originalScore: score),
-              builder: (context, child) => AddCommentScreen(),
-            );
-          })).then(campModel.onCampCommentResult);
+        return ChangeNotifierProvider(
+          create: (context) => CommentModel(
+              originalText: campModel.userComment?.commentText,
+              originalScore: score),
+          builder: (context, child) => AddCommentScreen(),
+        );
+      })).then(campModel.onCampCommentResult);
     }
 
     // if authenticated; set score, otherwise ask user to log in and then set score based on action taken
@@ -186,8 +209,8 @@ class UserRatingView extends StatelessWidget {
               context: context,
               builder: (_) => LogInDialog(actionText: 'rate a camp'),
             ).then((_) => auth.isAuthenticated
-                  ? _toCommentPage(score)
-                  : campModel.setScore(0)); // user did not log in -> reset score
+              ? _toCommentPage(score)
+              : campModel.setScore(0)); // user did not log in -> reset score
     }
 
     return Column(children: [
