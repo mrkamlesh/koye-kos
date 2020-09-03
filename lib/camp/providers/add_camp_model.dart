@@ -3,6 +3,7 @@ import 'dart:math';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/painting.dart';
+import 'package:koye_kos/models/camp.dart';
 import 'package:koye_kos/services/auth.dart';
 import 'package:koye_kos/services/db.dart';
 import '../../utils.dart';
@@ -19,11 +20,12 @@ class AddModel with ChangeNotifier {
   final List<CampImage> _campImages = [];
   String _description = '';
   bool _postPressed = false;
+  Set<CampType> _types;
 
   AddModel(
       {@required this.auth,
-      @required this.firestore,
-      @required this.location}) {}
+        @required this.firestore,
+        @required this.location}) {}
 
   void setAuth(Auth auth) => this.auth = auth;
   void setFirestore(FirestoreService firestore) => this.firestore = firestore;
@@ -39,6 +41,8 @@ class AddModel with ChangeNotifier {
   File getImage(int index) => _campImages[index].file;
   List<CampImage> get campImages => _campImages;
   CampImage getCampImage(int index) => _campImages[index];
+  bool get tentSelected => _types.contains(CampType.Tent);
+  bool get hammockSelected => _types.contains(CampType.Hammock);
 
   int addImage(String imagePath) {
     final index = _campImages.length;
@@ -93,12 +97,19 @@ class AddModel with ChangeNotifier {
         : 'Please enter a short description!';
   }
 
+  void onTypePressed(bool selected, CampType type) {
+    selected
+        ? _types.add(type)
+        : _types.remove(type);
+  }
+
   bool addCamp() {
     final images = _campImages.map((campImage) => campImage.file).toList();
     return firestore.addCamp(
       description: _description,
       location: location,
       images: images,
+      types: [CampType.Tent, CampType.Hammock],
     );
   }
 

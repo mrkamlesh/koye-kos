@@ -5,6 +5,9 @@ import 'package:flutter/foundation.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../utils.dart';
 
+enum CampType { Tent, Hammock }
+
+// TODO: this could need some code generation
 class Camp {
   final String id;
   final List<String> imageUrls;
@@ -14,7 +17,7 @@ class Camp {
   final String description;
   final String creatorId;
   final String creatorName;
-  // time created?
+  List<CampType> types;
 
   Camp(
       {@required this.id,
@@ -24,12 +27,20 @@ class Camp {
         this.ratings = 0,
         @required this.description,
         @required this.creatorId,
-        @required this.creatorName});
+        @required this.creatorName,
+        @required this.types});
 
   factory Camp.fromFirestore(DocumentSnapshot document) {
     Map data = document.data();
     Point<double> location = ((data['location'] ?? GeoPoint(0, 0)) as GeoPoint).toPoint();
     // Fix this when null safety comes to Dart..
+    // TODO: hey look, it's 'serialization, the hack'
+    final typeStrings = List<String>.from((data['types'] ?? []) as List);
+    List<CampType> types = [
+      if (typeStrings.contains('tent')) CampType.Tent,
+      if (typeStrings.contains('hammock')) CampType.Hammock,
+    ];
+
     return Camp(
         id: document.id ?? '',
         imageUrls: List<String>.from((data['image_urls'] ?? []) as List),
@@ -38,12 +49,19 @@ class Camp {
         ratings: data['ratings'] as int ?? 0,
         description: data['description'] as String ?? '',
         creatorId: data['creator_id'] as String ?? '',
-        creatorName: data['creator_name'] as String ?? '');
+        creatorName: data['creator_name'] as String ?? '',
+        types: types,);
   }
 
   Map<String, dynamic> toFirestoreMap() {
     HashMap<String, dynamic> map = HashMap();
-    // Note: id is left out since it is already saved as the documents name in firestore
+
+    // TODO: Wow such deserialization
+    final List<String> typeStrings = [
+      if (types.contains(CampType.Tent)) 'tent',
+      if (types.contains(CampType.Hammock)) 'hammock',
+    ];
+
     map.addAll({
       'image_urls': imageUrls,  // can't be empty
       'location': location.toGeoPoint(), // can't be empty
@@ -52,6 +70,7 @@ class Camp {
       'creator_name': creatorName,  // can't be empty
       'score': score,
       'ratings': ratings,
+      'types': typeStrings,
     });
     return map;
   }
@@ -71,7 +90,7 @@ class CampComment {
   double score;
 
   CampComment({@required this.commentText, this.userId, this.userName, this.userPhotoUrl, this.date,
-  this.score});
+    this.score});
 
   factory CampComment.fromFirestore(DocumentSnapshot document) {
     Map data = document.data();
@@ -83,6 +102,7 @@ class CampComment {
       date: (data['date'] as Timestamp).toDate(),
     );
     if (data['score'] != null) comment.score = data['score'] as double;
+    if (data[''] != null) comment.score = data['score'] as double;
     return comment;
   }
 
