@@ -41,7 +41,7 @@ class FirestoreService {
     @required String description,
     @required Point<double> location,
     @required List<File> images,
-    @required List<CampType> types,
+    @required Set<CampType> types,
   }) {
     // Get a reference to new camp
     DocumentReference campRef =
@@ -69,7 +69,7 @@ class FirestoreService {
     @required String description,
     @required Point<double> location,
     @required List<File> images,
-    @required List<CampType> types
+    @required Set<CampType> types
   }) async {
     // Compress images
     List<Uint8List> imagesCompressed =

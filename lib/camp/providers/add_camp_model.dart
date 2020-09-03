@@ -20,7 +20,7 @@ class AddModel with ChangeNotifier {
   final List<CampImage> _campImages = [];
   String _description = '';
   bool _postPressed = false;
-  Set<CampType> _types;
+  Set<CampType> _types = {};
 
   AddModel(
       {@required this.auth,
@@ -101,6 +101,7 @@ class AddModel with ChangeNotifier {
     selected
         ? _types.add(type)
         : _types.remove(type);
+    notifyListeners();
   }
 
   bool addCamp() {
@@ -109,7 +110,7 @@ class AddModel with ChangeNotifier {
       description: _description,
       location: location,
       images: images,
-      types: [CampType.Tent, CampType.Hammock],
+      types: _types,
     );
   }
 

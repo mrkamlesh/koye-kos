@@ -1,9 +1,11 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:implicitly_animated_reorderable_list/implicitly_animated_reorderable_list.dart';
+import 'package:koye_kos/models/camp.dart';
 import 'package:provider/provider.dart';
 import 'package:transparent_image/transparent_image.dart';
 
@@ -23,14 +25,54 @@ class AddCampScreen extends StatelessWidget {
         ],
       ),
       body: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           AddImageView(),
+          CampFeatures(),
           CampForm(),
         ],
       ),
     );
   }
 }
+
+class CampFeatures extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final addModel = Provider.of<AddModel>(context);
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16, left: 8, right: 8),
+      child: Wrap(
+        crossAxisAlignment: WrapCrossAlignment.start,
+        children: [
+          FilterChip(
+            selected: addModel.tentSelected,
+            label: Text('Tent', style: TextStyle(color: addModel.tentSelected ? Colors.white : Colors.black),),
+            onSelected: (value) => addModel.onTypePressed(value, CampType.Tent),
+            backgroundColor: Colors.white,
+            selectedColor: Theme.of(context).primaryColor,
+            checkmarkColor: Colors.white,
+            elevation: 1,
+            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          ),
+          SizedBox(width: 8,),
+          FilterChip(
+            selected: addModel.hammockSelected,
+            label: Text('Hammock', style: TextStyle(color: addModel.hammockSelected ? Colors.white : Colors.black),),
+            onSelected: (value) => addModel.onTypePressed(value, CampType.Hammock),
+            backgroundColor: Colors.white,
+            selectedColor: Theme.of(context).primaryColor,
+            checkmarkColor: Colors.white,
+            elevation: 1,
+            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          )
+
+        ],
+      ),
+    );
+  }
+}
+
 
 class AddCampButton extends StatelessWidget {
   @override
@@ -49,12 +91,12 @@ class AddCampButton extends StatelessWidget {
         wasAdded
             ? Navigator.pop(context, true)
             : Scaffold.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(
-                    'Error uploading camp!',
-                  ),
-                ),
-              );
+          SnackBar(
+            content: Text(
+              'Error uploading camp!',
+            ),
+          ),
+        );
       },
     );
   }
@@ -110,29 +152,32 @@ class _AddImageViewState extends State<AddImageView> {
   Widget build(BuildContext context) {
     final addModel = Provider.of<AddModel>(context);
 
-    return Column(
-      children: [
-        SizedBox(height: 8),
-        ImageList(
-          listKey: _listKey,
-          addCallback: getImage,
-          onEditCallback: cropImage,
-        ),
-        addModel.showNoImageError
-            ? Container(
-                height: 24,
-                child: Center(
-                  child: Text(
-                    'Please add at least 1 image!',
-                    style: TextStyle(
-                      color: Colors.red.shade700,
-                      fontSize: 12,
-                    ),
-                  ),
+    return Container(
+      width: double.infinity,
+      child: Column(
+        children: [
+          SizedBox(height: 8),
+          ImageList(
+            listKey: _listKey,
+            addCallback: getImage,
+            onEditCallback: cropImage,
+          ),
+          addModel.showNoImageError
+              ? Container(
+            height: 24,
+            child: Center(
+              child: Text(
+                'Please add at least 1 image!',
+                style: TextStyle(
+                  color: Colors.red.shade700,
+                  fontSize: 12,
                 ),
-              )
-            : SizedBox(height: 24),  // Empty space so error doesn't 'jump' in
-      ],
+              ),
+            ),
+          )
+              : SizedBox(height: 24),  // Empty space so error doesn't 'jump' in
+        ],
+      ),
     );
   }
 }

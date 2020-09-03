@@ -17,7 +17,7 @@ class Camp {
   final String description;
   final String creatorId;
   final String creatorName;
-  List<CampType> types;
+  Set<CampType> types;
 
   Camp(
       {@required this.id,
@@ -36,10 +36,10 @@ class Camp {
     // Fix this when null safety comes to Dart..
     // TODO: hey look, it's 'serialization, the hack'
     final typeStrings = List<String>.from((data['types'] ?? []) as List);
-    List<CampType> types = [
+    Set<CampType> types = {
       if (typeStrings.contains('tent')) CampType.Tent,
       if (typeStrings.contains('hammock')) CampType.Hammock,
-    ];
+    };
 
     return Camp(
         id: document.id ?? '',
