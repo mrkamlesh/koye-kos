@@ -12,7 +12,6 @@
         android:label="koye_kos"
         android:icon="@mipmap/ic_launcher"
         android:requestLegacyExternalStorage="true">
-        <meta-data android:name="com.mapbox.token" android:value="pk.eyJ1Ijoic2FtdWRldiIsImEiOiJja2R4aTd5aTgzMzF0MzBwYXh5bjV0M3k2In0.DZiALUfM4GMSMqYOlnn6Ug" />
         <activity
             android:name=".MainActivity"
             android:launchMode="singleTop"

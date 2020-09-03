@@ -38,6 +38,7 @@ class MapState extends State<Map> {
           body: Stack(
             children: [
               MapboxMap(
+                accessToken: 'pk.eyJ1Ijoic2FtdWRldiIsImEiOiJja2R4aTd5aTgzMzF0MzBwYXh5bjV0M3k2In0.DZiALUfM4GMSMqYOlnn6Ug',
                 onMapCreated: _onMapCreated,
                 onStyleLoadedCallback: _onStyleLoaded,
                 initialCameraPosition: const CameraPosition(
