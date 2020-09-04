@@ -1,15 +1,11 @@
 import 'dart:async';
-import 'dart:math';
 
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:koye_kos/models/camp.dart';
-import 'package:koye_kos/services/auth.dart';
 import 'package:koye_kos/services/db.dart';
 import 'package:location/location.dart';
 import 'package:mapbox_gl/mapbox_gl.dart';
 
-import 'map_detail.dart';
 import '../utils.dart';
 
 enum ClickState { None, Click, LongClick, SymbolClick }
@@ -35,58 +31,60 @@ class MapBoxMapStyle {
 
 class MapModel extends ChangeNotifier {
   FirestoreService firestore;
-  Point<double> longClickCoordinates;
-  Point<double> clickCoordinates;
-  ClickState _clickState;
+
   Set<Camp> _camps;
-  Set<MapSymbolMarker> _campSymbols;
-  Stream<Set<MapSymbolMarker>> _campSymbolsStream;
-  Map<String, Camp> _campMap;
+  Map<String, Camp> _campMap; // camp id to camp
+  Set<MapSymbol> _symbols;
+  StreamController<Set<MapSymbol>> _symbolStreamController;
+  StreamSubscription _campStreamSubscription;
+
+  ClickState _clickState;
   Symbol _longClickSymbol;
-  bool _locationTracking = false;
-  String _styleString = MapBoxMapStyle.OUTDOORS;
+  bool _trackingMode = false;
+  String _mapStyle = MapBoxMapStyle.OUTDOORS;
   bool _dialVisible = true;
   Set<CampFeature> _selectedFeatures = {};
-  bool _tentSelected = false;
-  bool _hammockSelected = false;
-
-  StreamController<Set<MapSymbolMarker>> streamController = StreamController();
-  StreamSubscription ss;
 
   MapModel({@required this.firestore}) {
     _clickState = ClickState.None;
-    ss = firestore.getCampListStream().listen(_campToSymbolMarker);
+    _symbolStreamController = StreamController();
+    _campStreamSubscription = firestore.getCampSetStream().listen(_campToSymbolMarker);
   }
 
   void onStyleSelected(MapStyle style) {
-    _styleString = MapBoxMapStyle.getMapStyle(style);
+    _mapStyle = MapBoxMapStyle.getMapStyle(style);
     notifyListeners();
   }
 
   void setFirestore(FirestoreService firestore) => this.firestore = firestore;
 
-  ClickState get clickState => _clickState;
-  Stream<Set<MapSymbolMarker>> get campSymbolsStream => _campSymbolsStream;
-  Set<MapSymbolMarker> get campSymbolSet => _campSymbols;
+  Stream<Set<MapSymbol>> get campSymbolStream => _symbolStreamController.stream;
+  Set<MapSymbol> get campSymbolSet => _symbols;
   Camp getCamp(String id) => _campMap[id];
-  bool get locationTracking => _locationTracking;
-  MyLocationTrackingMode get trackingMode => _locationTracking
+
+  ClickState get clickState => _clickState;
+  Symbol get longCLickSymbol => _longClickSymbol;
+
+  bool get locationTracking => _trackingMode;
+  MyLocationTrackingMode get trackingMode => _trackingMode
       ? MyLocationTrackingMode.Tracking
       : MyLocationTrackingMode.None;
-  String get mapStyle => _styleString;
-  bool get dialVisible => _dialVisible;
-  bool get tentSelcted => _tentSelected;
-  bool get hammockSelcted => _hammockSelected;
 
-  Set<MapSymbolMarker> _campToSymbolMarker(List<Camp> camps) {
+  String get mapStyle => _mapStyle;
+  bool get dialVisible => _dialVisible;
+  bool get tentSelected => _selectedFeatures.contains(CampFeature.Tent);
+  bool get hammockSelcted => _selectedFeatures.contains(CampFeature.Hammock);
+  bool get waterSelcted => _selectedFeatures.contains(CampFeature.Water);
+
+  Set<MapSymbol> _campToSymbolMarker(Set<Camp> camps) {
     _camps = camps.toSet();
-    _campMap = camps.asMap().map((_, camp) => MapEntry(camp.id, camp));
-    _campSymbols = camps.map(_campToSymbol).toSet();
-    streamController.add(_campSymbols);
-    return _campSymbols;
+    _campMap = Map.fromEntries(camps.map((camp) => MapEntry(camp.id, camp)));
+    _symbols = camps.map(_campToMapSymbol).toSet();
+    _symbolStreamController.add(_symbols);
+    return _symbols;
   }
 
-  MapSymbolMarker _campToSymbol(Camp camp) => MapSymbolMarker(
+  MapSymbol _campToMapSymbol(Camp camp) => MapSymbol(
         options: SymbolOptions(
           geometry: camp.location.toLatLng(),
           iconImage: 'assets/symbols/location_black.png',
@@ -95,8 +93,21 @@ class MapModel extends ChangeNotifier {
         id: camp.id,
       );
 
+  void onFilterChipSelected(bool selected, CampFeature feature) {
+    selected
+        ? _selectedFeatures.add(feature)
+        : _selectedFeatures.remove(feature);
+    _symbols = _selectedFeatures.isNotEmpty
+        ? _camps
+            .where((camp) => camp.features.contains(feature))
+            .map(_campToMapSymbol)
+            .toSet()
+        : _camps.map(_campToMapSymbol).toSet();
+    _symbolStreamController.add(_symbols);
+    notifyListeners();
+  }
+
   SymbolOptions onMapLongClick(LatLng coordinates) {
-    longClickCoordinates = coordinates.toPoint();
     _clickState = ClickState.LongClick;
     notifyListeners();
     return SymbolOptions(
@@ -106,32 +117,11 @@ class MapModel extends ChangeNotifier {
     );
   }
 
-  void onFilterChipSelected(bool selected, CampFeature feature) {
-    selected
-        ? _selectedFeatures.add(feature)
-        : _selectedFeatures.remove(feature);
-    print(_selectedFeatures);
-    _tentSelected = _selectedFeatures.contains(CampFeature.Tent);
-    _hammockSelected = _selectedFeatures.contains(CampFeature.Hammock);
-    _campSymbols = _selectedFeatures.isEmpty
-        ? _camps.map(_campToSymbol).toSet()
-        : _camps
-            .where((camp) => camp.features.contains(feature))
-            .map(_campToSymbol)
-            .toSet();
-    streamController.add(_campSymbols);
-    notifyListeners();
-  }
-
   void setLongClickSymbol(Symbol symbol) {
     _longClickSymbol = symbol;
   }
 
-  Symbol get longCLickSymbol => _longClickSymbol;
-
   void onMapClick(LatLng coordinates) {
-    print('click');
-    clickCoordinates = coordinates.toPoint();
     if (_clickState == ClickState.Click) {
       _dialVisible = !_dialVisible;
     }
@@ -157,19 +147,20 @@ class MapModel extends ChangeNotifier {
   }
 
   void _toggleLocationTracking() {
-    _locationTracking = !_locationTracking;
+    _trackingMode = !_trackingMode;
     notifyListeners();
   }
 
   @override
   void dispose() {
-    streamController.close();
+    _campStreamSubscription.cancel();
+    _symbolStreamController.close();
     super.dispose();
   }
 }
 
-class MapSymbolMarker {
+class MapSymbol {
   final SymbolOptions options;
   final String id;
-  MapSymbolMarker({this.options, this.id});
+  MapSymbol({this.options, this.id});
 }

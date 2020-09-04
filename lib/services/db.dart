@@ -18,14 +18,13 @@ class FirestoreService {
 
   final _firestore = FirebaseFirestore.instance;
 
-  Stream<List<Camp>> getCampListStream() {
-    // use ('camps').snapshots for continuous connection with live updates
+  Stream<Set<Camp>> getCampSetStream() {
     return _firestore
         .collection(FirestorePath.campsPath)
         .snapshots()
         .map((QuerySnapshot snapshot) => snapshot.docs
         .map((DocumentSnapshot document) => Camp.fromFirestore(document))
-        .toList())
+        .toSet())
         .handleError((onError, stacktrace) {
       print('Error loading camps! $onError');
       print('Stack:  $stacktrace');
