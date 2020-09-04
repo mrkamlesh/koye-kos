@@ -7,7 +7,6 @@ import 'package:provider/provider.dart';
 import 'camp_detail.dart';
 import 'providers/comment_model.dart';
 
-
 class AddCommentScreen extends StatefulWidget {
   @override
   _AddCommentScreenState createState() => _AddCommentScreenState();
@@ -65,9 +64,20 @@ class _AddCommentScreenState extends State<AddCommentScreen> {
                 SizedBox(
                   height: 20,
                 ),
-                ClipOval(
-                  child: CachedNetworkImage(
-                    imageUrl: user.photoUrl,
+                CachedNetworkImage(
+                  imageUrl: user.photoUrl,
+                  placeholder: (context, url) => Container(
+                      width: 100,
+                      height: 100,
+                      child: Center(child: CircularProgressIndicator())),
+                  imageBuilder: (context, imageProvider) => Container(
+                    width: 100,
+                    height: 100,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      image: DecorationImage(
+                          image: imageProvider, fit: BoxFit.cover),
+                    ),
                   ),
                 ),
                 Padding(
@@ -105,19 +115,20 @@ class _AddCommentScreenState extends State<AddCommentScreen> {
                     return null;
                   },
                 ),
-                if (!commentModel.isNewComment) Center(
-                  child: RaisedButton(
-                    child: Text(
-                      'Delete comment',
-                      style: TextStyle(color: Colors.white),
+                if (!commentModel.isNewComment)
+                  Center(
+                    child: RaisedButton(
+                      child: Text(
+                        'Delete comment',
+                        style: TextStyle(color: Colors.white),
+                      ),
+                      color: Colors.red,
+                      onPressed: () {
+                        commentModel.deleteComment();
+                        Navigator.pop(context, commentModel.getComment());
+                      },
                     ),
-                    color: Colors.red,
-                    onPressed: () {
-                      commentModel.deleteComment();
-                      Navigator.pop(context, commentModel.getComment());
-                    },
                   ),
-                ),
               ],
             ), //
           ),
