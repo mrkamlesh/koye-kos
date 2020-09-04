@@ -5,6 +5,7 @@ class FirestorePath {
   static String usersPath = 'users';
   static String ratingsPath = 'ratings';
   static String favoritedPath = 'favorited';
+  static String commentsPath = 'comments';
 
   static String getFavoritePath(String userId) {
     return '$usersPath/${userId}/$favoritedPath';
@@ -15,7 +16,10 @@ class FirestorePath {
   }
 
   static String getCommentsPath(String campId) =>
-      '$campsPath/${campId}/comments';
+      '$campsPath/${campId}/$commentsPath';
+
+  static String getUserReactionPath(String commentId) =>
+      '$usersPath/${commentId}/$commentsPath';
 }
 
 class FirestoragePath {
