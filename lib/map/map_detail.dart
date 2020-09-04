@@ -4,6 +4,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:koye_kos/camp/providers/add_camp_model.dart';
 import 'package:koye_kos/camp/providers/camp_model.dart';
+import 'package:koye_kos/camp/ui/feature_chips.dart';
 import 'package:koye_kos/services/auth.dart';
 import 'package:koye_kos/services/db.dart';
 import 'package:koye_kos/ui/dialog.dart';
@@ -41,7 +42,7 @@ class CampDescription extends StatelessWidget {
     final camp = Provider.of<CampModel>(context).camp;
     return Padding(
       // Rest of camp description / rating view
-      padding: const EdgeInsets.all(8.0),
+      padding: const EdgeInsets.only(left: 8.0, right: 8, bottom: 8),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -51,6 +52,10 @@ class CampDescription extends StatelessWidget {
               RatingViewSmall(score: camp.score, ratings: camp.ratings),
               FavoriteWidget(),
             ],
+          ),
+          Padding(
+            padding: const EdgeInsets.only(bottom: 8.0),
+            child: CampFeaturesWidget(camp.features),
           ),
           Text(camp.description),
           Divider(),

@@ -32,6 +32,8 @@ class FeatureInfoChip extends StatelessWidget {
       label: Text(
         describeEnum(feature),
       ),
+      backgroundColor: Colors.white,
+      shape: StadiumBorder(side: BorderSide(color: Theme.of(context).primaryColor.withAlpha(40))),
       materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
     );
   }
