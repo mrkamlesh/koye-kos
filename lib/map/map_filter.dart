@@ -16,6 +16,7 @@ class MapFilter extends StatelessWidget {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            SizedBox(width: 8),
             FeatureSelectChip(
               title: 'Tent',
               feature: CampFeature.Tent,
@@ -36,7 +37,6 @@ class MapFilter extends StatelessWidget {
               isSelected: mapModel.waterSelected,
               onSelected: mapModel.onFeatureSelected,
             ),
-            SizedBox(width: 4),
           ],
         ),
       ),
