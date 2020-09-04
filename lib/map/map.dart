@@ -2,58 +2,19 @@ import 'dart:async';
 import 'dart:math';
 import 'dart:typed_data';
 
-import 'package:animations/animations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:koye_kos/camp/camp_utils.dart';
 import 'package:koye_kos/map/map_detail.dart';
 import 'package:koye_kos/models/camp.dart';
-import 'package:koye_kos/services/db.dart';
-import 'package:location/location.dart';
 import 'package:mapbox_gl/mapbox_gl.dart';
 import 'package:provider/provider.dart';
 
+import 'map_actions.dart';
+import 'map_filter.dart';
 import 'map_model.dart';
 import '../utils.dart';
-
-class MapFilter extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    final mapModel = Provider.of<MapModel>(context);
-    return Padding(
-      padding: const EdgeInsets.all(8),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          FilterChip(
-            selected: mapModel.tentSelcted,
-            label: Text('Tent', style: TextStyle(color: mapModel.tentSelcted ? Colors.white : Colors.black),),
-            onSelected: (value) => mapModel.onFilterChipSelected(value, CampFeature.Tent),
-            backgroundColor: Colors.white,
-            selectedColor: Theme.of(context).primaryColor,
-            checkmarkColor: Colors.white,
-            elevation: 1,
-            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-
-          ),
-          SizedBox(width: 4),
-          FilterChip(
-            selected: mapModel.hammockSelcted,
-            label: Text('Hammock', style: TextStyle(color: mapModel.hammockSelcted ? Colors.white : Colors.black),),
-            onSelected: (value) => mapModel.onFilterChipSelected(value, CampFeature.Hammock),
-            backgroundColor: Colors.white,
-            selectedColor: Theme.of(context).primaryColor,
-            checkmarkColor: Colors.white,
-            elevation: 1,
-            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-          ),
-        ],),
-    );
-  }
-}
-
 
 class Map extends StatefulWidget {
   @override
@@ -71,11 +32,12 @@ class MapState extends State<Map> {
       body: Stack(
         children: [
           MapboxMap(
-            accessToken: 'pk.eyJ1Ijoic2FtdWRldiIsImEiOiJja2R4aTd5aTgzMzF0MzBwYXh5bjV0M3k2In0.DZiALUfM4GMSMqYOlnn6Ug',
+            accessToken:
+                'pk.eyJ1Ijoic2FtdWRldiIsImEiOiJja2R4aTd5aTgzMzF0MzBwYXh5bjV0M3k2In0.DZiALUfM4GMSMqYOlnn6Ug',
             onMapCreated: _onMapCreated,
             onStyleLoadedCallback: _onStyleLoaded,
-            initialCameraPosition: const CameraPosition(
-                target: LatLng(63.4, 10.23), zoom: 11.0),
+            initialCameraPosition:
+                const CameraPosition(target: LatLng(63.4, 10.23), zoom: 11.0),
             onMapLongClick: _onMapLongClick,
             onMapClick: _onMapClick,
             rotateGesturesEnabled: false,
@@ -150,14 +112,14 @@ class MapState extends State<Map> {
   void _onStyleLoaded() {
     // Subscribe to stream events
     _symbolsSubscription =
-        context.read<MapModel>().streamController.stream.listen((element) {
-          _mapController.clearSymbols();
+        context.read<MapModel>().campSymbolStream.listen((element) {
+      _mapController.clearSymbols();
 
-          // TODO: batch add with addSymbols
-          element.forEach((element) {
-            _mapController.addSymbol(element.options, {'id': element.id});
-          });
-        });
+      // TODO: batch add with addSymbols
+      element.forEach((element) {
+        _mapController.addSymbol(element.options, {'id': element.id});
+      });
+    });
     //print(MediaQueryData.fromWindow(WidgetsBinding.instance.window).devicePixelRatio);
     addImageFromAsset('marker-red', 'assets/symbols/location_red.png');
     addImageFromAsset('marker-black', 'assets/symbols/location_black.png');
@@ -176,7 +138,6 @@ class MapState extends State<Map> {
     //_mapController.addListener(() {print('map changed.');});
   }
 
-
   void _showBottomSheetBuilder(Point<double> coordinates) {
     showBottomSheet<void>(
       context: context,
@@ -193,59 +154,5 @@ class MapState extends State<Map> {
     _mapController?.onSymbolTapped?.remove(_onSymbolTapped);
     _symbolsSubscription?.cancel();
     super.dispose();
-  }
-}
-
-class GpsButtonWidget extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    final mapModel = Provider.of<MapModel>(context);
-    return SizedBox(
-      width: 50,
-      height: 50,
-      child: FloatingActionButton(
-        onPressed: mapModel.onGpsClick,
-        backgroundColor: Colors.grey.shade50,
-        child: Icon(
-          Icons.gps_fixed,
-          color: mapModel.locationTracking ? Colors.blue : Colors.black87,
-        ),
-      ),
-    );
-  }
-}
-
-class MapStyleButtonWidget extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    final mapModel = Provider.of<MapModel>(context);
-    return Material(
-      type: MaterialType.circle,
-      clipBehavior: Clip.antiAlias,
-      elevation: 6,
-      color: Colors.grey.shade50,
-      child: SizedBox(
-        width: 35,
-        height: 35,
-        child: PopupMenuButton<MapStyle>(
-          child: Icon(
-            Icons.layers,
-            size: 20,
-            color: Colors.black87,
-          ),
-          onSelected: mapModel.onStyleSelected,
-          itemBuilder: (context) => <PopupMenuEntry<MapStyle>>[
-            PopupMenuItem<MapStyle>(
-              value: MapStyle.Outdoors,
-              child: Text('Outdoor'),
-            ),
-            PopupMenuItem<MapStyle>(
-              value: MapStyle.Satellite,
-              child: Text('Satellite'),
-            ),
-          ],
-        ),
-      ),
-    );
   }
 }
