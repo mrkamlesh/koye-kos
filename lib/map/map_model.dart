@@ -26,6 +26,7 @@ class MapModel extends ChangeNotifier {
   bool _trackingMode = false;
   String _mapStyle = MapBoxMapStyle.OUTDOORS;
   Set<CampFeature> _selectedFeatures = {};
+  AnimationStatus _animationStatus = AnimationStatus.completed;
 
   MapModel({@required this.firestore}) {
     _symbolStreamController = StreamController();
@@ -59,18 +60,11 @@ class MapModel extends ChangeNotifier {
   bool get hammockSelected => _selectedFeatures.contains(CampFeature.Hammock);
   bool get waterSelected => _selectedFeatures.contains(CampFeature.Water);
 
-  AnimationStatus _animationStatus = AnimationStatus.completed;
   bool get animationNotDismissed =>
       _animationStatus != AnimationStatus.dismissed;
   bool get animationRunningForwardOrComplete =>
       _animationStatus == AnimationStatus.forward ||
       _animationStatus == AnimationStatus.completed;
-  void onAnimationStatusChange(AnimationStatus status) {
-    _animationStatus = status;
-    notifyListeners();
-  }
-
-  //bool get animationIsForwardOrComplete => _animationIsForwardOrComplete;
 
   Set<MapSymbol> _campToSymbolMarker(Set<Camp> camps) {
     _camps = camps.toSet();
@@ -139,6 +133,11 @@ class MapModel extends ChangeNotifier {
       final PermissionStatus status = await location.requestPermission();
       if (status == PermissionStatus.granted) _toggleLocationTracking();
     }
+  }
+
+  void onAnimationStatusChange(AnimationStatus status) {
+    _animationStatus = status;
+    notifyListeners();
   }
 
   void _toggleLocationTracking() {
