@@ -17,6 +17,7 @@ import 'add_comment.dart';
 import 'providers/comment_model.dart';
 import 'comment.dart';
 import 'star_rating.dart';
+import 'ui/feature_chips.dart';
 
 class CampDetailScreen extends StatefulWidget {
   @override
@@ -152,31 +153,13 @@ class CampInfo extends StatelessWidget {
               FavoriteWidget(),
             ],
           ),
-          CampFeaturesWidget(),
+          Padding(
+            padding: const EdgeInsets.only(bottom: 8.0),
+            child: CampFeaturesWidget(),
+          ),
           Text(camp.description),
           Divider(),
           Text('By: ${camp.creatorName ?? 'Anonymous'}'),
-        ],
-      ),
-    );
-  }
-}
-
-class CampFeaturesWidget extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    final campModel = Provider.of<CampModel>(context);
-
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Wrap(
-        spacing: 8,
-        runSpacing: 8,
-        crossAxisAlignment: WrapCrossAlignment.start,
-        children: <Chip>[
-          ...campModel.camp.features.map((feature) => Chip(
-                label: Text(describeEnum(feature)), // FIXME: hey look a hack
-              ))
         ],
       ),
     );
