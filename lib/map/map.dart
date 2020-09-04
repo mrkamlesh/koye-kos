@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math';
 import 'dart:typed_data';
 
+import 'package:animations/animations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
@@ -21,9 +22,21 @@ class Map extends StatefulWidget {
   State createState() => MapState();
 }
 
-class MapState extends State<Map> {
+class MapState extends State<Map> with SingleTickerProviderStateMixin {
   MapboxMapController _mapController;
   StreamSubscription _symbolsSubscription;
+  AnimationController _filterAnimationController;
+
+  @override
+  void initState() {
+    _filterAnimationController = AnimationController(
+      value: 1.0,
+      duration: const Duration(milliseconds: 150),
+      reverseDuration: const Duration(milliseconds: 75),
+      vsync: this,
+    )..addStatusListener(context.read<MapModel>().onAnimationStatusChange);
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -50,10 +63,18 @@ class MapState extends State<Map> {
           ),
           Padding(
             padding: EdgeInsets.only(top: Scaffold.of(context).appBarMaxHeight),
-            child: Visibility(
-              visible: mapModel.filterVisible,
-
-              child: MapFilter(),
+            child: AnimatedBuilder(
+              animation: _filterAnimationController,
+              builder: (context, child) {
+                return FadeScaleTransition(
+                  animation: _filterAnimationController,
+                  child: child,
+                );
+              },
+              child: Visibility(
+                visible: mapModel.animationNotDismissed,
+                child: MapFilter(),
+              ),
             ),
           ),
         ],
@@ -88,6 +109,12 @@ class MapState extends State<Map> {
     if (mapModel.clickState == ClickState.LongClick) {
       _mapController.removeSymbol(mapModel.longCLickSymbol);
     }
+    if (mapModel.animationRunningForwardOrComplete) {
+      _filterAnimationController.reverse();
+    } else {
+      _filterAnimationController.forward();
+    }
+
     mapModel.onMapClick(coordinates);
     // TODO: does not work until symbol tap is consumed before propogating here
     //Navigator.popUntil(context, ModalRoute.withName('/'));
@@ -157,6 +184,7 @@ class MapState extends State<Map> {
   void dispose() {
     _mapController?.onSymbolTapped?.remove(_onSymbolTapped);
     _symbolsSubscription?.cancel();
+    _filterAnimationController?.dispose();
     super.dispose();
   }
 }

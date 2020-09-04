@@ -20,16 +20,17 @@ class MapModel extends ChangeNotifier {
   StreamController<Set<MapSymbol>> _symbolStreamController;
   StreamSubscription _campStreamSubscription;
 
-  ClickState _clickState;
+  ClickState _clickState = ClickState
+      .Click; // Default to Click such that if user clicks one more time map actions will hide
   Symbol _longClickSymbol;
   bool _trackingMode = false;
   String _mapStyle = MapBoxMapStyle.OUTDOORS;
   Set<CampFeature> _selectedFeatures = {};
 
   MapModel({@required this.firestore}) {
-    _clickState = ClickState.None;
     _symbolStreamController = StreamController();
-    _campStreamSubscription = firestore.getCampSetStream().listen(_campToSymbolMarker);
+    _campStreamSubscription =
+        firestore.getCampSetStream().listen(_campToSymbolMarker);
   }
 
   void onStyleSelected(MapStyle style) {
@@ -57,6 +58,19 @@ class MapModel extends ChangeNotifier {
   bool get tentSelected => _selectedFeatures.contains(CampFeature.Tent);
   bool get hammockSelected => _selectedFeatures.contains(CampFeature.Hammock);
   bool get waterSelected => _selectedFeatures.contains(CampFeature.Water);
+
+  AnimationStatus _animationStatus = AnimationStatus.completed;
+  bool get animationNotDismissed =>
+      _animationStatus != AnimationStatus.dismissed;
+  bool get animationRunningForwardOrComplete =>
+      _animationStatus == AnimationStatus.forward ||
+      _animationStatus == AnimationStatus.completed;
+  void onAnimationStatusChange(AnimationStatus status) {
+    _animationStatus = status;
+    notifyListeners();
+  }
+
+  //bool get animationIsForwardOrComplete => _animationIsForwardOrComplete;
 
   Set<MapSymbol> _campToSymbolMarker(Set<Camp> camps) {
     _camps = camps.toSet();
@@ -105,8 +119,8 @@ class MapModel extends ChangeNotifier {
 
   void onMapClick(LatLng coordinates) {
     _clickState = _clickState == ClickState.Click
-    ? ClickState.DoubleClick
-    : ClickState.Click;
+        ? ClickState.DoubleClick
+        : ClickState.Click;
     _longClickSymbol = null;
     notifyListeners();
   }
