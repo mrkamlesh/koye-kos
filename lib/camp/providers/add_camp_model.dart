@@ -98,7 +98,7 @@ class AddModel with ChangeNotifier {
         : 'Please enter a short description!';
   }
 
-  void onTypePressed(bool selected, CampFeature type) {
+  void onFeatureSelected(bool selected, CampFeature type) {
     selected
         ? _types.add(type)
         : _types.remove(type);

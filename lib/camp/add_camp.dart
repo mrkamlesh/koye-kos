@@ -5,6 +5,7 @@ import 'package:flutter/widgets.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:implicitly_animated_reorderable_list/implicitly_animated_reorderable_list.dart';
+import 'package:koye_kos/camp/ui/feature_chips.dart';
 import 'package:koye_kos/models/camp.dart';
 import 'package:provider/provider.dart';
 import 'package:transparent_image/transparent_image.dart';
@@ -28,7 +29,7 @@ class AddCampScreen extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           AddImageView(),
-          CampFeatures(),
+          FeatureSelectionWidget(),
           CampForm(),
         ],
       ),
@@ -36,7 +37,7 @@ class AddCampScreen extends StatelessWidget {
   }
 }
 
-class CampFeatures extends StatelessWidget {
+class FeatureSelectionWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final addModel = Provider.of<AddModel>(context);
@@ -47,42 +48,29 @@ class CampFeatures extends StatelessWidget {
         runSpacing: 8,
         crossAxisAlignment: WrapCrossAlignment.start,
         children: [
-          FilterChip(
-            selected: addModel.tentSelected,
-            label: Text('Tent', style: TextStyle(color: addModel.tentSelected ? Colors.white : Colors.black),),
-            onSelected: (value) => addModel.onTypePressed(value, CampFeature.Tent),
-            backgroundColor: Colors.white,
-            selectedColor: Theme.of(context).primaryColor,
-            checkmarkColor: Colors.white,
-            elevation: 1,
-            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          FeatureSelectChip(
+            title: 'Tent',
+            feature: CampFeature.Tent,
+            isSelected: addModel.tentSelected,
+            onSelected: addModel.onFeatureSelected,
           ),
-          FilterChip(
-            selected: addModel.hammockSelected,
-            label: Text('Hammock', style: TextStyle(color: addModel.hammockSelected ? Colors.white : Colors.black),),
-            onSelected: (value) => addModel.onTypePressed(value, CampFeature.Hammock),
-            backgroundColor: Colors.white,
-            selectedColor: Theme.of(context).primaryColor,
-            checkmarkColor: Colors.white,
-            elevation: 1,
-            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          FeatureSelectChip(
+            title: 'Hammock',
+            feature: CampFeature.Hammock,
+            isSelected: addModel.hammockSelected,
+            onSelected: addModel.onFeatureSelected,
           ),
-          FilterChip(
-            selected: addModel.waterSelected,
-            label: Text('Water nearby', style: TextStyle(color: addModel.waterSelected ? Colors.white : Colors.black),),
-            onSelected: (value) => addModel.onTypePressed(value, CampFeature.Water),
-            backgroundColor: Colors.white,
-            selectedColor: Theme.of(context).primaryColor,
-            checkmarkColor: Colors.white,
-            elevation: 1,
-            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          FeatureSelectChip(
+            title: 'Water nearby',
+            feature: CampFeature.Water,
+            isSelected: addModel.waterSelected,
+            onSelected: addModel.onFeatureSelected,
           ),
         ],
       ),
     );
   }
 }
-
 
 class AddCampButton extends StatelessWidget {
   @override
@@ -101,12 +89,12 @@ class AddCampButton extends StatelessWidget {
         wasAdded
             ? Navigator.pop(context, true)
             : Scaffold.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Error uploading camp!',
-            ),
-          ),
-        );
+                SnackBar(
+                  content: Text(
+                    'Error uploading camp!',
+                  ),
+                ),
+              );
       },
     );
   }
@@ -174,24 +162,23 @@ class _AddImageViewState extends State<AddImageView> {
           ),
           addModel.showNoImageError
               ? Container(
-            height: 24,
-            child: Center(
-              child: Text(
-                'Please add at least 1 image!',
-                style: TextStyle(
-                  color: Colors.red.shade700,
-                  fontSize: 12,
-                ),
-              ),
-            ),
-          )
-              : SizedBox(height: 24),  // Empty space so error doesn't 'jump' in
+                  height: 24,
+                  child: Center(
+                    child: Text(
+                      'Please add at least 1 image!',
+                      style: TextStyle(
+                        color: Colors.red.shade700,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ),
+                )
+              : SizedBox(height: 24), // Empty space so error doesn't 'jump' in
         ],
       ),
     );
   }
 }
-
 
 class ImageList extends StatelessWidget {
   final GlobalKey<AnimatedListState> listKey;
@@ -202,8 +189,8 @@ class ImageList extends StatelessWidget {
 
   ImageList(
       {@required this.listKey,
-        @required this.addCallback,
-        @required this.onEditCallback});
+      @required this.addCallback,
+      @required this.onEditCallback});
 
   @override
   Widget build(BuildContext context) {
@@ -361,4 +348,3 @@ class CampForm extends StatelessWidget {
     );
   }
 }
-

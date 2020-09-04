@@ -1,29 +1,30 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:koye_kos/camp/providers/camp_model.dart';
 import 'package:koye_kos/models/camp.dart';
-import 'package:provider/provider.dart';
 
 class CampFeaturesWidget extends StatelessWidget {
+  final Set<CampFeature> features;
+
+  CampFeaturesWidget(this.features);
+
   @override
   Widget build(BuildContext context) {
-    final campModel = Provider.of<CampModel>(context);
-
     return Wrap(
       spacing: 8,
       runSpacing: 8,
       crossAxisAlignment: WrapCrossAlignment.start,
       children: <Widget>[
-        ...campModel.camp.features.map((feature) => FeatureChip(feature: feature), // FIXME: hey look a hack
+        ...features.map(
+          (feature) => FeatureInfoChip(feature: feature),
         ),
       ],
     );
   }
 }
 
-class FeatureChip extends StatelessWidget {
+class FeatureInfoChip extends StatelessWidget {
   final CampFeature feature;
-  FeatureChip({@required this.feature});
+  FeatureInfoChip({@required this.feature});
 
   @override
   Widget build(BuildContext context) {
@@ -31,6 +32,37 @@ class FeatureChip extends StatelessWidget {
       label: Text(
         describeEnum(feature),
       ),
+      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+    );
+  }
+}
+
+class FeatureSelectChip extends StatelessWidget {
+  final String title;
+  final CampFeature feature;
+  final bool isSelected;
+  final Function(bool, CampFeature) onSelected;
+
+  FeatureSelectChip({
+    @required this.title,
+    @required this.feature,
+    @required this.isSelected,
+    @required this.onSelected,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return FilterChip(
+      selected: isSelected,
+      label: Text(
+        title,
+        style: TextStyle(color: isSelected ? Colors.white : Colors.black),
+      ),
+      onSelected: (value) => onSelected(value, feature),
+      backgroundColor: Colors.white,
+      selectedColor: Theme.of(context).primaryColor,
+      checkmarkColor: Colors.white,
+      elevation: 1,
       materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
     );
   }

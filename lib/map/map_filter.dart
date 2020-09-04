@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:koye_kos/camp/ui/feature_chips.dart';
 import 'package:koye_kos/models/camp.dart';
 import 'package:provider/provider.dart';
 
@@ -9,33 +10,36 @@ class MapFilter extends StatelessWidget {
   Widget build(BuildContext context) {
     final mapModel = Provider.of<MapModel>(context);
     return Padding(
-      padding: const EdgeInsets.all(8),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          FilterChip(
-            selected: mapModel.tentSelected,
-            label: Text('Tent', style: TextStyle(color: mapModel.tentSelected ? Colors.white : Colors.black),),
-            onSelected: (value) => mapModel.onFilterChipSelected(value, CampFeature.Tent),
-            backgroundColor: Colors.white,
-            selectedColor: Theme.of(context).primaryColor,
-            checkmarkColor: Colors.white,
-            elevation: 1,
-            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-
-          ),
-          SizedBox(width: 4),
-          FilterChip(
-            selected: mapModel.hammockSelcted,
-            label: Text('Hammock', style: TextStyle(color: mapModel.hammockSelcted ? Colors.white : Colors.black),),
-            onSelected: (value) => mapModel.onFilterChipSelected(value, CampFeature.Hammock),
-            backgroundColor: Colors.white,
-            selectedColor: Theme.of(context).primaryColor,
-            checkmarkColor: Colors.white,
-            elevation: 1,
-            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-          ),
-        ],),
+      padding: const EdgeInsets.only(top: 8),
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            FeatureSelectChip(
+              title: 'Tent',
+              feature: CampFeature.Tent,
+              isSelected: mapModel.tentSelected,
+              onSelected: mapModel.onFeatureSelected,
+            ),
+            SizedBox(width: 4),
+            FeatureSelectChip(
+              title: 'Hammock',
+              feature: CampFeature.Hammock,
+              isSelected: mapModel.hammockSelected,
+              onSelected: mapModel.onFeatureSelected,
+            ),
+            SizedBox(width: 4),
+            FeatureSelectChip(
+              title: 'Water nearby',
+              feature: CampFeature.Water,
+              isSelected: mapModel.waterSelected,
+              onSelected: mapModel.onFeatureSelected,
+            ),
+            SizedBox(width: 4),
+          ],
+        ),
+      ),
     );
   }
 }

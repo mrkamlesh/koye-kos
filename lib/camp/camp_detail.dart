@@ -155,7 +155,7 @@ class CampInfo extends StatelessWidget {
           ),
           Padding(
             padding: const EdgeInsets.only(bottom: 8.0),
-            child: CampFeaturesWidget(),
+            child: CampFeaturesWidget(camp.features),
           ),
           Text(camp.description),
           Divider(),

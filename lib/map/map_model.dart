@@ -73,8 +73,8 @@ class MapModel extends ChangeNotifier {
   String get mapStyle => _mapStyle;
   bool get dialVisible => _dialVisible;
   bool get tentSelected => _selectedFeatures.contains(CampFeature.Tent);
-  bool get hammockSelcted => _selectedFeatures.contains(CampFeature.Hammock);
-  bool get waterSelcted => _selectedFeatures.contains(CampFeature.Water);
+  bool get hammockSelected => _selectedFeatures.contains(CampFeature.Hammock);
+  bool get waterSelected => _selectedFeatures.contains(CampFeature.Water);
 
   Set<MapSymbol> _campToSymbolMarker(Set<Camp> camps) {
     _camps = camps.toSet();
@@ -93,7 +93,7 @@ class MapModel extends ChangeNotifier {
         id: camp.id,
       );
 
-  void onFilterChipSelected(bool selected, CampFeature feature) {
+  void onFeatureSelected(bool selected, CampFeature feature) {
     selected
         ? _selectedFeatures.add(feature)
         : _selectedFeatures.remove(feature);
