@@ -140,20 +140,20 @@ class MapState extends State<Map> with SingleTickerProviderStateMixin {
     );
   }
 
-  void _onStyleLoaded() {
+  void _onStyleLoaded() async {
     // Subscribe to stream events
     _symbolsSubscription =
-        context.read<MapModel>().campSymbolStream.listen((element) {
-      _mapController.clearSymbols();
+        context.read<MapModel>().campSymbolStream.listen(_updateSymbols);
 
-      // TODO: batch add with addSymbols
-      element.forEach((element) {
-        _mapController.addSymbol(element.options, {'id': element.id});
-      });
-    });
-    //print(MediaQueryData.fromWindow(WidgetsBinding.instance.window).devicePixelRatio);
     addImageFromAsset('marker-red', 'assets/symbols/location_red.png');
     addImageFromAsset('marker-black', 'assets/symbols/location_black.png');
+  }
+
+  void _updateSymbols(Set<MapSymbol> symbolSet) async {
+    await _mapController.clearSymbols();
+    final options = symbolSet.map((e) => e.options).toList();
+    final ids = symbolSet.map((e) => {'id': e.id}).toList();
+    await _mapController.addSymbols(options, ids);
   }
 
   Future<void> addImageFromAsset(String name, String assetName) async {
