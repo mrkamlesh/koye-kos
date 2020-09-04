@@ -83,50 +83,5 @@ class Camp {
   }
 }
 
-class CampComment {
-  final String commentText;
-  final String userId;
-  final String userName;
-  final String userPhotoUrl;
-  final DateTime date;
-  double score;
-
-  CampComment({@required this.commentText, this.userId, this.userName, this.userPhotoUrl, this.date,
-    this.score});
-
-  factory CampComment.fromFirestore(DocumentSnapshot document) {
-    Map data = document.data();
-    CampComment comment = CampComment(
-      commentText: data['comment'] as String,
-      userId: data['user_id'] as String,
-      userName: data['user_name'] as String,
-      userPhotoUrl: data['user_photo_url'] as String,
-      date: (data['date'] as Timestamp).toDate(),
-    );
-    if (data['score'] != null) comment.score = data['score'] as double;
-    if (data[''] != null) comment.score = data['score'] as double;
-    return comment;
-  }
-
-  @override
-  String toString() => '[CampComment(comment: $commentText, score: $score, user: $userName)]';
-}
-
-
-class Favorite {
-  final String campId;
-  final Timestamp time;
-
-  Favorite({this.campId, this.time});
-
-  factory Favorite.fromFirestore(DocumentSnapshot document) {
-    return Favorite(
-        campId: document.id,
-        time: document.data()['time'] as Timestamp);
-  }
-
-  @override
-  String toString() => '[Favorite($campId)]';
-}
 
 

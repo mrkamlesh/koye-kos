@@ -5,6 +5,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:koye_kos/camp/providers/comment_model.dart';
 import 'package:koye_kos/models/camp.dart';
+import 'package:koye_kos/models/comment.dart';
 import 'package:koye_kos/services/auth.dart';
 import 'package:koye_kos/services/db.dart';
 

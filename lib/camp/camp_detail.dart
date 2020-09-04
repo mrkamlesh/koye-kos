@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:koye_kos/camp/providers/camp_model.dart';
+import 'package:koye_kos/models/comment.dart';
 import 'package:koye_kos/services/auth.dart';
 import 'package:koye_kos/ui/dialog.dart';
 import 'package:photo_view/photo_view.dart';

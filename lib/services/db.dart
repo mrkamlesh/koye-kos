@@ -6,6 +6,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
+import 'package:koye_kos/models/comment.dart';
+import 'package:koye_kos/models/favorite.dart';
 
 import '../models/camp.dart';
 import '../models/user.dart';
@@ -17,6 +19,8 @@ class FirestoreService {
   FirestoreService({@required this.user});
 
   final _firestore = FirebaseFirestore.instance;
+  
+  // Camp --------------
 
   Stream<Set<Camp>> getCampSetStream() {
     return _firestore
@@ -31,8 +35,29 @@ class FirestoreService {
     });
   }
 
+  Stream<Camp> getCampStream(String campId) {
+    return _firestore
+        .collection(FirestorePath.campsPath)
+        .doc(campId)
+        .snapshots()
+        .map((DocumentSnapshot snapshot) {
+      return Camp.fromFirestore(snapshot);
+    });
+  }
+
   Future<Uint8List> getCampImage(String path) {
     return FirebaseStorage.instance.ref().child(path).getData(1000000);
+  }
+
+  
+  Stream<List<Camp>> getCampsFromIdsStream(List<String> campIds) {
+    return _firestore
+        .collection(FirestorePath.campsPath)
+        .where('__name__', whereIn: campIds)
+        .snapshots()
+        .map((QuerySnapshot event) => event.docs)
+        .map((List<DocumentSnapshot> e) =>
+        e.map((DocumentSnapshot e) => Camp.fromFirestore(e)).toList());
   }
 
   // TODO: adding a camp should be possible to do offline, as many users could be!
@@ -122,6 +147,16 @@ class FirestoreService {
     });
   }
 
+  Future<double> getCampRating(String campId) {
+    return _firestore
+        .collection(FirestorePath.getRatingPath(campId))
+        .doc(user.id)
+        .get()
+        .then((DocumentSnapshot snapshot) {
+      return snapshot.exists ? (snapshot.get('score') as num).toDouble() : 0;
+    });
+  }
+
   // Subject to this: https://github.com/FirebaseExtended/flutterfire/issues/1969
   // Possible circumvention: do nout use await in transaction code
   Future<void> updateRating(
@@ -174,12 +209,20 @@ class FirestoreService {
     });
   }
 
-  Future<void> deleteCampComment({@required String campId}) {
-    return _firestore
-        .collection(FirestorePath.getCommentsPath(campId))
-        .doc(user.id)
-        .delete();
+  Future<void> deleteCamp(String campId) async {
+    // compute new score
+    _firestore.collection(FirestorePath.campsPath).doc(campId).delete();
+
+    /*
+    Firebase storage does not support client side deletion of buckets..
+    TODO: use cloud function to delete folder, triggered on camp deletion.
+    FirebaseStorage.instance
+        .ref()
+        .child('camps/${camp.id}/')
+        .delete();*/
   }
+
+  // Comment -----------
 
   Future<void> addCampComment(
       {@required String campId, @required String comment, double score}) {
@@ -209,49 +252,15 @@ class FirestoreService {
         .toList());
   }
 
-  Future<double> getCampRating(String campId) {
+  Future<void> deleteCampComment({@required String campId}) {
     return _firestore
-        .collection(FirestorePath.getRatingPath(campId))
+        .collection(FirestorePath.getCommentsPath(campId))
         .doc(user.id)
-        .get()
-        .then((DocumentSnapshot snapshot) {
-      return snapshot.exists ? (snapshot.get('score') as num).toDouble() : 0;
-    });
+        .delete();
   }
 
-  Stream<Camp> getCampStream(String campId) {
-    return _firestore
-        .collection(FirestorePath.campsPath)
-        .doc(campId)
-        .snapshots()
-        .map((DocumentSnapshot snapshot) {
-      return Camp.fromFirestore(snapshot);
-    });
-  }
-
-  Stream<List<Camp>> getCampsStream(List<String> campIds) {
-    return _firestore
-        .collection(FirestorePath.campsPath)
-        .where('__name__', whereIn: campIds)
-        .snapshots()
-        .map((QuerySnapshot event) => event.docs)
-        .map((List<DocumentSnapshot> e) =>
-        e.map((DocumentSnapshot e) => Camp.fromFirestore(e)).toList());
-  }
-
-  Future<void> deleteCamp(String campId) async {
-    // compute new score
-    _firestore.collection(FirestorePath.campsPath).doc(campId).delete();
-
-    /*
-    Firebase storage does not support client side deletion of buckets..
-    TODO: use cloud function to delete folder, triggered on camp deletion.
-    FirebaseStorage.instance
-        .ref()
-        .child('camps/${camp.id}/')
-        .delete();*/
-  }
-
+  // User -> camp ------
+  
   Stream<bool> getCampFavoritedStream(String campId) {
     return _firestore
         .collection(FirestorePath.getFavoritePath(user.id))
@@ -282,6 +291,7 @@ class FirestoreService {
         : ref.delete();
   }
 
+  // User -------------- 
   Future<void> addUser(UserModel userModel) async {
     return _firestore
         .collection(FirestorePath.usersPath)

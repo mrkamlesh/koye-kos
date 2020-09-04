@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/cupertino.dart';
 import 'package:koye_kos/models/camp.dart';
+import 'package:koye_kos/models/favorite.dart';
 import 'package:koye_kos/services/auth.dart';
 import 'package:koye_kos/services/db.dart';
 
@@ -32,7 +33,7 @@ class FavoriteModel with ChangeNotifier {
       firestore.campIdsFavoritedStream();
   // Sort based on favorited time
   Stream<List<Camp>> get favoriteCampsStream {
-    return firestore.getCampsStream(_favoriteCampIds).map((event) {
+    return firestore.getCampsFromIdsStream(_favoriteCampIds).map((event) {
       event.sort((a, b) => _campIdToFavoritedPosition[a.id] - _campIdToFavoritedPosition[b.id]);
       return event;
     });

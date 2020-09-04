@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:koye_kos/models/camp.dart';
+import 'package:koye_kos/models/comment.dart';
 
 abstract class RatingProvider {
   void onRated(double score);

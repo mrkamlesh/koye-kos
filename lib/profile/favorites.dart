@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:implicitly_animated_reorderable_list/implicitly_animated_reorderable_list.dart';
 import 'package:implicitly_animated_reorderable_list/transitions.dart';
+import 'package:koye_kos/models/favorite.dart';
 import 'package:provider/provider.dart';
 
 import '../models/camp.dart';
