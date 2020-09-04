@@ -7,27 +7,9 @@ import 'package:location/location.dart';
 import 'package:mapbox_gl/mapbox_gl.dart';
 
 import '../utils.dart';
+import 'map_utils.dart';
 
-enum ClickState { None, Click, LongClick, SymbolClick }
-
-enum MapStyle { Outdoors, Satellite }
-
-class MapBoxMapStyle {
-  static const OUTDOORS =
-      'mapbox://styles/samudev/ckdxjbopx44gj1aorm1eumxo6'; /*MapboxStyles.OUTDOORS;*/
-  static const SATELLITE = MapboxStyles.SATELLITE;
-
-  static String getMapStyle(MapStyle style) {
-    switch (style) {
-      case MapStyle.Outdoors:
-        return OUTDOORS;
-      case MapStyle.Satellite:
-        return SATELLITE;
-      default:
-        return OUTDOORS;
-    }
-  }
-}
+enum ClickState { None, Click, LongClick, SymbolClick, DoubleClick }
 
 class MapModel extends ChangeNotifier {
   FirestoreService firestore;
@@ -42,7 +24,6 @@ class MapModel extends ChangeNotifier {
   Symbol _longClickSymbol;
   bool _trackingMode = false;
   String _mapStyle = MapBoxMapStyle.OUTDOORS;
-  bool _dialVisible = true;
   Set<CampFeature> _selectedFeatures = {};
 
   MapModel({@required this.firestore}) {
@@ -71,7 +52,8 @@ class MapModel extends ChangeNotifier {
       : MyLocationTrackingMode.None;
 
   String get mapStyle => _mapStyle;
-  bool get dialVisible => _dialVisible;
+  bool get dialVisible => _clickState != ClickState.DoubleClick;
+  bool get filterVisible => _clickState != ClickState.DoubleClick;
   bool get tentSelected => _selectedFeatures.contains(CampFeature.Tent);
   bool get hammockSelected => _selectedFeatures.contains(CampFeature.Hammock);
   bool get waterSelected => _selectedFeatures.contains(CampFeature.Water);
@@ -122,10 +104,9 @@ class MapModel extends ChangeNotifier {
   }
 
   void onMapClick(LatLng coordinates) {
-    if (_clickState == ClickState.Click) {
-      _dialVisible = !_dialVisible;
-    }
-    _clickState = ClickState.Click;
+    _clickState = _clickState == ClickState.Click
+    ? ClickState.DoubleClick
+    : ClickState.Click;
     _longClickSymbol = null;
     notifyListeners();
   }

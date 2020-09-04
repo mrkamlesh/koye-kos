@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'map_model.dart';
+import 'map_utils.dart';
 
 class GpsButtonWidget extends StatelessWidget {
   @override

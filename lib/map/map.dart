@@ -50,7 +50,11 @@ class MapState extends State<Map> {
           ),
           Padding(
             padding: EdgeInsets.only(top: Scaffold.of(context).appBarMaxHeight),
-            child: MapFilter(),
+            child: Visibility(
+              visible: mapModel.filterVisible,
+
+              child: MapFilter(),
+            ),
           ),
         ],
       ),
