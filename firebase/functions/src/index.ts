@@ -5,6 +5,7 @@ const functions = require('firebase-functions');
 import {Change, EventContext} from "firebase-functions";
 import { QueryDocumentSnapshot } from "firebase-functions/lib/providers/firestore";
 import DocumentSnapshot = admin.firestore.DocumentSnapshot;
+import FieldValue = admin.firestore.FieldValue;
 
 admin.initializeApp();
 
@@ -48,6 +49,7 @@ exports.onReaction = functions.firestore
         const reactionRef = db.doc(`camps/${campId}/comments/${commentId}/reactions/${reactionId}`);
         return commentRef.get().then((commentDoc: DocumentSnapshot) => {
             if (!commentDoc.exists) return;
+            // TODO: use change instead of reactionRef!
             reactionRef.get().then((reactionDoc: DocumentSnapshot) => {
                 // deleted or changed -> remove old reaction
                 if (!reactionDoc.exists || change.before.exists) {
@@ -67,3 +69,49 @@ exports.onReaction = functions.firestore
             });
         });
     });
+
+
+exports.onUpdateRating = functions.firestore
+    .document('camps/{campId}/ratings/{ratingId}')
+    .onWrite((change: Change<DocumentSnapshot>, context:EventContext) => {
+        if (change.before === change.after) return;  // no change
+        const campId: String = context.params.campId;
+        const campRef = db.doc(`camps/${campId}`);
+        return db.runTransaction(async (transaction) => {
+
+            const updateRatings = (score: number, ratingsChange: FieldValue) =>
+                transaction.update(campRef, {
+                    ratings: ratingsChange,
+                    score: score,
+                });
+
+            const campDoc = await transaction.get(campRef);
+            if (!campDoc.exists) return;
+            const currentRatings = <number>campDoc.get('ratings');
+            const currentScore = <number>campDoc.get('score');
+            const currentTotal =  currentScore * currentRatings;
+
+            // User deleted rating -> revert score
+            if (!change.after.exists) {
+                // check if no score, circumvent 0-divide
+                if (currentRatings === 1) return updateRatings(0, FieldValue.increment(-1));
+                const userBeforeScore = <number>change.before.get('score');
+                const newScore = (currentTotal - userBeforeScore) / (currentRatings - 1);
+                return updateRatings(newScore, FieldValue.increment(1));
+            }
+            // new score
+            else if (!change.before.exists) {
+                const userAfterScore = <number>change.after.get('score');
+                const newScore = (currentTotal + userAfterScore) / (currentRatings + 1);
+                return updateRatings(newScore, FieldValue.increment(1));
+            }
+            // updated score
+            else {
+                const userBeforeScore = <number>change.before.get('score');
+                const userAfterScore = <number>change.after.get('score');
+                const newScore = (currentTotal - userBeforeScore + userAfterScore) / currentRatings;
+                return updateRatings(newScore, FieldValue.increment(0));
+            }
+        })
+    });
+
