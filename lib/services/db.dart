@@ -155,8 +155,10 @@ class FirestoreService {
     });
   }
 
-  Future<void> updateRating(
-      {@required String campId, @required double score}) async {
+  Future<void> updateRating({
+    @required String campId,
+    @required double score,
+  }) {
     return _firestore
         .collection(FirestorePath.getRatingPath(campId))
         .doc(user.id)
