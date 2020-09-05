@@ -256,57 +256,6 @@ class FirestoreService {
         .delete();
   }
 
-  Future<void> likeComment({
-    @required String campId,
-    @required String commentId,
-    bool like = true,
-  }) {
-    final DocumentReference commentsRef =
-    _firestore.collection(FirestorePath.getCommentsPath(campId)).doc(commentId);
-
-    final DocumentReference userRatingRef =
-    commentsRef.collection(FirestorePath.ratingsPath).doc(user.id);
-
-    return _firestore.runTransaction((Transaction transaction) async {
-      DocumentSnapshot campSnapshot = await transaction.get(commentsRef);
-      if (campSnapshot.exists) {
-        // Get current camp scores
-        int currentRatings = campSnapshot.get('ratings') as int;
-        // Total cumulative rating
-        double currentTotalScore =
-            (campSnapshot.get('score') as num).toDouble() * currentRatings;
-
-        // Check if user already rated this camp
-        await userRatingRef.get().then((snapshot) {
-          if (snapshot.exists) {
-            // Revert users current score
-            currentTotalScore -= (snapshot.get('score') as num).toDouble();
-            currentRatings -= 1;
-          }
-        });
-        // New score is 0, delete users score ref and set new camp score
-        if (score == 0) {
-          userRatingRef.delete(); // delete users score
-          // set score where this user's score is removed
-          return transaction.update(commentsRef, <String, dynamic>{
-            'ratings': currentRatings,
-            'score': currentTotalScore
-          });
-        } else {
-          // Set users new score
-          userRatingRef.set({'score': score});
-
-          // Calculate new camp score
-          int newRatings = currentRatings + 1;
-          double newScore = (currentTotalScore + score) / newRatings;
-
-          return transaction.update(commentsRef,
-              <String, dynamic>{'ratings': newRatings, 'score': newScore});
-        }
-      }
-    });
-  }
-
   // User -> camp ------
 
   Stream<bool> getCampFavoritedStream(String campId) {

@@ -9,12 +9,10 @@ class CampComment {
   final String userPhotoUrl;
   final DateTime date;
   double score;
-  int likes;
-  int dislikes;
   int reports;
 
   CampComment({@required this.commentText, this.userId, this.userName, this.userPhotoUrl, this.date,
-    this.score, this.likes, this.dislikes, this.reports});
+    this.score, this.reports});
 
   factory CampComment.fromFirestore(DocumentSnapshot document) {
     Map data = document.data();
@@ -25,10 +23,9 @@ class CampComment {
       userPhotoUrl: data['user_photo_url'] as String,
       date: (data['date'] as Timestamp).toDate(),
     );
+
     if (data['score'] != null) comment.score = data['score'] as double;
-    if (data['likes'] != null) comment.score = data['likes'] as double;
-    if (data['dislikes'] != null) comment.score = data['dislikes'] as double;
-    if (data['reports'] != null) comment.score = data['reports'] as double;
+    if (data['reports'] != null) comment.reports = data['reports'] as int;
     return comment;
   }
 
