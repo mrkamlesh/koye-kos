@@ -155,55 +155,12 @@ class FirestoreService {
     });
   }
 
-  // Subject to this: https://github.com/FirebaseExtended/flutterfire/issues/1969
-  // Possible circumvention: do nout use await in transaction code
   Future<void> updateRating(
       {@required String campId, @required double score}) async {
-    // compute new score
-    final DocumentReference campRef =
-        _firestore.collection(FirestorePath.campsPath).doc(campId);
-
-    final DocumentReference userRatingRef =
-        campRef.collection(FirestorePath.ratingsPath).doc(user.id);
-
-    return _firestore.runTransaction((Transaction transaction) async {
-      DocumentSnapshot campSnapshot = await transaction.get(campRef);
-      if (campSnapshot.exists) {
-        // Get current camp scores
-        int currentRatings = campSnapshot.get('ratings') as int;
-        // Total cumulative rating
-        double currentTotalScore =
-            (campSnapshot.get('score') as num).toDouble() * currentRatings;
-
-        // Check if user already rated this camp
-        await userRatingRef.get().then((snapshot) {
-          if (snapshot.exists) {
-            // Revert users current score
-            currentTotalScore -= (snapshot.get('score') as num).toDouble();
-            currentRatings -= 1;
-          }
-        });
-        // New score is 0, delete users score ref and set new camp score
-        if (score == 0) {
-          userRatingRef.delete(); // delete users score
-          // set score where this user's score is removed
-          return transaction.update(campRef, <String, dynamic>{
-            'ratings': currentRatings,
-            'score': currentTotalScore
-          });
-        } else {
-          // Set users new score
-          userRatingRef.set({'score': score});
-
-          // Calculate new camp score
-          int newRatings = currentRatings + 1;
-          double newScore = (currentTotalScore + score) / newRatings;
-
-          return transaction.update(campRef,
-              <String, dynamic>{'ratings': newRatings, 'score': newScore});
-        }
-      }
-    });
+    return _firestore
+        .collection(FirestorePath.getRatingPath(campId))
+        .doc(user.id)
+        .set({'score': score});
   }
 
   Future<void> deleteCamp(String campId) async {
