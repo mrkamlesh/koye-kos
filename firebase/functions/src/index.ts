@@ -1,6 +1,8 @@
 import * as admin from "firebase-admin";
 
 const functions = require('firebase-functions');
+// TODO: set region
+//const regionalFunctions = functions.region('europe-west2');
 
 import {Change, EventContext} from "firebase-functions";
 import { QueryDocumentSnapshot } from "firebase-functions/lib/providers/firestore";
