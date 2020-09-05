@@ -10,7 +10,7 @@ admin.initializeApp();
 
 const db = admin.firestore();
 
-exports.onCommentReport = functions.firestore
+exports.onCommentReportCreate = functions.firestore
     .document('camps/{campId}/comments/{commentId}/reports/{reportId}')
     .onCreate((snapshot: QueryDocumentSnapshot, context:EventContext) => {
         const campId: String = context.params.campId;
@@ -22,4 +22,17 @@ exports.onCommentReport = functions.firestore
             return commentRef.update({'reports': increment});
         });
 
+    });
+
+exports.onCommentReportDelete = functions.firestore
+    .document('camps/{campId}/comments/{commentId}/reports/{reportId}')
+    .onDelete((snapshot: QueryDocumentSnapshot, context:EventContext) => {
+        const campId: String = context.params.campId;
+        const commentId: String = context.params.commentId;
+        const commentRef = db.doc(`camps/${campId}/comments/${commentId}`);
+        return commentRef.get().then((commentDoc: DocumentSnapshot) => {
+            if (!commentDoc.exists) return;
+            const increment = admin.firestore.FieldValue.increment(-1);
+            return commentRef.update({'reports': increment});
+        });
     });
