@@ -138,6 +138,14 @@ class CampPhotoModel with ChangeNotifier {
     startIndex = photoIndex;
   }
 
+  void onReportPressed(double indexValue, {bool reported = true}) {
+    print(indexValue);
+  }
+
+  bool imageReported(double indexValue) {
+    return false;
+  }
+
   bool finishedLoading(int index) => imagesMap.containsKey(index);
 }
 

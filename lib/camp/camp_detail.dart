@@ -309,6 +309,7 @@ class PhotoGallery extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final photoModel = Provider.of<CampPhotoModel>(context);
+    final pageController = PageController(initialPage: photoModel.startIndex);
     return Scaffold(
       backgroundColor: Colors.black,
       extendBodyBehindAppBar: true,
@@ -317,20 +318,63 @@ class PhotoGallery extends StatelessWidget {
         elevation: 0,
       ),
       body: Container(
-        child: PhotoViewGallery.builder(
-          pageController: PageController(
-              initialPage: photoModel.startIndex), // TODO: should release?
-          builder: (context, index) {
-            // TODO: There could be a bug laying here, when trying to view an image that is not loaded yet..
-            return PhotoViewGalleryPageOptions(
-              imageProvider: photoModel.getImageProvider(index),
-              minScale: PhotoViewComputedScale.contained * 0.8,
-              maxScale: PhotoViewComputedScale.covered * 1.8,
-              heroAttributes: PhotoViewHeroAttributes(tag: index),
-            );
-          },
-          itemCount: photoModel.imagesMap.length,
-        ),
+        child: Stack(alignment: Alignment.bottomRight, children: <Widget>[
+          PhotoViewGallery.builder(
+            pageController: pageController, // TODO: should release?
+            builder: (context, index) {
+              // TODO: There could be a bug laying here, when trying to view an image that is not loaded yet..
+
+              return PhotoViewGalleryPageOptions(
+                imageProvider: photoModel.getImageProvider(index),
+                minScale: PhotoViewComputedScale.contained * 0.8,
+                maxScale: PhotoViewComputedScale.covered * 1.8,
+                heroAttributes: PhotoViewHeroAttributes(tag: index),
+              );
+            },
+            itemCount: photoModel.imagesMap.length,
+          ),
+          Container(
+            color: Colors.black.withOpacity(.4),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                PopupMenuButton<bool>(
+                  child: Container(
+                      padding: EdgeInsets.all(12),
+                      child: Icon(
+                        Icons.more_vert,
+                        color: Colors.white,
+                      )),
+                  onSelected: (reported) => context.read<Auth>().isAuthenticated
+                      ? photoModel.onReportPressed(pageController.page,
+                          reported: reported)
+                      : showDialog(
+                          context: context,
+                          builder: (context) {
+                            return LogInDialog(
+                              actionText: 'report an image',
+                            );
+                          },
+                        ),
+                  itemBuilder: (context) {
+                    return [
+                      if (photoModel.imageReported(pageController.page))
+                        PopupMenuItem(
+                          child: Text('Remove report'),
+                          value: false,
+                        )
+                      else
+                        PopupMenuItem(
+                          child: Text('Report image'),
+                          value: true,
+                        )
+                    ];
+                  },
+                ),
+              ],
+            ),
+          )
+        ]),
       ),
     );
   }
