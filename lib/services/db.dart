@@ -28,8 +28,8 @@ class FirestoreService {
         .collection(FirestorePath.campsPath)
         .snapshots()
         .map((QuerySnapshot snapshot) => snapshot.docs
-        .map((DocumentSnapshot document) => Camp.fromFirestore(document))
-        .toSet())
+            .map((DocumentSnapshot document) => Camp.fromFirestore(document))
+            .toSet())
         .handleError((onError, stacktrace) {
       print('Error loading camps! $onError');
       print('Stack:  $stacktrace');
@@ -57,7 +57,7 @@ class FirestoreService {
         .snapshots()
         .map((QuerySnapshot event) => event.docs)
         .map((List<DocumentSnapshot> e) =>
-        e.map((DocumentSnapshot e) => Camp.fromFirestore(e)).toList());
+            e.map((DocumentSnapshot e) => Camp.fromFirestore(e)).toList());
   }
 
   // TODO: adding a camp should be possible to do offline, as many users could be!
@@ -69,7 +69,7 @@ class FirestoreService {
   }) {
     // Get a reference to new camp
     DocumentReference campRef =
-    _firestore.collection(FirestorePath.campsPath).doc();
+        _firestore.collection(FirestorePath.campsPath).doc();
 
     // Write location data immediately, such that the camp location shows up on screen.
     campRef.set(<String, dynamic>{
@@ -90,15 +90,14 @@ class FirestoreService {
 
   Future<void> _uploadInBackground(
       {@required DocumentReference campRef,
-        @required String description,
-        @required Point<double> location,
-        @required List<File> fileImages,
-        @required Set<CampFeature> types}) async {
+      @required String description,
+      @required Point<double> location,
+      @required List<File> fileImages,
+      @required Set<CampFeature> types}) async {
     final StorageReference campImagesRef = FirebaseStorage.instance
         .ref()
         .child(FirestoragePath.getCampImagesPath(campRef.id));
-    final imageUrls = List<String>();
-    final thumbnailUrls = List<String>();
+    final pictureData = List<PictureData>();
 
     // Compress images
     List<Uint8List> compressed = [];
@@ -112,17 +111,17 @@ class FirestoreService {
           minWidth: 1000,
           minHeight: 750);
 
+      final data = PictureData(path: DateTime.now().toUtc().toString());
+
       // Upload images to firestorage, path (camps/camp_id/time_id). Time id can later be used to sort images by upload date
-      String imageName = DateTime.now().toUtc().toString();
-      String thumbnailName = imageName + '_thumb';
       await campImagesRef
-          .child('$imageName')
+          .child('${data.path}')
           .putData(image)
           .onComplete
           .then((value) async {
         print('Image upload complete!');
         await value.ref.getDownloadURL().then((value) {
-          imageUrls.add(value.toString());
+          data.imageUrl = value.toString();
         });
       }).catchError((_) {
         print('Error uploading camp!');
@@ -131,21 +130,22 @@ class FirestoreService {
       });
 
       await campImagesRef
-          .child('$thumbnailName')
+          .child('${data.pathThumb}')
           .putData(thumbnail)
           .onComplete
           .then((storageTask) async {
         print('Thumbnail upload complete!');
         await storageTask.ref.getDownloadURL().then((value) {
-          thumbnailUrls.add(value.toString());
+          data.thumbnailUrl = value.toString();
         });
       });
+      pictureData.add(data);
     }));
     // add image names
     Camp camp = Camp(
         id: campRef.id,
-        imageUrls: imageUrls,
-        thumbnailUrls: thumbnailUrls,
+        imageUrls: pictureData.map((data) => data.imageUrl).toList(),
+        thumbnailUrls: pictureData.map((data) => data.thumbnailUrl).toList(),
         location: location,
         description: description,
         creatorId: user.id,
@@ -161,6 +161,20 @@ class FirestoreService {
       // TODO: handle upload failed
       return false;
     });
+
+    final picturesRef = campRef.collection(FirestorePath.imagesPath);
+
+    return Future.wait(pictureData.map((data) {
+      return picturesRef.doc(data.path).set({
+        'path': data.path,
+        'thumbnail_path': data.pathThumb,
+        'image_url': data.imageUrl,
+        'thumb_url': data.thumbnailUrl,
+        'reports': 0,
+        'likes': 0,
+        'dislikes': 0,
+      });
+    }));
   }
 
   Future<double> getCampRating(String campId) {
@@ -221,9 +235,9 @@ class FirestoreService {
         .snapshots()
         .map((QuerySnapshot snapshot) => snapshot.docs)
         .map((List<DocumentSnapshot> documents) => documents
-        .map((DocumentSnapshot document) =>
-        CampComment.fromFirestore(document))
-        .toList());
+            .map((DocumentSnapshot document) =>
+                CampComment.fromFirestore(document))
+            .toList());
   }
 
   Future<void> deleteComment({@required String campId}) {
@@ -297,9 +311,9 @@ class FirestoreService {
         .orderBy('time', descending: true)
         .snapshots()
         .map((QuerySnapshot snapshot) => snapshot.docs
-        .map(
-            (DocumentSnapshot document) => Favorite.fromFirestore(document))
-        .toList());
+            .map(
+                (DocumentSnapshot document) => Favorite.fromFirestore(document))
+            .toList());
   }
 
   Future<void> setFavorited(String campId, {bool favorited = true}) async {
@@ -311,6 +325,17 @@ class FirestoreService {
     favorited
         ? ref.set(<String, dynamic>{'time': FieldValue.serverTimestamp()})
         : ref.delete();
+  }
+}
+
+class PictureData {
+  String path;
+  String pathThumb;
+  String imageUrl;
+  String thumbnailUrl;
+
+  PictureData({@required this.path}) {
+    pathThumb = path + '_thumb';
   }
 }
 

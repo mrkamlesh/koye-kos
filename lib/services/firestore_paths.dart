@@ -2,7 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 class FirestorePath {
   static String campsPath = 'camps';
-  static String picturestPath = 'pictures';
+  static String imagesPath = 'images';
   static String usersPath = 'users';
   static String ratingsPath = 'ratings';
   static String favoritedPath = 'favorited';
@@ -14,7 +14,7 @@ class FirestorePath {
   }
 
   static String getPicturePath(String campId) {
-    return '$campsPath/$campId/$picturestPath';
+    return '$campsPath/$campId/$imagesPath';
   }
 
   static String getRatingPath(String campId) {
