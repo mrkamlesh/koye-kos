@@ -217,8 +217,6 @@ class FirestoreService {
   }
 
   Future<void> reportComment({@required String campId, @required String commentId}) {
-    print('add');
-
     _firestore
     .collection(FirestorePath.usersPath)
     .doc(user.id)
@@ -231,7 +229,6 @@ class FirestoreService {
   }
 
   Future<void> reportCommentRemove({@required String campId, @required String commentId}) {
-    print('remove');
     _firestore
         .collection(FirestorePath.usersPath)
         .doc(user.id)

@@ -91,26 +91,35 @@ class CommentWidget extends StatelessWidget {
                       );
                     })).then(campModel.onCampCommentResult),
                   )
-                else if (!campModel.commentReported(comment.id))
-                  FlatButton(
-                    child: Text('Report'),
-                    onPressed: () => context.read<Auth>().isAuthenticated
-                        ? campModel.onReportPressed(comment.id)
-                        : showDialog(
-                            context: context,
-                            builder: (context) {
-                              return LogInDialog(
-                                actionText: 'report a comment',
-                              );
-                            },
-                          ),
-                  )
                 else
-                  FlatButton(
-                    child: Text('Remove report'),
-                    onPressed: () =>
-                        campModel.onReportPressed(comment.id, reported: false),
-                  ),
+                  PopupMenuButton<bool>(
+                    onSelected: (reported) =>
+                        context.read<Auth>().isAuthenticated
+                            ? campModel.onReportPressed(comment.id,
+                                reported: reported)
+                            : showDialog(
+                                context: context,
+                                builder: (context) {
+                                  return LogInDialog(
+                                    actionText: 'report a comment',
+                                  );
+                                },
+                              ),
+                    itemBuilder: (context) {
+                      return [
+                        if (campModel.commentReported(comment.id))
+                          PopupMenuItem(
+                            child: Text('Remove report'),
+                            value: false,
+                          )
+                        else
+                          PopupMenuItem(
+                            child: Text('Report comment'),
+                            value: true,
+                          )
+                      ];
+                    },
+                  )
               ],
             ),
             Row(

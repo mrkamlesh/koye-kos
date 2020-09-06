@@ -35,17 +35,12 @@ class UserModel {
 
   factory UserModel.fromFirestore(DocumentSnapshot document) {
     Map<String, dynamic> data = document.data();
-    print(data);
     return UserModel(
-      id: data['id'] as String,
+      id: document.id,
       name: data['name'] as String,
       email: data['email'] as String,
       photoUrl: data['photo_url'] as String,
-
       commentsReported: List<String>.from((data['comments_reported'] ?? []) as List).toSet()
-      //campsCreated: data['camps_created'],
-      //favorited: data['favorited'],
-      //campsRated: data['camps_rated'],
     );
   }
 
@@ -55,10 +50,6 @@ class UserModel {
       'name': name,
       'email': email,
       'photo_url': photoUrl,
-      //'camps_created': campsCreated,
-/*      'camps_rated': campsRated?.entries?.map((e) => {
-        'camp': e.key,
-        'ranting': e.value,})?.toList(growable: false),*/
     });
     return map;
   }

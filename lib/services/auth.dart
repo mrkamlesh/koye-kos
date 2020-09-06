@@ -72,6 +72,7 @@ class Auth extends ChangeNotifier {
     } else {
       _status = AuthStatus.LoggedIn;
       _userModelStreamSubscription = FirestoreUtils.getUserStream(user.uid).listen((event) {
+        print('event!: $event');
         _userModel = event;
         notifyListeners();
       });
