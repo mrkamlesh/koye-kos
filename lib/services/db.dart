@@ -215,6 +215,13 @@ class FirestoreService {
         .delete();
   }
 
+  Future<void> reportComment({@required String campId, @required String commentId}) {
+    return _firestore
+        .collection(FirestorePath.getCommentReportPath(campId, commentId))
+        .doc(user.id)
+        .set({});
+  }
+
   // User -> camp ------
 
   Stream<bool> getCampFavoritedStream(String campId) {

@@ -1,4 +1,5 @@
 rules_version = '2';
+
 service cloud.firestore {
   match /databases/{databases}/documents {
       
@@ -13,6 +14,10 @@ service cloud.firestore {
       match /comments/{user_id} {
         allow read: if request.auth != null;
 				allow write: if request.auth.uid == user_id && request.auth.token.firebase.sign_in_provider in ['google.com'];
+
+        match /reports/{user_id} {
+          allow write: if request.auth.uid == user_id && request.auth.token.firebase.sign_in_provider in ['google.com'];
+        }
       }
     }
     

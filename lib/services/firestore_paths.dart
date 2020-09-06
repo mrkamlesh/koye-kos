@@ -17,6 +17,9 @@ class FirestorePath {
 
   static String getCommentsPath(String campId) =>
       '$campsPath/${campId}/$commentsPath';
+
+  static String getCommentReportPath(String campId, String commentId) =>
+      '$campsPath/${campId}/$commentsPath/$commentId/reports';
 }
 
 class FirestoragePath {

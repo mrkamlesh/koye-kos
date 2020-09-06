@@ -73,6 +73,10 @@ class CampModel extends RatingProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  void onReportPressed(String commentId) {
+    firestore.reportComment(campId: camp.id, commentId: commentId);
+  }
+
   @override
   void onRated(double score) {
     _score = score;

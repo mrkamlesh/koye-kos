@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class CampComment {
+  final String id;
   final String commentText;
   final String userId;
   final String userName;
@@ -11,12 +12,13 @@ class CampComment {
   double score;
   int reports;
 
-  CampComment({@required this.commentText, this.userId, this.userName, this.userPhotoUrl, this.date,
+  CampComment({this.id, @required this.commentText, this.userId, this.userName, this.userPhotoUrl, this.date,
     this.score, this.reports});
 
   factory CampComment.fromFirestore(DocumentSnapshot document) {
     Map data = document.data();
     CampComment comment = CampComment(
+      id: document.id,
       commentText: data['comment'] as String,
       userId: data['user_id'] as String,
       userName: data['user_name'] as String,

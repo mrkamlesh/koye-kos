@@ -89,6 +89,10 @@ class CommentWidget extends StatelessWidget {
                           );
                         })).then(campModel.onCampCommentResult),
                   )
+                else FlatButton(
+                  child: Text('Report'),
+                  onPressed: () => campModel.onReportPressed(comment.id),
+                )
               ],
             ),
             Row(
