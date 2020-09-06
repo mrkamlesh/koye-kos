@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart';
 import 'package:koye_kos/camp/providers/comment_model.dart';
 import 'package:koye_kos/models/camp.dart';
 import 'package:koye_kos/models/comment.dart';
+import 'package:koye_kos/models/user.dart';
 import 'package:koye_kos/services/auth.dart';
 import 'package:koye_kos/services/db.dart';
 
@@ -73,8 +74,14 @@ class CampModel extends RatingProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  void onReportPressed(String commentId) {
-    firestore.reportComment(campId: camp.id, commentId: commentId);
+  bool commentReported(String commentId) {
+    return auth.userModel != null ? auth.userModel.commentsReported?.contains(commentId) : false;
+  }
+
+  void onReportPressed(String commentId, {bool reported = true}) {
+    reported
+        ? firestore.reportComment(campId: camp.id, commentId: commentId)
+        : firestore.reportCommentRemove(campId: camp.id, commentId: commentId);
   }
 
   @override
@@ -106,9 +113,9 @@ class CampModel extends RatingProvider with ChangeNotifier {
 
   @override
   void dispose() {
-    _campSubscription.cancel();
-    _favoritedSubscription.cancel();
-    _commentsSubscription.cancel();
+    _campSubscription?.cancel();
+    _favoritedSubscription?.cancel();
+    _commentsSubscription?.cancel();
     super.dispose();
   }
 }

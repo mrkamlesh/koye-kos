@@ -3,6 +3,7 @@ import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
@@ -216,10 +217,30 @@ class FirestoreService {
   }
 
   Future<void> reportComment({@required String campId, @required String commentId}) {
+    print('add');
+
+    _firestore
+    .collection(FirestorePath.usersPath)
+    .doc(user.id)
+    .update({'comments_reported': FieldValue.arrayUnion([commentId])});
+
     return _firestore
         .collection(FirestorePath.getCommentReportPath(campId, commentId))
         .doc(user.id)
         .set({});
+  }
+
+  Future<void> reportCommentRemove({@required String campId, @required String commentId}) {
+    print('remove');
+    _firestore
+        .collection(FirestorePath.usersPath)
+        .doc(user.id)
+        .update({'comments_reported': FieldValue.arrayRemove([commentId])});
+
+    return _firestore
+        .collection(FirestorePath.getCommentReportPath(campId, commentId))
+        .doc(user.id)
+        .delete();
   }
 
   // User -> camp ------
@@ -253,20 +274,32 @@ class FirestoreService {
         ? ref.set(<String, dynamic>{'time': FieldValue.serverTimestamp()})
         : ref.delete();
   }
+}
+
+class FirestoreUtils {
+  static final _firestore = FirebaseFirestore.instance;
 
   // User --------------
-  Future<void> addUser(UserModel userModel) async {
+  static Future<void> addUser(User user) async {
+    final UserModel userModel = UserModel(
+      id: user.uid,
+      name: user.displayName,
+      email: user.email,
+      photoUrl: user.photoURL,
+    );
+
     return _firestore
         .collection(FirestorePath.usersPath)
-        .doc(user.id)
-        .set(userModel.toFirestoreMap());
+        .doc(user.uid)
+        .set(userModel.toFirestoreMap(), SetOptions(merge: true));
   }
 
-  Stream<UserModel> getUserStream() {
+  static Stream<UserModel> getUserStream(String userId) {
     return _firestore
         .collection(FirestorePath.usersPath)
-        .doc(user.id)
+        .doc(userId)
         .snapshots()
         .map((DocumentSnapshot document) => UserModel.fromFirestore(document));
   }
+
 }

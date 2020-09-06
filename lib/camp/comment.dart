@@ -2,6 +2,8 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:koye_kos/models/comment.dart';
+import 'package:koye_kos/services/auth.dart';
+import 'package:koye_kos/ui/dialog.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 
@@ -81,18 +83,34 @@ class CommentWidget extends StatelessWidget {
                     icon: Icon(Icons.edit),
                     onPressed: () => Navigator.push<CampComment>(context,
                         MaterialPageRoute(builder: (context) {
-                          return ChangeNotifierProvider(
-                            create: (context) => CommentModel(
-                                originalText: comment.commentText,
-                                originalScore: campModel.score),
-                            builder: (context, child) => AddCommentScreen(),
-                          );
-                        })).then(campModel.onCampCommentResult),
+                      return ChangeNotifierProvider(
+                        create: (context) => CommentModel(
+                            originalText: comment.commentText,
+                            originalScore: campModel.score),
+                        builder: (context, child) => AddCommentScreen(),
+                      );
+                    })).then(campModel.onCampCommentResult),
                   )
-                else FlatButton(
-                  child: Text('Report'),
-                  onPressed: () => campModel.onReportPressed(comment.id),
-                )
+                else if (!campModel.commentReported(comment.id))
+                  FlatButton(
+                    child: Text('Report'),
+                    onPressed: () => context.read<Auth>().isAuthenticated
+                        ? campModel.onReportPressed(comment.id)
+                        : showDialog(
+                            context: context,
+                            builder: (context) {
+                              return LogInDialog(
+                                actionText: 'report a comment',
+                              );
+                            },
+                          ),
+                  )
+                else
+                  FlatButton(
+                    child: Text('Remove report'),
+                    onPressed: () =>
+                        campModel.onReportPressed(comment.id, reported: false),
+                  ),
               ],
             ),
             Row(

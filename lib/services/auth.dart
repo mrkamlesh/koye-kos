@@ -20,8 +20,11 @@ class Auth extends ChangeNotifier {
   AuthService _authService;
   AuthStatus _status = AuthStatus.Unauthenticated;
   StreamSubscription<User> _userStreamSubscription;
+  StreamSubscription<UserModel> _userModelStreamSubscription;
+  UserModel _userModel;
 
   UserModel get user => _mapUser(_authService.user);
+  UserModel get userModel => _userModel;
   AuthStatus get status => _status;
   bool get isAuthenticated => _status == AuthStatus.LoggedIn;
   bool get isInitialized =>
@@ -62,20 +65,24 @@ class Auth extends ChangeNotifier {
   }
 
   void _onAuthStateChanged(User user) {
-    //print('_onAuthStateChanged ${user}');
     if (user == null) {
       _status = AuthStatus.Unauthenticated;
     } else if (user.isAnonymous) {
       _status = AuthStatus.Anonymous;
     } else {
       _status = AuthStatus.LoggedIn;
+      _userModelStreamSubscription = FirestoreUtils.getUserStream(user.uid).listen((event) {
+        _userModel = event;
+        notifyListeners();
+      });
     }
     notifyListeners();
   }
 
   @override
   void dispose() {
-    _userStreamSubscription.cancel();
+    _userStreamSubscription?.cancel();
+    _userModelStreamSubscription?.cancel();
     super.dispose();
   }
 }
@@ -122,8 +129,9 @@ class AuthService {
       await _auth.currentUser.updateProfile(
           displayName: googleUser.displayName, photoURL: googleUser.photoUrl);
     } on Exception catch (e) {
-      _auth.signInWithCredential(credential).then((result) async {});
+      await _auth.signInWithCredential(credential).then((result) async {});
     }
+    FirestoreUtils.addUser(_auth.currentUser);
     return true;
   }
 }

@@ -12,6 +12,7 @@ class UserModel {
   Set<String> campsCreated;
   Set<String> favorited;
   Map<String, int> campsRated;
+  Set<String> commentsReported;
   auth.User firebaseUser;  // TODO: is the duplicating user info needed?
 
   UserModel({
@@ -21,7 +22,8 @@ class UserModel {
     this.photoUrl,
     this.campsCreated,
     this.favorited,
-    this.campsRated});
+    this.campsRated,
+    this.commentsReported});
 
   void setFirebaseUser(auth.User user) {
     this.firebaseUser = user;
@@ -33,11 +35,14 @@ class UserModel {
 
   factory UserModel.fromFirestore(DocumentSnapshot document) {
     Map<String, dynamic> data = document.data();
+    print(data);
     return UserModel(
       id: data['id'] as String,
       name: data['name'] as String,
       email: data['email'] as String,
       photoUrl: data['photo_url'] as String,
+
+      commentsReported: List<String>.from((data['comments_reported'] ?? []) as List).toSet()
       //campsCreated: data['camps_created'],
       //favorited: data['favorited'],
       //campsRated: data['camps_rated'],
@@ -47,12 +52,10 @@ class UserModel {
   Map<String, dynamic> toFirestoreMap() {
     HashMap<String, dynamic> map = HashMap();
     map.addAll({
-      'id': firebaseUser.uid,
-      'name': firebaseUser.displayName,
-      'email': firebaseUser.email,
-      'photo_url': firebaseUser.photoUrl,
+      'name': name,
+      'email': email,
+      'photo_url': photoUrl,
       //'camps_created': campsCreated,
-      'favorited': favorited,
 /*      'camps_rated': campsRated?.entries?.map((e) => {
         'camp': e.key,
         'ranting': e.value,})?.toList(growable: false),*/
