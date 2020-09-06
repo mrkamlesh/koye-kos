@@ -45,9 +45,9 @@ class AddModel with ChangeNotifier {
   bool get hammockSelected => _types.contains(CampFeature.Hammock);
   bool get waterSelected => _types.contains(CampFeature.Water);
 
-  int addImage(String imagePath) {
+  int addImage({@required String sourcePath, @required File croppedFile}) {
     final index = _campImages.length;
-    _campImages.add(CampImage(sourceFile: File(imagePath)));
+    _campImages.add(CampImage(sourceFile: File(sourcePath), file: croppedFile));
     _campImages[index]
         .fileImage
         .resolve(ImageConfiguration())
@@ -129,9 +129,8 @@ class CampImage {
   FileImage fileImage;
   ImageLoadState loadState;
 
-  CampImage({this.sourceFile}) {
-    file = sourceFile;
-    fileImage = FileImage(sourceFile);
+  CampImage({this.sourceFile, this.file}) {
+    fileImage = FileImage(file);
     this.loadState = ImageLoadState.Loading;
   }
 

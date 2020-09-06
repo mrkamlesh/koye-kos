@@ -3,6 +3,7 @@ import 'dart:collection';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:koye_kos/camp/providers/comment_model.dart';
 import 'package:koye_kos/models/camp.dart';
 import 'package:koye_kos/models/comment.dart';
@@ -121,10 +122,14 @@ class CampModel extends RatingProvider with ChangeNotifier {
 }
 
 class CampPhotoModel with ChangeNotifier {
+  FirestoreService firestore;
+
   final List<String> imageUrls;
   Map<int, ImageProvider> imagesMap = {};
   int startIndex;
-  CampPhotoModel({@required this.imageUrls});
+  CampPhotoModel({@required this.firestore, @required this.imageUrls});
+
+  void setFirestore(FirestoreService firestore) => this.firestore = firestore;
 
   String getUrl(int index) => imageUrls[index];
 
@@ -140,6 +145,7 @@ class CampPhotoModel with ChangeNotifier {
 
   void onReportPressed(double indexValue, {bool reported = true}) {
     print(indexValue);
+    print(imagesMap[indexValue.round()]);
   }
 
   bool imageReported(double indexValue) {

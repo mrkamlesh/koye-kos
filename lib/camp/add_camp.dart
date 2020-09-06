@@ -109,9 +109,16 @@ class _AddImageViewState extends State<AddImageView> {
   final _listKey = GlobalKey<AnimatedListState>();
 
   Future getImage(ImageSource source) async {
-    ImagePicker().getImage(source: source).then((PickedFile pickedFile) {
+    final addModel = context.read<AddModel>();
+    ImagePicker()
+        .getImage(source: source)
+        .then((PickedFile pickedFile) {
       if (pickedFile == null) return;
-      context.read<AddModel>().addImage(pickedFile.path);
+      final sourcePath = pickedFile.path;
+      cropImage(sourcePath).then((File fileImage) {
+        if (fileImage == null) return;
+        addModel.addImage(sourcePath: sourcePath, croppedFile: fileImage);
+      });
     }).catchError((error) {
       Scaffold.of(context)
         ..removeCurrentSnackBar()
@@ -121,9 +128,9 @@ class _AddImageViewState extends State<AddImageView> {
     });
   }
 
-  Future<File> cropImage(int index) {
-    ImageCropper.cropImage(
-      sourcePath: context.read<AddModel>().getSourceImage(index).path,
+  Future<File> cropImage(String path) {
+    return ImageCropper.cropImage(
+      sourcePath: path,
       compressFormat: ImageCompressFormat.jpg,
       // default
       compressQuality: 100,
@@ -141,9 +148,7 @@ class _AddImageViewState extends State<AddImageView> {
         aspectRatioLockEnabled: true,
         title: 'Crop image',
       ),
-    ).then((File image) {
-      context.read<AddModel>().updateImage(index, image);
-    });
+    );
   }
 
   @override
@@ -158,7 +163,10 @@ class _AddImageViewState extends State<AddImageView> {
           ImageList(
             listKey: _listKey,
             addCallback: getImage,
-            onEditCallback: cropImage,
+            onEditCallback: (int index) {
+              cropImage(addModel.getSourceImage(index).path)
+                  .then((file) => addModel.updateImage(index, file));
+            },
           ),
           addModel.showNoImageError
               ? Container(

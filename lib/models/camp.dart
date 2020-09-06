@@ -11,6 +11,7 @@ enum CampFeature { Tent, Hammock, Water }
 class Camp {
   final String id;
   final List<String> imageUrls;
+  final List<String> thumbnailUrls;
   final Point<double> location;
   final double score;
   final int ratings;  // save as list of scores?
@@ -22,6 +23,7 @@ class Camp {
   Camp(
       {@required this.id,
         @required this.imageUrls,
+        this.thumbnailUrls,
         @required this.location,
         this.score = 0.0,
         this.ratings = 0,
@@ -45,6 +47,7 @@ class Camp {
     return Camp(
         id: document.id ?? '',
         imageUrls: List<String>.from((data['image_urls'] ?? []) as List),
+        thumbnailUrls: List<String>.from((data['thumbnail_urls'] ?? []) as List),
         location: location,
         score: ((data['score'] ?? 0) as num).toDouble(),
         ratings: data['ratings'] as int ?? 0,
@@ -66,6 +69,7 @@ class Camp {
 
     map.addAll({
       'image_urls': imageUrls,  // can't be empty
+      'thumbnail_urls': thumbnailUrls,  // can't be empty
       'location': location.toGeoPoint(), // can't be empty
       'description': description,  // can't be empty
       'creator_id': creatorId, // can't be empty

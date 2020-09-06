@@ -116,8 +116,13 @@ class CampInfoPage extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          ChangeNotifierProvider(
-              create: (context) => CampPhotoModel(imageUrls: imageUrls),
+          ChangeNotifierProxyProvider<FirestoreService, CampPhotoModel>(
+              create: (context) => CampPhotoModel(
+                  firestore:
+                      context.select((FirestoreService firestore) => firestore),
+                  imageUrls: imageUrls),
+              update: (_, firestore, photoModel) =>
+                  photoModel..firestore = firestore,
               child: ImageList()),
           CampInfo(),
           Padding(
@@ -339,8 +344,8 @@ class PhotoGallery extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
                 PopupMenuButton<bool>(
-                  child: Container(
-                      padding: EdgeInsets.all(12),
+                  child: ConstrainedBox(
+                      constraints: BoxConstraints(minWidth: 48, minHeight: 48),
                       child: Icon(
                         Icons.more_vert,
                         color: Colors.white,
