@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:koye_kos/models/comment.dart';
 import 'package:koye_kos/models/favorite.dart';
+import 'package:koye_kos/models/image.dart';
 
 import '../models/camp.dart';
 import '../models/user.dart';
@@ -97,7 +98,7 @@ class FirestoreService {
     final StorageReference campImagesRef = FirebaseStorage.instance
         .ref()
         .child(FirestoragePath.getCampImagesPath(campRef.id));
-    final pictureData = List<PictureData>();
+    final pictureData = List<ImageData>();
 
     // Compress images
     List<Uint8List> compressed = [];
@@ -111,7 +112,7 @@ class FirestoreService {
           minWidth: 1000,
           minHeight: 750);
 
-      final data = PictureData(path: DateTime.now().toUtc().toString());
+      final data = ImageData(path: DateTime.now().toUtc().toString());
 
       // Upload images to firestorage, path (camps/camp_id/time_id). Time id can later be used to sort images by upload date
       await campImagesRef
@@ -164,17 +165,28 @@ class FirestoreService {
 
     final picturesRef = campRef.collection(FirestorePath.imagesPath);
 
-    return Future.wait(pictureData.map((data) {
-      return picturesRef.doc(data.path).set({
+    return Future.wait(pictureData.map((data) async {
+      return await picturesRef.doc(data.path).set({
+        'time': FieldValue.serverTimestamp(),  
         'path': data.path,
         'thumbnail_path': data.pathThumb,
         'image_url': data.imageUrl,
-        'thumb_url': data.thumbnailUrl,
+        'thumbnail_url': data.thumbnailUrl,
         'reports': 0,
         'likes': 0,
         'dislikes': 0,
       });
     }));
+  }
+  
+  Stream<List<ImageData>> getCampImagesStream(@required String campId) {
+    return _firestore
+        .collection(FirestorePath.getImagesPath(campId))
+        .orderBy('time', descending: false)
+        .snapshots()
+        .map((QuerySnapshot snapshot) => snapshot.docs
+        .map((DocumentSnapshot document) => ImageData.fromFirestore(document))
+        .toList());
   }
 
   Future<double> getCampRating(String campId) {
@@ -328,16 +340,6 @@ class FirestoreService {
   }
 }
 
-class PictureData {
-  String path;
-  String pathThumb;
-  String imageUrl;
-  String thumbnailUrl;
-
-  PictureData({@required this.path}) {
-    pathThumb = path + '_thumb';
-  }
-}
 
 class FirestoreUtils {
   static final _firestore = FirebaseFirestore.instance;

@@ -13,7 +13,7 @@ class FirestorePath {
     return '$usersPath/${userId}/$favoritedPath';
   }
 
-  static String getPicturePath(String campId) {
+  static String getImagesPath(String campId) {
     return '$campsPath/$campId/$imagesPath';
   }
 
