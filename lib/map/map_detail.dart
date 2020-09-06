@@ -70,7 +70,7 @@ class ImageListSmall extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final List<String> imageUrls =
-        context.select((CampModel campModel) => campModel.camp.imageUrls);
+        context.select((CampModel campModel) => campModel.camp.thumbnailUrls);
     return Container(
       height: 120, // restrict image height
       child: ListView.builder(

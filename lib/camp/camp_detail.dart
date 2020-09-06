@@ -119,7 +119,7 @@ class CampInfoPage extends StatelessWidget {
           ChangeNotifierProxyProvider<FirestoreService, CampPhotoModel>(
               create: (context) => CampPhotoModel(
                   firestore:
-                      context.select((FirestoreService firestore) => firestore),
+                      context.read<FirestoreService>(),
                   imageUrls: imageUrls),
               update: (_, firestore, photoModel) =>
                   photoModel..firestore = firestore,
