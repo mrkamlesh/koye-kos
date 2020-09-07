@@ -67,7 +67,7 @@ class Auth extends ChangeNotifier {
     _status = AuthStatus.Unauthenticated;
     notifyListeners();
     await _authService.signOut(); // _onAuthStateChanged already changes _status
-    _authService.initializeUser();
+    initialize();
   }
 
   UserModel _mapUser(User user) {
