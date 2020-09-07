@@ -12,6 +12,7 @@ enum AuthStatus {
   Unauthenticated, // user = null
   Authenticating, // in process of logging in
   Initialized, // initialized as anon or logged in
+  Initializing, //
   Anonymous, // initialized as anon user
   LoggedIn, // user logged in
 }
@@ -21,10 +22,9 @@ class Auth extends ChangeNotifier {
   AuthStatus _status = AuthStatus.Unauthenticated;
   StreamSubscription<User> _userStreamSubscription;
   StreamSubscription<UserModel> _userModelStreamSubscription;
-  UserModel _userModel;
+  UserModel _user;
 
-  UserModel get user => _mapUser(_authService.user);
-  UserModel get userModel => _userModel;
+  UserModel get user => _user;
   AuthStatus get status => _status;
   bool get isAuthenticated => _status == AuthStatus.LoggedIn;
   bool get isInitialized =>
@@ -33,24 +33,39 @@ class Auth extends ChangeNotifier {
       _status == AuthStatus.Authenticating;
 
   Auth() {
-    //print('AUTH CREATED');
+    print('AUTH constructor');
     _authService = AuthService.instance;
     _userStreamSubscription =
         _authService.userStream.listen(_onAuthStateChanged);
-    _authService.initializeUser();
+    initialize();
   }
 
   void initialize() {
-    _authService.initializeUser();
+    if (_status == AuthStatus.Initializing) return;
+    _status = AuthStatus.Initializing;
+    //notifyListeners();
+    print('INITIALIZE');
+    _authService.initializeUser().catchError((error) {
+      print('error: $error');
+      _status = AuthStatus.Unauthenticated;
+      //notifyListeners();
+    });
   }
 
   void signInWithGoogle() async {
     _status = AuthStatus.Authenticating;
     notifyListeners();
-    _authService.signInWithGoogle();
+    _authService.signInWithGoogle().then((signedIn) {
+      if (!signedIn) {
+        _status = AuthStatus.Anonymous;
+        notifyListeners();
+      }
+    });
   }
 
   void signOut() async {
+    _status = AuthStatus.Unauthenticated;
+    notifyListeners();
     await _authService.signOut(); // _onAuthStateChanged already changes _status
     _authService.initializeUser();
   }
@@ -65,15 +80,18 @@ class Auth extends ChangeNotifier {
   }
 
   void _onAuthStateChanged(User user) {
+    //print('AUTH STATE');
+    _user = _mapUser(user);
     if (user == null) {
       _status = AuthStatus.Unauthenticated;
     } else if (user.isAnonymous) {
       _status = AuthStatus.Anonymous;
     } else {
       _status = AuthStatus.LoggedIn;
-      _userModelStreamSubscription = FirestoreUtils.getUserStream(user.uid).listen((event) {
+      _userModelStreamSubscription =
+          FirestoreUtils.getUserStream(user.uid).listen((event) {
         print('event!: $event');
-        _userModel = event;
+        _user = event;
         notifyListeners();
       });
     }
@@ -100,13 +118,13 @@ class AuthService {
   Stream<User> get userStream => _auth.userChanges();
 
   void signOut() async {
-    //print('SIGN OUT');
+    print('signOut ---');
     await _googleSignIn.signOut();
     await _auth.signOut();
   }
 
   Future<User> initializeUser() async {
-    //print('INIT USER');
+    print('initializeUser ---');
     return user != null
         ? Future.microtask(() => user)
         : _auth.signInAnonymously().then((result) {

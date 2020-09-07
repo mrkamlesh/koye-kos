@@ -193,6 +193,7 @@ class UserRatingView extends StatelessWidget {
 
     // if authenticated; set score, otherwise ask user to log in and then set score based on action taken
     void _onRatedCallback(double score) {
+      if (score == 0) return;
       auth.isAuthenticated
           ? _toCommentPage(score)
           : showDialog(
@@ -222,15 +223,17 @@ class UserRatingView extends StatelessWidget {
 class UserRatingWidget extends StatelessWidget {
   final Function(double score) onRatedCallback;
   final double score;
-  UserRatingWidget({this.onRatedCallback, this.score});
+  final bool greyOnZero;
+  UserRatingWidget({this.onRatedCallback, this.score, this.greyOnZero = false});
   @override
   Widget build(BuildContext context) {
     return StarRating(
       key: UniqueKey(),
       rating: score,
+      allowHalfRating: false,
       size: 50,
       color: Colors.amber,
-      borderColor: score == 0 ? Colors.amber.shade300 : Colors.amber,
+      borderColor: score == 0 && greyOnZero ? Colors.grey.shade300 : Colors.amber,
       onRated: onRatedCallback,
     );
   }

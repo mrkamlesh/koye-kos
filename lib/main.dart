@@ -30,14 +30,15 @@ class _ApplicationState extends State<Application> {
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.done) {
           final auth = Auth();
+          print('auth created');
           return MultiProvider(
             providers: [
               ChangeNotifierProvider<Auth>.value(
                 value: auth,
               ),
               ProxyProvider<Auth, FirestoreService>(
-                create: (_) => FirestoreService(user: auth.userModel),
-                update: (_, auth, firestore) => firestore..setUser(auth.userModel),
+                create: (_) => FirestoreService(user: auth.user),
+                update: (_, auth, firestore) => firestore..setUser(auth.user),
               )
             ],
             builder: (context, child) {
@@ -91,7 +92,7 @@ class LoadingScreen extends StatelessWidget {
     return StreamBuilder<ConnectivityResult>(
         stream: Connectivity().onConnectivityChanged,
         builder: (context, snapshot) {
-          //print('------snap: $snapshot');
+          print('------snap: $snapshot');
           if (snapshot.hasData) {
             if (snapshot.data == ConnectivityResult.none) {
               return ConnectivityInfo();

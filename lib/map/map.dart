@@ -140,6 +140,7 @@ class MapState extends State<Map> with SingleTickerProviderStateMixin {
     );
   }
 
+  // FIXME: onStyleLoaded not always called https://github.com/tobrun/flutter-mapbox-gl/issues/347
   void _onStyleLoaded() async {
     // Subscribe to stream events
     _symbolsSubscription =

@@ -90,6 +90,7 @@ class _AddCommentScreenState extends State<AddCommentScreen> {
                 UserRatingWidget(
                   onRatedCallback: commentModel.onRated,
                   score: commentModel.score,
+                  greyOnZero: true,
                 ),
                 SizedBox(
                   height: 20,

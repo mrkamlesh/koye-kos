@@ -31,8 +31,8 @@ class FirestoreService {
         .collection(FirestorePath.campsPath)
         .snapshots()
         .map((QuerySnapshot snapshot) => snapshot.docs
-            .map((DocumentSnapshot document) => Camp.fromFirestore(document))
-            .toSet())
+        .map((DocumentSnapshot document) => Camp.fromFirestore(document))
+        .toSet())
         .handleError((onError, stacktrace) {
       print('Error loading camps! $onError');
       print('Stack:  $stacktrace');
@@ -60,7 +60,7 @@ class FirestoreService {
         .snapshots()
         .map((QuerySnapshot event) => event.docs)
         .map((List<DocumentSnapshot> e) =>
-            e.map((DocumentSnapshot e) => Camp.fromFirestore(e)).toList());
+        e.map((DocumentSnapshot e) => Camp.fromFirestore(e)).toList());
   }
 
   // TODO: adding a camp should be possible to do offline, as many users could be!
@@ -72,7 +72,7 @@ class FirestoreService {
   }) {
     // Get a reference to new camp
     DocumentReference campRef =
-        _firestore.collection(FirestorePath.campsPath).doc();
+    _firestore.collection(FirestorePath.campsPath).doc();
 
     // Write location data immediately, such that the camp location shows up on screen.
     campRef.set(<String, dynamic>{
@@ -93,10 +93,10 @@ class FirestoreService {
 
   Future<void> _uploadInBackground(
       {@required DocumentReference campRef,
-      @required String description,
-      @required Point<double> location,
-      @required List<File> fileImages,
-      @required Set<CampFeature> types}) async {
+        @required String description,
+        @required Point<double> location,
+        @required List<File> fileImages,
+        @required Set<CampFeature> types}) async {
     final StorageReference campImagesRef = FirebaseStorage.instance
         .ref()
         .child(FirestoragePath.getCampImagesPath(campRef.id));
@@ -185,12 +185,12 @@ class FirestoreService {
     return _firestore
         .collection(FirestorePath.getImagesPath(campId))
         .where('reports', isLessThan: 1)
-        //.orderBy('time', descending: false) compound query not allowd!
+    //.orderBy('time', descending: false) compound query not allowd!
         .snapshots()
         .map((QuerySnapshot snapshot) => snapshot.docs
-            .map((DocumentSnapshot document) =>
-                ImageData.fromFirestore(document))
-            .toList());
+        .map((DocumentSnapshot document) =>
+        ImageData.fromFirestore(document))
+        .toList());
   }
 
   Future<double> getCampRating(String campId) {
@@ -207,10 +207,12 @@ class FirestoreService {
     @required String campId,
     @required double score,
   }) {
-    return _firestore
+    final ratingRef = _firestore
         .collection(FirestorePath.getRatingPath(campId))
-        .doc(user.id)
-        .set({'score': score});
+        .doc(user.id);
+    score == 0
+        ? ratingRef.delete()
+        : ratingRef.set({'score': score});
   }
 
   Future<void> deleteCamp(String campId) async {
@@ -251,9 +253,9 @@ class FirestoreService {
         .snapshots()
         .map((QuerySnapshot snapshot) => snapshot.docs)
         .map((List<DocumentSnapshot> documents) => documents
-            .map((DocumentSnapshot document) =>
-                CampComment.fromFirestore(document))
-            .toList());
+        .map((DocumentSnapshot document) =>
+        CampComment.fromFirestore(document))
+        .toList());
   }
 
   Future<void> deleteComment({@required String campId}) {
@@ -331,9 +333,9 @@ class FirestoreService {
         .orderBy('time', descending: true)
         .snapshots()
         .map((QuerySnapshot snapshot) => snapshot.docs
-            .map(
-                (DocumentSnapshot document) => Favorite.fromFirestore(document))
-            .toList());
+        .map(
+            (DocumentSnapshot document) => Favorite.fromFirestore(document))
+        .toList());
   }
 
   Future<void> setFavorited(String campId, {bool favorited = true}) async {

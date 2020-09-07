@@ -12,7 +12,7 @@ import 'package:koye_kos/models/user.dart';
 import 'package:koye_kos/services/auth.dart';
 import 'package:koye_kos/services/db.dart';
 
-class CampModel extends RatingProvider with ChangeNotifier {
+class CampModel with ChangeNotifier {
   Auth auth;
   FirestoreService firestore;
   Camp camp;
@@ -62,9 +62,11 @@ class CampModel extends RatingProvider with ChangeNotifier {
       firestore.addComment(
           campId: camp.id, comment: comment.commentText, score: comment.score);
     }
-    firestore.updateRating(campId: camp.id, score: comment.score ?? 0);
-    _score = comment.score;
-    notifyListeners(); // new score
+    if (userComment?.score != comment.score) {
+      firestore.updateRating(campId: camp.id, score: comment.score ?? 0);
+      _score = comment.score;
+      notifyListeners(); // new score
+    }
   }
 
   void deleteCamp() {
@@ -77,20 +79,13 @@ class CampModel extends RatingProvider with ChangeNotifier {
   }
 
   bool commentReported(String commentId) {
-    return auth.userModel != null ? auth.userModel.commentsReported?.contains(commentId) : false;
+    return auth.user != null ? auth.user.commentsReported?.contains(commentId) : false;
   }
 
   void onReportPressed(String commentId, {bool reported = true}) {
     reported
         ? firestore.reportComment(campId: camp.id, commentId: commentId)
         : firestore.reportCommentRemove(campId: camp.id, commentId: commentId);
-  }
-
-  @override
-  void onRated(double score) {
-    _score = score;
-    notifyListeners();
-    firestore.updateRating(campId: camp.id, score: score);
   }
 
   void _onComments(List<CampComment> comments) {
@@ -168,7 +163,7 @@ class CampPhotoModel with ChangeNotifier {
 
   bool imageReported(double indexValue) {
     final index = indexValue.round();
-    return auth.userModel.imagesReported.contains(_imageData[index].path);
+    return auth.isAuthenticated && auth.user.imagesReported.contains(_imageData[index].path);
   }
 
   @override

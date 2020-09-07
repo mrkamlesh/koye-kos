@@ -10,16 +10,16 @@ abstract class RatingProvider {
 class CommentModel extends RatingProvider with ChangeNotifier {
   final String originalText;
   final double originalScore;
-  String commentText;
-  double campScore;
+  String commentText = '';
+  double campScore = 0;
   CommentModel({this.originalText, this.originalScore}) {
     commentText = originalText ?? '';
-    campScore = originalScore ?? null;
+    campScore = originalScore ?? 0;
   }
 
-  String get title => isNewComment ? 'Add comment or review' : 'Edit comment';
+  String get title => isNewComment ? 'Add comment or review' : 'Edit review or comment';
 
-  bool get isNewComment =>  originalText == null;
+  bool get isNewComment => originalText == null && originalScore == null;
 
   void onTextChange(String text) {
     commentText = text;
