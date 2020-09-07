@@ -22,21 +22,22 @@ class Application extends StatefulWidget {
 }
 
 class _ApplicationState extends State<Application> {
+
   @override
   Widget build(BuildContext context) {
     return FutureBuilder(
       future: Firebase.initializeApp(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.done) {
+          final auth = Auth();
           return MultiProvider(
             providers: [
-              ChangeNotifierProvider<Auth>(
-                create: (_) => Auth(),
-                lazy: false,
+              ChangeNotifierProvider<Auth>.value(
+                value: auth,
               ),
               ProxyProvider<Auth, FirestoreService>(
-                // TODO: create() ?
-                update: (_, auth, __) => FirestoreService(user: auth.user),
+                create: (_) => FirestoreService(user: auth.userModel),
+                update: (_, auth, firestore) => firestore..setUser(auth.userModel),
               )
             ],
             builder: (context, child) {
