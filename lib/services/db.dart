@@ -184,7 +184,8 @@ class FirestoreService {
   Stream<List<ImageData>> getCampImagesStream(@required String campId) {
     return _firestore
         .collection(FirestorePath.getImagesPath(campId))
-        .orderBy('time', descending: false)
+        .where('reports', isLessThan: 1)
+        //.orderBy('time', descending: false) compound query not allowd!
         .snapshots()
         .map((QuerySnapshot snapshot) => snapshot.docs
             .map((DocumentSnapshot document) =>
@@ -290,9 +291,11 @@ class FirestoreService {
     @required String campId,
     @required String imageId,
   }) {
-    _firestore.collection(FirestorePath.usersPath).doc(user.id).update({
-      'images_reported': FieldValue.arrayUnion([imageId]),
-    },);
+    _firestore.collection(FirestorePath.usersPath).doc(user.id).update(
+      {
+        'images_reported': FieldValue.arrayUnion([imageId]),
+      },
+    );
 
     return _firestore
         .collection(FirestorePath.getImageReportPath(campId, imageId))
