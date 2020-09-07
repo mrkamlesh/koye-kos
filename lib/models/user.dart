@@ -13,6 +13,7 @@ class UserModel {
   Set<String> favorited;
   Map<String, int> campsRated;
   Set<String> commentsReported;
+  Set<String> imagesReported;
   auth.User firebaseUser;  // TODO: is the duplicating user info needed?
 
   UserModel({
@@ -23,7 +24,9 @@ class UserModel {
     this.campsCreated,
     this.favorited,
     this.campsRated,
-    this.commentsReported});
+    this.commentsReported,
+    this.imagesReported,
+  });
 
   void setFirebaseUser(auth.User user) {
     this.firebaseUser = user;
@@ -40,7 +43,8 @@ class UserModel {
       name: data['name'] as String,
       email: data['email'] as String,
       photoUrl: data['photo_url'] as String,
-      commentsReported: List<String>.from((data['comments_reported'] ?? []) as List).toSet()
+      commentsReported: List<String>.from((data['comments_reported'] ?? []) as List).toSet(),
+      imagesReported: List<String>.from((data['images_reported'] ?? []) as List).toSet(),
     );
   }
 

@@ -17,10 +17,12 @@ import '../utils.dart';
 import 'firestore_paths.dart';
 
 class FirestoreService {
-  final UserModel user;
+  UserModel user;
   FirestoreService({@required this.user});
 
   final _firestore = FirebaseFirestore.instance;
+
+  void setUser(UserModel userModel) => user = userModel;
 
   // Camp --------------
 
@@ -167,7 +169,7 @@ class FirestoreService {
 
     return Future.wait(pictureData.map((data) async {
       return await picturesRef.doc(data.path).set({
-        'time': FieldValue.serverTimestamp(),  
+        'time': FieldValue.serverTimestamp(),
         'path': data.path,
         'thumbnail_path': data.pathThumb,
         'image_url': data.imageUrl,
@@ -178,15 +180,16 @@ class FirestoreService {
       });
     }));
   }
-  
+
   Stream<List<ImageData>> getCampImagesStream(@required String campId) {
     return _firestore
         .collection(FirestorePath.getImagesPath(campId))
         .orderBy('time', descending: false)
         .snapshots()
         .map((QuerySnapshot snapshot) => snapshot.docs
-        .map((DocumentSnapshot document) => ImageData.fromFirestore(document))
-        .toList());
+            .map((DocumentSnapshot document) =>
+                ImageData.fromFirestore(document))
+            .toList());
   }
 
   Future<double> getCampRating(String campId) {
@@ -283,14 +286,16 @@ class FirestoreService {
         .delete();
   }
 
-  Future<void> reportImage(
-      {@required String campId, @required String imageId}) {
+  Future<void> reportImage({
+    @required String campId,
+    @required String imageId,
+  }) {
     _firestore.collection(FirestorePath.usersPath).doc(user.id).update({
-      'images_reported': FieldValue.arrayUnion([imageId])
-    });
+      'images_reported': FieldValue.arrayUnion([imageId]),
+    },);
 
     return _firestore
-        .collection(FirestorePath.getCommentReportPath(campId, imageId))
+        .collection(FirestorePath.getImageReportPath(campId, imageId))
         .doc(user.id)
         .set({});
   }
@@ -302,7 +307,7 @@ class FirestoreService {
     });
 
     return _firestore
-        .collection(FirestorePath.getCommentReportPath(campId, imageId))
+        .collection(FirestorePath.getImageReportPath(campId, imageId))
         .doc(user.id)
         .delete();
   }
@@ -339,7 +344,6 @@ class FirestoreService {
         : ref.delete();
   }
 }
-
 
 class FirestoreUtils {
   static final _firestore = FirebaseFirestore.instance;

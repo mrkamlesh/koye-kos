@@ -42,25 +42,25 @@ class _CampDetailScreenState extends State<CampDetailScreen>
     Widget _buildFloatingActionButton() {
       return _controller.index == 1
           ? FloatingActionButton(
-              child: Icon(Icons.add_comment),
-              onPressed: () {
-                if (context.read<Auth>().isAuthenticated)
-                  Navigator.push<CampComment>(context,
-                      MaterialPageRoute(builder: (context) {
-                    return ChangeNotifierProvider(
-                      create: (context) => CommentModel(
-                          originalText: campModel.userComment?.commentText,
-                          originalScore: campModel.score),
-                      builder: (context, child) => AddCommentScreen(),
-                    );
-                  })).then(campModel.onCampCommentResult);
-                else
-                  showDialog(
-                    context: context,
-                    builder: (_) => LogInDialog(actionText: 'add comment'),
+        child: Icon(Icons.add_comment),
+        onPressed: () {
+          if (context.read<Auth>().isAuthenticated)
+            Navigator.push<CampComment>(context,
+                MaterialPageRoute(builder: (context) {
+                  return ChangeNotifierProvider(
+                    create: (context) => CommentModel(
+                        originalText: campModel.userComment?.commentText,
+                        originalScore: campModel.score),
+                    builder: (context, child) => AddCommentScreen(),
                   );
-              },
-            )
+                })).then(campModel.onCampCommentResult);
+          else
+            showDialog(
+              context: context,
+              builder: (_) => LogInDialog(actionText: 'add comment'),
+            );
+        },
+      )
           : SizedBox.shrink();
     }
 
@@ -110,20 +110,21 @@ class _CampDetailScreenState extends State<CampDetailScreen>
 class CampInfoPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final imageUrls =
-        context.select((CampModel campModel) => campModel.camp.imageUrls);
     return SingleChildScrollView(
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          ChangeNotifierProxyProvider<FirestoreService, CampPhotoModel>(
-              create: (context) => CampPhotoModel(
-                  firestore:
-                      context.read<FirestoreService>(),
-                  imageUrls: imageUrls),
-              update: (_, firestore, photoModel) =>
-                  photoModel..firestore = firestore,
-              child: ImageList()),
+          ChangeNotifierProxyProvider2<Auth, FirestoreService, CampPhotoModel>(
+            create: (context) => CampPhotoModel(
+              auth: context.read<Auth>(),
+              firestore: context.read<FirestoreService>(),
+              campId: context.read<CampModel>().camp.id,
+            ),
+            update: (_, auth, firestore, photoModel) => photoModel
+            ..setAuth(auth)
+            ..setFirestore(firestore),
+            child: ImageList(),
+          ),
           CampInfo(),
           Padding(
             padding: const EdgeInsets.all(8.0),
@@ -181,13 +182,13 @@ class UserRatingView extends StatelessWidget {
     void _toCommentPage(double score) {
       Navigator.push<CampComment>(context,
           MaterialPageRoute(builder: (context) {
-        return ChangeNotifierProvider(
-          create: (context) => CommentModel(
-              originalText: campModel.userComment?.commentText,
-              originalScore: score),
-          builder: (context, child) => AddCommentScreen(),
-        );
-      })).then(campModel.onCampCommentResult);
+            return ChangeNotifierProvider(
+              create: (context) => CommentModel(
+                  originalText: campModel.userComment?.commentText,
+                  originalScore: score),
+              builder: (context, child) => AddCommentScreen(),
+            );
+          })).then(campModel.onCampCommentResult);
     }
 
     // if authenticated; set score, otherwise ask user to log in and then set score based on action taken
@@ -195,11 +196,11 @@ class UserRatingView extends StatelessWidget {
       auth.isAuthenticated
           ? _toCommentPage(score)
           : showDialog(
-              context: context,
-              builder: (_) => LogInDialog(actionText: 'rate a camp'),
-            ).then((_) => auth.isAuthenticated
-              ? _toCommentPage(score)
-              : campModel.setScore(0)); // user did not log in -> reset score
+        context: context,
+        builder: (_) => LogInDialog(actionText: 'rate a camp'),
+      ).then((_) => auth.isAuthenticated
+          ? _toCommentPage(score)
+          : campModel.setScore(0)); // user did not log in -> reset score
     }
 
     return Column(children: [
@@ -271,6 +272,7 @@ class ImageList extends StatefulWidget {
 }
 
 class _ImageListState extends State<ImageList> {
+  final galleryKey = UniqueKey();
   @override
   Widget build(BuildContext context) {
     final photoModel = Provider.of<CampPhotoModel>(context);
@@ -311,6 +313,8 @@ class _ImageListState extends State<ImageList> {
 }
 
 class PhotoGallery extends StatelessWidget {
+  // pass key to gallery to preserve state on rebuilds
+  final galleryKey = UniqueKey();
   @override
   Widget build(BuildContext context) {
     final photoModel = Provider.of<CampPhotoModel>(context);
@@ -325,6 +329,7 @@ class PhotoGallery extends StatelessWidget {
       body: Container(
         child: Stack(alignment: Alignment.bottomRight, children: <Widget>[
           PhotoViewGallery.builder(
+            key: galleryKey,
             pageController: pageController, // TODO: should release?
             builder: (context, index) {
               // TODO: There could be a bug laying here, when trying to view an image that is not loaded yet..
@@ -336,7 +341,7 @@ class PhotoGallery extends StatelessWidget {
                 heroAttributes: PhotoViewHeroAttributes(tag: index),
               );
             },
-            itemCount: photoModel.imagesMap.length,
+            itemCount: photoModel.imagesCount,
           ),
           Container(
             color: Colors.black.withOpacity(.4),
@@ -352,15 +357,15 @@ class PhotoGallery extends StatelessWidget {
                       )),
                   onSelected: (reported) => context.read<Auth>().isAuthenticated
                       ? photoModel.onReportPressed(pageController.page,
-                          reported: reported)
+                      reported: reported)
                       : showDialog(
-                          context: context,
-                          builder: (context) {
-                            return LogInDialog(
-                              actionText: 'report an image',
-                            );
-                          },
-                        ),
+                    context: context,
+                    builder: (context) {
+                      return LogInDialog(
+                        actionText: 'report an image',
+                      );
+                    },
+                  ),
                   itemBuilder: (context) {
                     return [
                       if (photoModel.imageReported(pageController.page))

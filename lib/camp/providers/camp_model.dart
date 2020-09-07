@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:koye_kos/camp/providers/comment_model.dart';
 import 'package:koye_kos/models/camp.dart';
 import 'package:koye_kos/models/comment.dart';
+import 'package:koye_kos/models/image.dart';
 import 'package:koye_kos/models/user.dart';
 import 'package:koye_kos/services/auth.dart';
 import 'package:koye_kos/services/db.dart';
@@ -122,37 +123,57 @@ class CampModel extends RatingProvider with ChangeNotifier {
 }
 
 class CampPhotoModel with ChangeNotifier {
+  Auth auth;
   FirestoreService firestore;
 
-  final List<String> imageUrls;
-  Map<int, ImageProvider> imagesMap = {};
-  int startIndex;
-  CampPhotoModel({@required this.firestore, @required this.imageUrls});
+  final String campId;
+  StreamSubscription _imagesSubscription;
+  List<ImageData> _imageData = [];
+  Stream<List<ImageData>> _imageDataStream;
+  Map<int, ImageProvider> _imagesMap = {};
+  int _startIndex;
+  CampPhotoModel({@required this.auth, @required this.firestore, @required this.campId}) {
+    _imagesSubscription = firestore.getCampImagesStream(campId).listen(_onImageData);
+  }
 
+  void _onImageData(List<ImageData> data) {
+    _imageData = data;
+    notifyListeners();
+  }
+
+  void setAuth(Auth auth) => this.auth = auth;
   void setFirestore(FirestoreService firestore) => this.firestore = firestore;
 
-  String getUrl(int index) => imageUrls[index];
+  List<String> get imageUrls => _imageData.map((data) => data.imageUrl).toList();
+  String getUrl(int index) => _imageData[index]?.imageUrl;
+  int get imagesCount => _imageData.length;
+  int get startIndex => _startIndex;
 
-  ImageProvider getImageProvider(int index) => imagesMap[index];
+  ImageProvider getImageProvider(int index) => _imagesMap[index];
 
   void onPhotoLoad(ImageProvider image, int index) {
-    imagesMap[index] = image;
+    _imagesMap[index] = image;
   }
 
   void onPhotoTap(int photoIndex) {
-    startIndex = photoIndex;
+    _startIndex = photoIndex;
   }
 
   void onReportPressed(double indexValue, {bool reported = true}) {
-    print(indexValue);
-    print(imagesMap[indexValue.round()]);
+    final index = indexValue.round();
+    reported
+        ? firestore.reportImage(campId: campId, imageId: _imageData[index].path)
+        : firestore.reportImageRemove(campId: campId, imageId: _imageData[index].path);
   }
 
   bool imageReported(double indexValue) {
-    return false;
+    final index = indexValue.round();
+    return auth.userModel.imagesReported.contains(_imageData[index].path);
   }
 
-  bool finishedLoading(int index) => imagesMap.containsKey(index);
+  @override
+  void dispose() {
+    _imagesSubscription?.cancel();
+    super.dispose();
+  }
 }
-
-class CampSimplePhoto with ChangeNotifier {}

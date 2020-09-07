@@ -17,6 +17,9 @@ class FirestorePath {
     return '$campsPath/$campId/$imagesPath';
   }
 
+  static String getImageReportPath(String campId, String imageId) =>
+      '$campsPath/${campId}/$imagesPath/$imageId/$reportsPath';
+
   static String getRatingPath(String campId) {
     return '$campsPath/${campId}/$ratingsPath';
   }
