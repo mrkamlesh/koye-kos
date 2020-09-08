@@ -9,13 +9,15 @@ class GpsButtonWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     final mapModel = Provider.of<MapModel>(context);
     return SizedBox(
-      width: 50,
-      height: 50,
+      width: 40,
+      height: 40,
       child: FloatingActionButton(
+        elevation: 2,
         onPressed: mapModel.onGpsClick,
         backgroundColor: Colors.grey.shade50,
         child: Icon(
           Icons.gps_fixed,
+          size: 20,
           color: mapModel.locationTracking ? Colors.blue : Colors.black87,
         ),
       ),
@@ -30,11 +32,11 @@ class MapStyleButtonWidget extends StatelessWidget {
     return Material(
       type: MaterialType.circle,
       clipBehavior: Clip.antiAlias,
-      elevation: 6,
+      elevation: 2,
       color: Colors.grey.shade50,
       child: SizedBox(
-        width: 35,
-        height: 35,
+        width: 40,
+        height: 40,
         child: PopupMenuButton<MapStyle>(
           child: Icon(
             Icons.layers,

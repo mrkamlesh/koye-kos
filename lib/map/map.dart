@@ -77,16 +77,32 @@ class MapState extends State<Map> with SingleTickerProviderStateMixin {
               ),
             ),
           ),
-        ],
-      ),
-      floatingActionButton: SpeedDial(
-        visible: mapModel.dialVisible,
-        overlayColor: Colors.transparent,
-        overlayOpacity: 0,
-        animatedIcon: AnimatedIcons.menu_close,
-        children: [
-          SpeedDialChild(child: GpsButtonWidget()),
-          SpeedDialChild(child: MapStyleButtonWidget()),
+          Positioned(
+            bottom: 8,
+            right: 8,
+            child: Padding(
+              padding: EdgeInsets.only(top: Scaffold.of(context).appBarMaxHeight),
+              child: AnimatedBuilder(
+                animation: _filterAnimationController,
+                builder: (context, child) {
+                  return FadeScaleTransition(
+                    animation: _filterAnimationController,
+                    child: child,
+                  );
+                },
+                child: Visibility(
+                  visible: mapModel.animationNotDismissed,
+                  child: Column(
+                    children: [
+                      MapStyleButtonWidget(),
+                      SizedBox(height: 8,),
+                      GpsButtonWidget(),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
         ],
       ),
     );
