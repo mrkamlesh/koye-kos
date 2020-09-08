@@ -52,14 +52,20 @@ class Auth extends ChangeNotifier {
     });
   }
 
-  void signInWithGoogle() async {
+  Future<bool> signInWithGoogle() async {
     _status = AuthStatus.Authenticating;
     notifyListeners();
-    _authService.signInWithGoogle().then((signedIn) {
+    return _authService.signInWithGoogle().then((signedIn) {
       if (!signedIn) {
         _status = AuthStatus.Anonymous;
         notifyListeners();
+        return false;
       }
+      return true;
+    }).catchError((error) {
+      _status = AuthStatus.Anonymous;
+      notifyListeners();
+      return false;
     });
   }
 
