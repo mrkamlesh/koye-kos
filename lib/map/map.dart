@@ -31,8 +31,8 @@ class MapState extends State<Map> with SingleTickerProviderStateMixin {
   void initState() {
     _filterAnimationController = AnimationController(
       value: 1.0,
-      duration: const Duration(milliseconds: 150),
-      reverseDuration: const Duration(milliseconds: 75),
+      duration: const Duration(milliseconds: 300),
+      reverseDuration: const Duration(milliseconds: 150),
       vsync: this,
     )..addStatusListener(context.read<MapModel>().onAnimationStatusChange);
     super.initState();

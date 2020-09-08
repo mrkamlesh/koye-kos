@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/painting.dart';
 import 'package:koye_kos/models/camp.dart';
 
 class CampFeaturesWidget extends StatelessWidget {
@@ -54,18 +55,21 @@ class FeatureSelectChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return FilterChip(
-      selected: isSelected,
-      label: Text(
-        title,
-        style: TextStyle(color: isSelected ? Colors.white : Colors.black),
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: FilterChip(
+        selected: isSelected,
+        label: Text(
+          title,
+          style: TextStyle(color: isSelected ? Colors.white : Colors.black),
+        ),
+        onSelected: (value) => onSelected(value, feature),
+        backgroundColor: Colors.white,
+        selectedColor: Theme.of(context).primaryColor,
+        checkmarkColor: Colors.white,
+        elevation: 2,
+        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
       ),
-      onSelected: (value) => onSelected(value, feature),
-      backgroundColor: Colors.white,
-      selectedColor: Theme.of(context).primaryColor,
-      checkmarkColor: Colors.white,
-      elevation: 1,
-      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
     );
   }
 }

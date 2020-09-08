@@ -9,36 +9,34 @@ class MapFilter extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final mapModel = Provider.of<MapModel>(context);
-    return Padding(
-      padding: const EdgeInsets.only(top: 8),
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            SizedBox(width: 8),
-            FeatureSelectChip(
-              title: 'Tent',
-              feature: CampFeature.Tent,
-              isSelected: mapModel.tentSelected,
-              onSelected: mapModel.onFeatureSelected,
-            ),
-            SizedBox(width: 4),
-            FeatureSelectChip(
-              title: 'Hammock',
-              feature: CampFeature.Hammock,
-              isSelected: mapModel.hammockSelected,
-              onSelected: mapModel.onFeatureSelected,
-            ),
-            SizedBox(width: 4),
-            FeatureSelectChip(
-              title: 'Water nearby',
-              feature: CampFeature.Water,
-              isSelected: mapModel.waterSelected,
-              onSelected: mapModel.onFeatureSelected,
-            ),
-          ],
-        ),
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(width: 8),
+          FeatureSelectChip(
+            title: 'Tent',
+            feature: CampFeature.Tent,
+            isSelected: mapModel.tentSelected,
+            onSelected: mapModel.onFeatureSelected,
+          ),
+          SizedBox(width: 4),
+          FeatureSelectChip(
+            title: 'Hammock',
+            feature: CampFeature.Hammock,
+            isSelected: mapModel.hammockSelected,
+            onSelected: mapModel.onFeatureSelected,
+          ),
+          SizedBox(width: 4),
+          FeatureSelectChip(
+            title: 'Water nearby',
+            feature: CampFeature.Water,
+            isSelected: mapModel.waterSelected,
+            onSelected: mapModel.onFeatureSelected,
+          ),
+          SizedBox(width: 8),
+        ],
       ),
     );
   }
