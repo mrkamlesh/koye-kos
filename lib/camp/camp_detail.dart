@@ -334,7 +334,6 @@ class _PhotoGalleryState extends State<PhotoGallery> {
 
   @override
   Widget build(BuildContext context) {
-    print('PhotoGallery');
     final photoModel = Provider.of<CampPhotoModel>(context);
     return Scaffold(
       backgroundColor: Colors.black,
@@ -359,10 +358,11 @@ class _PhotoGalleryState extends State<PhotoGallery> {
               },
               itemCount: photoModel.imagesCount,
               loadingBuilder: (context, event) {
-                print('loding');
                 return Container(
                   padding: EdgeInsets.all(8),
-                  child: CircularProgressIndicator(),
+                  child: Center(
+                    child: CircularProgressIndicator(),
+                  ),
                 );
               },
             ),
