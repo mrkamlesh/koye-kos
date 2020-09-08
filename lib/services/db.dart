@@ -184,7 +184,7 @@ class FirestoreService {
   Stream<List<ImageData>> getCampImagesStream(@required String campId) {
     return _firestore
         .collection(FirestorePath.getImagesPath(campId))
-        .where('reports', isLessThan: 2)
+        //.where('reports', isLessThan: 2)  // TODO: need to synchronize with camp document!
     //.orderBy('time', descending: false) compound query not allowd!
         .snapshots()
         .map((QuerySnapshot snapshot) => snapshot.docs
