@@ -19,4 +19,9 @@ class ImageData {
       thumbnailUrl: data['thumbnail_url'] as String,
     );
   }
+
+  @override
+  String toString() {
+    return '[ImageData(path: $path, url: $imageUrl)]';
+  }
 }

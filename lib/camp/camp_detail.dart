@@ -1,10 +1,13 @@
+import 'dart:async';
 import 'dart:collection';
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:koye_kos/camp/providers/camp_model.dart';
 import 'package:koye_kos/models/comment.dart';
+import 'package:koye_kos/models/image.dart';
 import 'package:koye_kos/services/auth.dart';
 import 'package:koye_kos/ui/dialog.dart';
 import 'package:photo_view/photo_view.dart';
@@ -121,8 +124,8 @@ class CampInfoPage extends StatelessWidget {
               campId: context.read<CampModel>().camp.id,
             ),
             update: (_, auth, firestore, photoModel) => photoModel
-            ..setAuth(auth)
-            ..setFirestore(firestore),
+              ..setAuth(auth)
+              ..setFirestore(firestore),
             child: ImageList(),
           ),
           CampInfo(),
@@ -294,8 +297,6 @@ class _ImageListState extends State<ImageList> {
               padding: !last ? EdgeInsets.only(right: 2) : null,
               child: CampCachedImage(
                 imageUrls[index],
-                onLoadCallback: (imageProvider) =>
-                    photoModel.onPhotoLoad(imageProvider, index),
               ),
             ),
             onTap: () {
@@ -304,7 +305,7 @@ class _ImageListState extends State<ImageList> {
                 context,
                 MaterialPageRoute(
                   builder: (_) => ChangeNotifierProvider<CampPhotoModel>.value(
-                      value: photoModel, child: PhotoGallery()),
+                    value: photoModel, child: PhotoGallery(),),
                 ),
               );
             },
@@ -315,13 +316,26 @@ class _ImageListState extends State<ImageList> {
   }
 }
 
-class PhotoGallery extends StatelessWidget {
-  // pass key to gallery to preserve state on rebuilds
+class PhotoGallery extends StatefulWidget {
+
+  @override
+  _PhotoGalleryState createState() => _PhotoGalleryState();
+}
+
+class _PhotoGalleryState extends State<PhotoGallery> {
   final galleryKey = UniqueKey();
+  PageController pageController;
+
+  @override
+  void initState() {
+    pageController = PageController(initialPage: context.read<CampPhotoModel>().startIndex);
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
+    print('PhotoGallery');
     final photoModel = Provider.of<CampPhotoModel>(context);
-    final pageController = PageController(initialPage: photoModel.startIndex);
     return Scaffold(
       backgroundColor: Colors.black,
       extendBodyBehindAppBar: true,
@@ -330,64 +344,70 @@ class PhotoGallery extends StatelessWidget {
         elevation: 0,
       ),
       body: Container(
-        child: Stack(alignment: Alignment.bottomRight, children: <Widget>[
-          PhotoViewGallery.builder(
-            key: galleryKey,
-            pageController: pageController, // TODO: should release?
-            builder: (context, index) {
-              // TODO: There could be a bug laying here, when trying to view an image that is not loaded yet..
-
-              return PhotoViewGalleryPageOptions(
-                imageProvider: photoModel.getImageProvider(index),
-                minScale: PhotoViewComputedScale.contained * 0.8,
-                maxScale: PhotoViewComputedScale.covered * 1.8,
-                heroAttributes: PhotoViewHeroAttributes(tag: index),
-              );
-            },
-            itemCount: photoModel.imagesCount,
-          ),
-          Container(
-            color: Colors.black.withOpacity(.4),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                PopupMenuButton<bool>(
-                  child: ConstrainedBox(
-                      constraints: BoxConstraints(minWidth: 48, minHeight: 48),
-                      child: Icon(
-                        Icons.more_vert,
-                        color: Colors.white,
-                      )),
-                  onSelected: (reported) => context.read<Auth>().isAuthenticated
-                      ? photoModel.onReportPressed(pageController.page,
-                      reported: reported)
-                      : showDialog(
-                    context: context,
-                    builder: (context) {
-                      return LogInDialog(
-                        actionText: 'report an image',
-                      );
+        child: Stack(alignment: Alignment.bottomRight,
+          children: <Widget>[
+            PhotoViewGallery.builder(
+              key: galleryKey,
+              pageController: pageController, // TODO: should release?
+              builder: (context, index) {
+                return PhotoViewGalleryPageOptions(
+                  imageProvider: CachedNetworkImageProvider(photoModel.getUrl(index)),
+                  minScale: PhotoViewComputedScale.contained * 0.8,
+                  maxScale: PhotoViewComputedScale.covered * 1.8,
+                  heroAttributes: PhotoViewHeroAttributes(tag: index),
+                );
+              },
+              itemCount: photoModel.imagesCount,
+              loadingBuilder: (context, event) {
+                print('loding');
+                return Container(
+                  padding: EdgeInsets.all(8),
+                  child: CircularProgressIndicator(),
+                );
+              },
+            ),
+            Container(
+              color: Colors.black.withOpacity(.4),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  PopupMenuButton<bool>(
+                    child: ConstrainedBox(
+                        constraints: BoxConstraints(minWidth: 48, minHeight: 48),
+                        child: Icon(
+                          Icons.more_vert,
+                          color: Colors.white,
+                        )),
+                    onSelected: (reported) => context.read<Auth>().isAuthenticated
+                        ? photoModel.onReportPressed(pageController.page, reported: reported)
+                        : showDialog(
+                      context: context,
+                      builder: (context) {
+                        return LogInDialog(
+                          actionText: 'report an image',
+                        );
+                      },
+                    ),
+                    itemBuilder: (context) {
+                      return [
+                        if (photoModel.imageReported(pageController.page))
+                          PopupMenuItem(
+                            child: Text('Remove report'),
+                            value: false,
+                          )
+                        else
+                          PopupMenuItem(
+                            child: Text('Report image'),
+                            value: true,
+                          )
+                      ];
                     },
                   ),
-                  itemBuilder: (context) {
-                    return [
-                      if (photoModel.imageReported(pageController.page))
-                        PopupMenuItem(
-                          child: Text('Remove report'),
-                          value: false,
-                        )
-                      else
-                        PopupMenuItem(
-                          child: Text('Report image'),
-                          value: true,
-                        )
-                    ];
-                  },
-                ),
-              ],
-            ),
-          )
-        ]),
+                ],
+              ),
+            )
+          ],
+        ),
       ),
     );
   }
