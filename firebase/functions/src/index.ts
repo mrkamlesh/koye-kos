@@ -46,8 +46,21 @@ exports.onImageReportCreate = functions.firestore
         const campId: String = context.params.campId;
         const imageId: String = context.params.imageId;
         const imageRef = db.doc(`camps/${campId}/images/${imageId}`);
-        return imageRef.get().then((imageDocDoc: DocumentSnapshot) => {
-            if (!imageDocDoc.exists) return;
+        return imageRef.get().then(async (imageDoc: DocumentSnapshot) => {
+            if (!imageDoc.exists) return;
+            // Update thumbnail urls when report count exceeds N.
+            if (imageDoc.get('reports') > 5) {
+                await db.doc(`camps/${campId}`)
+                    .get()
+                    .then((document) => {
+                        const data = document.data();
+                        if (data === undefined) return;
+                        const thumbs_filtered = (<string[]>data['thumbnail_urls'])
+                            .filter(value => value !== imageId);
+                        return db.doc(`camps/${campId}`)
+                            .update({'thumbnail_urls': thumbs_filtered});
+                    });
+            }
             const increment = admin.firestore.FieldValue.increment(1);
             return imageRef.update({'reports': increment});
         });
