@@ -46,20 +46,25 @@ exports.onImageReportCreate = functions.firestore
         const campId: String = context.params.campId;
         const imageId: String = context.params.imageId;
         const imageRef = db.doc(`camps/${campId}/images/${imageId}`);
-        return imageRef.get().then(async (imageDoc: DocumentSnapshot) => {
+        return imageRef.get().then((imageDoc: DocumentSnapshot) => {
             if (!imageDoc.exists) return;
-            // Update thumbnail urls when report count exceeds N.
-            if (imageDoc.get('reports') > 5) {
-                await db.doc(`camps/${campId}`)
+            // Update thumbnail urls when report count exceeds N (which is the number of reports after this pass).
+            if (imageDoc.get('reports') > 5 - 1) {
+                db.doc(`camps/${campId}`)
                     .get()
                     .then((document) => {
-                        const data = document.data();
-                        if (data === undefined) return;
-                        const thumbs_filtered = (<string[]>data['thumbnail_urls'])
-                            .filter(value => value !== imageId);
+                        const urls = <string[]>document.get('thumbnail_urls');
+                        const reported_image_url = <string>imageDoc.get('thumbnail_url');
+
+                        if (urls === undefined) return;
+                        if (reported_image_url === undefined) return;
+
+                        const thumbs_filtered = urls.filter(value => value !== reported_image_url);
+
                         return db.doc(`camps/${campId}`)
                             .update({'thumbnail_urls': thumbs_filtered});
-                    });
+                    })
+                    .catch(reason => functions.logger.log('updating thumbnail_urls failed:', reason));
             }
             const increment = admin.firestore.FieldValue.increment(1);
             return imageRef.update({'reports': increment});
