@@ -40,6 +40,32 @@ exports.onCommentReportDelete = functions.firestore
         });
     });
 
+exports.onImageReportCreate = functions.firestore
+    .document('camps/{campId}/images/{imageId}/reports/{reportId}')
+    .onCreate((snapshot: QueryDocumentSnapshot, context:EventContext) => {
+        const campId: String = context.params.campId;
+        const imageId: String = context.params.imageId;
+        const imageRef = db.doc(`camps/${campId}/images/${imageId}`);
+        return imageRef.get().then((imageDocDoc: DocumentSnapshot) => {
+            if (!imageDocDoc.exists) return;
+            const increment = admin.firestore.FieldValue.increment(1);
+            return imageRef.update({'reports': increment});
+        });
+    });
+
+exports.onImageReportDelete = functions.firestore
+    .document('camps/{campId}/images/{imageId}/reports/{reportId}')
+    .onDelete((snapshot: QueryDocumentSnapshot, context:EventContext) => {
+        const campId: String = context.params.campId;
+        const imageId: String = context.params.imageId;
+        const imageRef = db.doc(`camps/${campId}/images/${imageId}`);
+        return imageRef.get().then((imageDocDoc: DocumentSnapshot) => {
+            if (!imageDocDoc.exists) return;
+            const increment = admin.firestore.FieldValue.increment(-1);
+            return imageRef.update({'reports': increment});
+        });
+    });
+
 exports.onReaction = functions.firestore
     .document('camps/{campId}/comments/{commentId}/reactions/{reactionId}')
     .onWrite((change: Change<DocumentSnapshot>, context:EventContext) => {
