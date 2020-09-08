@@ -86,20 +86,25 @@ class Auth extends ChangeNotifier {
   }
 
   void _onAuthStateChanged(User user) {
-    //print('AUTH STATE');
+    print('_onAuthStateChanged');
     _user = _mapUser(user);
     if (user == null) {
       _status = AuthStatus.Unauthenticated;
+      _userModelStreamSubscription?.cancel();
     } else if (user.isAnonymous) {
       _status = AuthStatus.Anonymous;
+      _userModelStreamSubscription?.cancel();
     } else {
-      _status = AuthStatus.LoggedIn;
-      _userModelStreamSubscription =
-          FirestoreUtils.getUserStream(user.uid).listen((event) {
-        print('event!: $event');
-        _user = event;
-        notifyListeners();
-      });
+      if (_status != AuthStatus.LoggedIn) {
+        print('_status != AuthStatus.LoggedIn');
+        _status = AuthStatus.LoggedIn;
+        _userModelStreamSubscription =
+            FirestoreUtils.getUserStream(user.uid).listen((event) {
+              print('event!: $event');
+              _user = event;
+              notifyListeners();
+            });
+      }
     }
     notifyListeners();
   }
