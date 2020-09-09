@@ -14,6 +14,8 @@ import 'providers/camp_model.dart';
 import 'providers/comment_model.dart';
 
 class CommentPage extends StatelessWidget {
+  CommentPage({Key key}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     final campModel = Provider.of<CampModel>(context);

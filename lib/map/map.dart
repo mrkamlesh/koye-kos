@@ -5,7 +5,6 @@ import 'dart:typed_data';
 import 'package:animations/animations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:koye_kos/camp/camp_utils.dart';
 import 'package:koye_kos/map/map_detail.dart';
 import 'package:koye_kos/models/camp.dart';

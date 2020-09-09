@@ -1,13 +1,9 @@
-import 'dart:async';
-import 'dart:collection';
-
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
+import 'package:extended_nested_scroll_view/extended_nested_scroll_view.dart';
+import 'package:flutter/material.dart' hide NestedScrollView, NestedScrollViewState;
+import 'package:flutter/widgets.dart' hide NestedScrollView, NestedScrollViewState;
 import 'package:koye_kos/camp/providers/camp_model.dart';
 import 'package:koye_kos/models/comment.dart';
-import 'package:koye_kos/models/image.dart';
 import 'package:koye_kos/services/auth.dart';
 import 'package:koye_kos/ui/dialog.dart';
 import 'package:photo_view/photo_view.dart';
@@ -30,7 +26,10 @@ class CampDetailScreen extends StatefulWidget {
 
 class _CampDetailScreenState extends State<CampDetailScreen>
     with SingleTickerProviderStateMixin {
+  final GlobalKey<NestedScrollViewState> _key =
+  GlobalKey<NestedScrollViewState>();
   TabController _controller;
+  List<String> _tabs = ['Info', 'Comments'];
 
   @override
   void initState() {
@@ -45,71 +44,97 @@ class _CampDetailScreenState extends State<CampDetailScreen>
     Widget _buildFloatingActionButton() {
       return _controller.index == 1
           ? FloatingActionButton(
-        child: Icon(Icons.add_comment),
-        onPressed: () {
-          if (context.read<Auth>().isAuthenticated)
-            Navigator.push<CampComment>(context,
-                MaterialPageRoute(builder: (context) {
-                  return ChangeNotifierProvider(
-                    create: (context) => CommentModel(
-                        originalText: campModel.userComment?.commentText,
-                        originalScore: campModel.score),
-                    builder: (context, child) => AddCommentScreen(),
+              child: Icon(Icons.add_comment),
+              onPressed: () {
+                if (context.read<Auth>().isAuthenticated)
+                  Navigator.push<CampComment>(context,
+                      MaterialPageRoute(builder: (context) {
+                    return ChangeNotifierProvider(
+                      create: (context) => CommentModel(
+                          originalText: campModel.userComment?.commentText,
+                          originalScore: campModel.score),
+                      builder: (context, child) => AddCommentScreen(),
+                    );
+                  })).then(campModel.onCampCommentResult);
+                else
+                  showDialog(
+                    context: context,
+                    builder: (_) => LogInDialog(actionText: 'add comment'),
                   );
-                })).then(campModel.onCampCommentResult);
-          else
-            showDialog(
-              context: context,
-              builder: (_) => LogInDialog(actionText: 'add comment'),
-            );
-        },
-      )
+              },
+            )
           : SizedBox.shrink();
     }
 
+    final double statusBarHeight = MediaQuery.of(context).padding.top;
+
+    final double pinnedHeaderHeight =
+        //statusBar height
+        statusBarHeight + kToolbarHeight;
+
     return NestedScrollView(
+      key: _key,
       headerSliverBuilder: (context, innerBoxIsScrolled) {
         return <Widget>[
           SliverAppBar(
+            //forceElevated: innerBoxIsScrolled,
             floating: false,
             pinned: true,
             expandedHeight: 200,
-            collapsedHeight: kToolbarHeight + 1,
             backgroundColor: Theme.of(context).primaryColor,
             flexibleSpace: FlexibleSpaceBar(
-              background: ChangeNotifierProxyProvider2<Auth, FirestoreService, CampPhotoModel>(
-                  create: (context) => CampPhotoModel(
-                    auth: context.read<Auth>(),
-                    firestore: context.read<FirestoreService>(),
-                    campId: context.read<CampModel>().camp.id,
-                  ),
-                  update: (_, auth, firestore, photoModel) => photoModel
-                    ..setAuth(auth)
-                    ..setFirestore(firestore),
-                  child: ImageList(),
+              background: ChangeNotifierProxyProvider2<Auth, FirestoreService,
+                  CampPhotoModel>(
+                create: (context) => CampPhotoModel(
+                  auth: context.read<Auth>(),
+                  firestore: context.read<FirestoreService>(),
+                  campId: context.read<CampModel>().camp.id,
                 ),
-            ),
-            bottom: TabBar(
-              controller: _controller,
-              tabs: <Widget>[
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Text('Info'),
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Text('Comments'),
-                ),
-              ],
+                update: (_, auth, firestore, photoModel) => photoModel
+                  ..setAuth(auth)
+                  ..setFirestore(firestore),
+                child: ImageList(),
+              ),
             ),
           ),
         ];
       },
-      body: TabBarView(
-        controller: _controller,
+      pinnedHeaderSliverHeightBuilder: () {
+        return pinnedHeaderHeight;
+      },
+      innerScrollPositionKeyBuilder: () {
+        String index = 'Tab';
+        index += _controller.index.toString();
+        return Key(index);
+      },
+      body: Column(
         children: [
-          CampInfoPage(),
-          CommentPage(),
+          TabBar(
+            controller: _controller,
+            labelColor: Colors.blue,
+            indicatorColor: Colors.blue,
+            indicatorSize: TabBarIndicatorSize.label,
+            indicatorWeight: 2.0,
+            isScrollable: false,
+            unselectedLabelColor: Colors.grey,
+            tabs: _tabs
+                .map((tabName) => Tab(
+                      text: tabName,
+                    ))
+                .toList(),
+          ),
+          Expanded(
+            child: TabBarView(
+              controller: _controller,
+              children: _tabs.map((String tabName) {
+                return NestedScrollViewInnerScrollPositionKeyWidget(
+                    Key(tabName),
+                    tabName == 'Info'
+                        ? CampInfoPage(key: PageStorageKey<String>(tabName))
+                        : CommentPage(key: PageStorageKey<String>(tabName)));
+              }).toList(),
+            ),
+          ),
         ],
       ),
     );
@@ -128,12 +153,15 @@ class _CampDetailScreenState extends State<CampDetailScreen>
 }
 
 class CampInfoPage extends StatelessWidget {
+  CampInfoPage({Key key}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
+          CampInfo(),
           CampInfo(),
           Padding(
             padding: const EdgeInsets.all(8.0),
@@ -191,13 +219,13 @@ class UserRatingView extends StatelessWidget {
     void _toCommentPage(double score) {
       Navigator.push<CampComment>(context,
           MaterialPageRoute(builder: (context) {
-            return ChangeNotifierProvider(
-              create: (context) => CommentModel(
-                  originalText: campModel.userComment?.commentText,
-                  originalScore: score),
-              builder: (context, child) => AddCommentScreen(),
-            );
-          })).then(campModel.onCampCommentResult);
+        return ChangeNotifierProvider(
+          create: (context) => CommentModel(
+              originalText: campModel.userComment?.commentText,
+              originalScore: score),
+          builder: (context, child) => AddCommentScreen(),
+        );
+      })).then(campModel.onCampCommentResult);
     }
 
     // if authenticated; set score, otherwise ask user to log in and then set score based on action taken
@@ -206,11 +234,11 @@ class UserRatingView extends StatelessWidget {
       auth.isAuthenticated
           ? _toCommentPage(score)
           : showDialog(
-        context: context,
-        builder: (_) => LogInDialog(actionText: 'rate a camp'),
-      ).then((_) => auth.isAuthenticated
-          ? _toCommentPage(score)
-          : campModel.setScore(0)); // user did not log in -> reset score
+              context: context,
+              builder: (_) => LogInDialog(actionText: 'rate a camp'),
+            ).then((_) => auth.isAuthenticated
+              ? _toCommentPage(score)
+              : campModel.setScore(0)); // user did not log in -> reset score
     }
 
     return Column(children: [
@@ -243,7 +271,7 @@ class UserRatingWidget extends StatelessWidget {
       size: 50,
       color: Colors.amber,
       borderColor:
-      score == 0 && greyOnZero ? Colors.grey.shade300 : Colors.amber,
+          score == 0 && greyOnZero ? Colors.grey.shade300 : Colors.amber,
       onRated: onRatedCallback,
     );
   }
@@ -361,7 +389,7 @@ class _PhotoGalleryState extends State<PhotoGallery> {
               builder: (context, index) {
                 return PhotoViewGalleryPageOptions(
                   imageProvider:
-                  CachedNetworkImageProvider(photoModel.getUrl(index)),
+                      CachedNetworkImageProvider(photoModel.getUrl(index)),
                   minScale: PhotoViewComputedScale.contained * 0.8,
                   maxScale: PhotoViewComputedScale.covered * 1.8,
                   heroAttributes: PhotoViewHeroAttributes(tag: index),
@@ -385,23 +413,23 @@ class _PhotoGalleryState extends State<PhotoGallery> {
                   PopupMenuButton<bool>(
                     child: ConstrainedBox(
                         constraints:
-                        BoxConstraints(minWidth: 48, minHeight: 48),
+                            BoxConstraints(minWidth: 48, minHeight: 48),
                         child: Icon(
                           Icons.more_vert,
                           color: Colors.white,
                         )),
                     onSelected: (reported) =>
-                    context.read<Auth>().isAuthenticated
-                        ? photoModel.onReportPressed(pageController.page,
-                        reported: reported)
-                        : showDialog(
-                      context: context,
-                      builder: (context) {
-                        return LogInDialog(
-                          actionText: 'report an image',
-                        );
-                      },
-                    ),
+                        context.read<Auth>().isAuthenticated
+                            ? photoModel.onReportPressed(pageController.page,
+                                reported: reported)
+                            : showDialog(
+                                context: context,
+                                builder: (context) {
+                                  return LogInDialog(
+                                    actionText: 'report an image',
+                                  );
+                                },
+                              ),
                     itemBuilder: (context) {
                       return [
                         if (photoModel.imageReported(pageController.page))

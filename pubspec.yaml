@@ -40,8 +40,7 @@ dependencies:
   font_awesome_flutter: ^8.8.1
   implicitly_animated_reorderable_list: ^0.2.3
   connectivity: ^0.4.9+2
-  flutter_speed_dial: ^1.2.5
-
+  extended_nested_scroll_view: ^1.0.1
   cupertino_icons: ^0.1.3
 
 dev_dependencies:
