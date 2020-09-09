@@ -230,19 +230,6 @@ class ProfileWidget extends StatelessWidget {
             ),
             Text('${user.email}', style: Theme.of(context).textTheme.headline6),
             Divider(height: 40),
-            Expanded(
-              child: Align(
-                alignment: FractionalOffset.bottomCenter,
-                child: RaisedButton(
-                  child: Text(
-                    'Log out',
-                    style: TextStyle(color: Colors.white),
-                  ),
-                  color: Theme.of(context).primaryColor,
-                  onPressed: profileModel.signOut,
-                ),
-              ),
-            ),
           ],
         ),
       ),

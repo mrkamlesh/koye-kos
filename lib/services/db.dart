@@ -215,17 +215,12 @@ class FirestoreService {
         : ratingRef.set({'score': score});
   }
 
-  Future<void> deleteCamp(String campId) async {
-    // compute new score
-    _firestore.collection(FirestorePath.campsPath).doc(campId).delete();
-
-    /*
-    Firebase storage does not support client side deletion of buckets..
-    TODO: use cloud function to delete folder, triggered on camp deletion.
-    FirebaseStorage.instance
-        .ref()
-        .child('camps/${camp.id}/')
-        .delete();*/
+  Future<void> deleteCamp(String campId) {
+    // TODO: firestore function!
+    _firestore
+        .collection(FirestorePath.campsPath)
+        .doc(campId)
+        .delete();
   }
 
   // Comment -----------

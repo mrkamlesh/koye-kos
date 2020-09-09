@@ -97,7 +97,10 @@ class FavoriteListItem extends StatelessWidget {
           children: [
             Expanded(
               flex: 3,
-              child: CampCachedImage(camp.imageUrls.first, key: ValueKey(camp.id),),
+              child: CampCachedImage(
+                camp.thumbnailUrls.first,
+                key: ValueKey(camp.id),
+              ),
             ),
             Expanded(
               flex: 4,
@@ -108,16 +111,34 @@ class FavoriteListItem extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
                     Text(
-                      '${camp.location.toReadableString(precision: 2, separator: ', ')}. ${camp.score} (${camp.ratings})',
-                      style: const TextStyle(
-                        fontWeight: FontWeight.w500,
-                        fontSize: 14.0,
-                      ),
-                    ),
-                    Text(
-                      'Description: ${camp.description}',
+                      '${camp.description}',
                       overflow: TextOverflow.ellipsis,
                       maxLines: 2,
+                    ),
+                    RichText(
+                      text: TextSpan(
+                        style: const TextStyle(
+                          fontSize: 14.0,
+                          color: Colors.black,
+                        ),
+                        children: [
+                          TextSpan(
+                            text: '${camp.score}',
+                          ),
+                          WidgetSpan(
+                            child: Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 2),
+                              child: Icon(
+                                Icons.star,
+                                size: 16,
+                                color: Colors.amber,
+                              ),
+                            ),
+                          ),
+                          TextSpan(text: '(${camp.ratings})'),
+                        ],
+                      ),
                     ),
                     Text(
                       '- ${camp.creatorName}',
