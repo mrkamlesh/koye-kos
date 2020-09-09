@@ -67,26 +67,44 @@ class _CampDetailScreenState extends State<CampDetailScreen>
           : SizedBox.shrink();
     }
 
-    return Scaffold(
-      appBar: AppBar(
-        // TODO: look into sizing height of tab bar
-        title: Text('Camp'),
-        bottom: TabBar(
-          controller: _controller,
-          tabs: [
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Text(
-                'Info',
-              ),
+    return NestedScrollView(
+      headerSliverBuilder: (context, innerBoxIsScrolled) {
+        return <Widget>[
+          SliverAppBar(
+            floating: false,
+            pinned: true,
+            expandedHeight: 200,
+            collapsedHeight: kToolbarHeight + 1,
+            backgroundColor: Theme.of(context).primaryColor,
+            flexibleSpace: FlexibleSpaceBar(
+              background: ChangeNotifierProxyProvider2<Auth, FirestoreService, CampPhotoModel>(
+                  create: (context) => CampPhotoModel(
+                    auth: context.read<Auth>(),
+                    firestore: context.read<FirestoreService>(),
+                    campId: context.read<CampModel>().camp.id,
+                  ),
+                  update: (_, auth, firestore, photoModel) => photoModel
+                    ..setAuth(auth)
+                    ..setFirestore(firestore),
+                  child: ImageList(),
+                ),
             ),
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Text('Comments'),
+            bottom: TabBar(
+              controller: _controller,
+              tabs: <Widget>[
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Text('Info'),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Text('Comments'),
+                ),
+              ],
             ),
-          ],
-        ),
-      ),
+          ),
+        ];
+      },
       body: TabBarView(
         controller: _controller,
         children: [
@@ -94,7 +112,6 @@ class _CampDetailScreenState extends State<CampDetailScreen>
           CommentPage(),
         ],
       ),
-      floatingActionButton: _buildFloatingActionButton(),
     );
   }
 
@@ -117,17 +134,6 @@ class CampInfoPage extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          ChangeNotifierProxyProvider2<Auth, FirestoreService, CampPhotoModel>(
-            create: (context) => CampPhotoModel(
-              auth: context.read<Auth>(),
-              firestore: context.read<FirestoreService>(),
-              campId: context.read<CampModel>().camp.id,
-            ),
-            update: (_, auth, firestore, photoModel) => photoModel
-              ..setAuth(auth)
-              ..setFirestore(firestore),
-            child: ImageList(),
-          ),
           CampInfo(),
           Padding(
             padding: const EdgeInsets.all(8.0),
@@ -236,7 +242,8 @@ class UserRatingWidget extends StatelessWidget {
       allowHalfRating: false,
       size: 50,
       color: Colors.amber,
-      borderColor: score == 0 && greyOnZero ? Colors.grey.shade300 : Colors.amber,
+      borderColor:
+      score == 0 && greyOnZero ? Colors.grey.shade300 : Colors.amber,
       onRated: onRatedCallback,
     );
   }
@@ -294,7 +301,7 @@ class _ImageListState extends State<ImageList> {
             child: Container(
               width: 340,
               // insert right padding to all but the last list item
-              padding: !last ? EdgeInsets.only(right: 2) : null,
+              padding: !last ? EdgeInsets.only(right: 0) : null,
               child: CampCachedImage(
                 imageUrls[index],
               ),
@@ -305,7 +312,9 @@ class _ImageListState extends State<ImageList> {
                 context,
                 MaterialPageRoute(
                   builder: (_) => ChangeNotifierProvider<CampPhotoModel>.value(
-                    value: photoModel, child: PhotoGallery(),),
+                    value: photoModel,
+                    child: PhotoGallery(),
+                  ),
                 ),
               );
             },
@@ -317,7 +326,6 @@ class _ImageListState extends State<ImageList> {
 }
 
 class PhotoGallery extends StatefulWidget {
-
   @override
   _PhotoGalleryState createState() => _PhotoGalleryState();
 }
@@ -328,7 +336,8 @@ class _PhotoGalleryState extends State<PhotoGallery> {
 
   @override
   void initState() {
-    pageController = PageController(initialPage: context.read<CampPhotoModel>().startIndex);
+    pageController =
+        PageController(initialPage: context.read<CampPhotoModel>().startIndex);
     super.initState();
   }
 
@@ -343,14 +352,16 @@ class _PhotoGalleryState extends State<PhotoGallery> {
         elevation: 0,
       ),
       body: Container(
-        child: Stack(alignment: Alignment.bottomRight,
+        child: Stack(
+          alignment: Alignment.bottomRight,
           children: <Widget>[
             PhotoViewGallery.builder(
               key: galleryKey,
               pageController: pageController, // TODO: should release?
               builder: (context, index) {
                 return PhotoViewGalleryPageOptions(
-                  imageProvider: CachedNetworkImageProvider(photoModel.getUrl(index)),
+                  imageProvider:
+                  CachedNetworkImageProvider(photoModel.getUrl(index)),
                   minScale: PhotoViewComputedScale.contained * 0.8,
                   maxScale: PhotoViewComputedScale.covered * 1.8,
                   heroAttributes: PhotoViewHeroAttributes(tag: index),
@@ -373,13 +384,16 @@ class _PhotoGalleryState extends State<PhotoGallery> {
                 children: [
                   PopupMenuButton<bool>(
                     child: ConstrainedBox(
-                        constraints: BoxConstraints(minWidth: 48, minHeight: 48),
+                        constraints:
+                        BoxConstraints(minWidth: 48, minHeight: 48),
                         child: Icon(
                           Icons.more_vert,
                           color: Colors.white,
                         )),
-                    onSelected: (reported) => context.read<Auth>().isAuthenticated
-                        ? photoModel.onReportPressed(pageController.page, reported: reported)
+                    onSelected: (reported) =>
+                    context.read<Auth>().isAuthenticated
+                        ? photoModel.onReportPressed(pageController.page,
+                        reported: reported)
                         : showDialog(
                       context: context,
                       builder: (context) {
