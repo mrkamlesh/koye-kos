@@ -142,6 +142,7 @@ class _CampDetailScreenState extends State<CampDetailScreen>
           ],
         ),
       ),
+      floatingActionButton: _buildFloatingActionButton(),
     );
   }
 

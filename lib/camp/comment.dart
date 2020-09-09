@@ -24,11 +24,15 @@ class CommentPage extends StatelessWidget {
       builder: (context, snapshot) {
         if (snapshot.hasData && snapshot.data.isNotEmpty) {
           final List<CampComment> comments = snapshot.data;
-          return ListView.builder(
-              itemCount: comments.length,
-              itemBuilder: (context, index) {
-                return CommentWidget(comment: comments[index]);
-              });
+          return MediaQuery.removePadding(
+            context: context,
+            removeTop: true,
+            child: ListView.builder(
+                itemCount: comments.length,
+                itemBuilder: (context, index) {
+                  return CommentWidget(comment: comments[index]);
+                }),
+          );
         }
         return Container(
           child: Center(
