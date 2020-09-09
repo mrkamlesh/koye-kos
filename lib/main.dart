@@ -125,9 +125,12 @@ class SplashScreen extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text(
-                'Welcome to Køye Kos!',
-                style: TextStyle(fontSize: 40),
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Text(
+                  'Welcome to Køye Kos!',
+                  style: TextStyle(fontSize: 30),
+                ),
               ),
               SizedBox(
                 height: 20,
@@ -150,9 +153,12 @@ class ConnectivityInfo extends StatelessWidget {
       child: Center(
         child: Directionality(
           textDirection: TextDirection.ltr,
-          child: Text(
-            'An internet connection is necessary for first time setup.',
-            style: TextStyle(fontSize: 20),
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Text(
+              'An internet connection is necessary for first time setup.',
+              style: TextStyle(fontSize: 20),
+            ),
           ),
         ),
       ),

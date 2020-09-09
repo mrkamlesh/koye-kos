@@ -115,9 +115,8 @@ class _CampDetailScreenState extends State<CampDetailScreen>
           children: [
             TabBar(
               controller: _controller,
-              labelColor: Colors.blue,
-              indicatorColor: Colors.blue,
-              indicatorSize: TabBarIndicatorSize.label,
+              labelColor: Theme.of(context).primaryColor,
+              indicatorColor: Theme.of(context).primaryColor,
               indicatorWeight: 2.0,
               isScrollable: false,
               unselectedLabelColor: Colors.grey,
@@ -206,9 +205,19 @@ class CampInfo extends StatelessWidget {
             padding: const EdgeInsets.only(bottom: 8.0),
             child: CampFeaturesWidget(camp.features),
           ),
+          SizedBox(height: 4),
           Text(camp.description),
-          Divider(),
-          Text('By: ${camp.creatorName ?? 'Anonymous'}'),
+          Divider(
+            height: 20,
+          ),
+          Text(
+            'By: ${camp.creatorName}',
+            style: TextStyle(
+              fontStyle: FontStyle.italic,
+              fontWeight: FontWeight.w300,
+              fontSize: 13.0,
+            ),
+          ),
         ],
       ),
     );
