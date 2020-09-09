@@ -1,7 +1,9 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:extended_nested_scroll_view/extended_nested_scroll_view.dart';
-import 'package:flutter/material.dart' hide NestedScrollView, NestedScrollViewState;
-import 'package:flutter/widgets.dart' hide NestedScrollView, NestedScrollViewState;
+import 'package:flutter/material.dart'
+    hide NestedScrollView, NestedScrollViewState;
+import 'package:flutter/widgets.dart'
+    hide NestedScrollView, NestedScrollViewState;
 import 'package:koye_kos/camp/providers/camp_model.dart';
 import 'package:koye_kos/models/comment.dart';
 import 'package:koye_kos/services/auth.dart';
@@ -20,6 +22,7 @@ import 'star_rating.dart';
 import 'ui/feature_chips.dart';
 
 class CampDetailScreen extends StatefulWidget {
+  CampDetailScreen({Key key}) : super(key: key);
   @override
   _CampDetailScreenState createState() => _CampDetailScreenState();
 }
@@ -27,7 +30,7 @@ class CampDetailScreen extends StatefulWidget {
 class _CampDetailScreenState extends State<CampDetailScreen>
     with SingleTickerProviderStateMixin {
   final GlobalKey<NestedScrollViewState> _key =
-  GlobalKey<NestedScrollViewState>();
+      GlobalKey<NestedScrollViewState>();
   TabController _controller;
   List<String> _tabs = ['Info', 'Comments'];
 
@@ -72,70 +75,72 @@ class _CampDetailScreenState extends State<CampDetailScreen>
         //statusBar height
         statusBarHeight + kToolbarHeight;
 
-    return NestedScrollView(
-      key: _key,
-      headerSliverBuilder: (context, innerBoxIsScrolled) {
-        return <Widget>[
-          SliverAppBar(
-            //forceElevated: innerBoxIsScrolled,
-            floating: false,
-            pinned: true,
-            expandedHeight: 200,
-            backgroundColor: Theme.of(context).primaryColor,
-            flexibleSpace: FlexibleSpaceBar(
-              background: ChangeNotifierProxyProvider2<Auth, FirestoreService,
-                  CampPhotoModel>(
-                create: (context) => CampPhotoModel(
-                  auth: context.read<Auth>(),
-                  firestore: context.read<FirestoreService>(),
-                  campId: context.read<CampModel>().camp.id,
+    return Scaffold(
+      body: NestedScrollView(
+        key: _key,
+        headerSliverBuilder: (context, innerBoxIsScrolled) {
+          return <Widget>[
+            SliverAppBar(
+              forceElevated: innerBoxIsScrolled,
+              floating: false,
+              pinned: true,
+              expandedHeight: 260,
+              backgroundColor: Theme.of(context).primaryColor,
+              flexibleSpace: FlexibleSpaceBar(
+                background: ChangeNotifierProxyProvider2<Auth, FirestoreService,
+                    CampPhotoModel>(
+                  create: (context) => CampPhotoModel(
+                    auth: context.read<Auth>(),
+                    firestore: context.read<FirestoreService>(),
+                    campId: context.read<CampModel>().camp.id,
+                  ),
+                  update: (_, auth, firestore, photoModel) => photoModel
+                    ..setAuth(auth)
+                    ..setFirestore(firestore),
+                  child: ImageList(),
                 ),
-                update: (_, auth, firestore, photoModel) => photoModel
-                  ..setAuth(auth)
-                  ..setFirestore(firestore),
-                child: ImageList(),
               ),
             ),
-          ),
-        ];
-      },
-      pinnedHeaderSliverHeightBuilder: () {
-        return pinnedHeaderHeight;
-      },
-      innerScrollPositionKeyBuilder: () {
-        String index = 'Tab';
-        index += _controller.index.toString();
-        return Key(index);
-      },
-      body: Column(
-        children: [
-          TabBar(
-            controller: _controller,
-            labelColor: Colors.blue,
-            indicatorColor: Colors.blue,
-            indicatorSize: TabBarIndicatorSize.label,
-            indicatorWeight: 2.0,
-            isScrollable: false,
-            unselectedLabelColor: Colors.grey,
-            tabs: _tabs
-                .map((tabName) => Tab(
-                      text: tabName,
-                    ))
-                .toList(),
-          ),
-          Expanded(
-            child: TabBarView(
+          ];
+        },
+        pinnedHeaderSliverHeightBuilder: () {
+          return pinnedHeaderHeight;
+        },
+        innerScrollPositionKeyBuilder: () {
+          String index = 'Tab';
+          index += _controller.index.toString();
+          return Key(index);
+        },
+        body: Column(
+          children: [
+            TabBar(
               controller: _controller,
-              children: _tabs.map((String tabName) {
-                return NestedScrollViewInnerScrollPositionKeyWidget(
-                    Key(tabName),
-                    tabName == 'Info'
-                        ? CampInfoPage(key: PageStorageKey<String>(tabName))
-                        : CommentPage(key: PageStorageKey<String>(tabName)));
-              }).toList(),
+              labelColor: Colors.blue,
+              indicatorColor: Colors.blue,
+              indicatorSize: TabBarIndicatorSize.label,
+              indicatorWeight: 2.0,
+              isScrollable: false,
+              unselectedLabelColor: Colors.grey,
+              tabs: _tabs
+                  .map((tabName) => Tab(
+                        text: tabName,
+                      ))
+                  .toList(),
             ),
-          ),
-        ],
+            Expanded(
+              child: TabBarView(
+                controller: _controller,
+                children: _tabs.map((String tabName) {
+                  return NestedScrollViewInnerScrollPositionKeyWidget(
+                      Key(tabName),
+                      tabName == 'Info'
+                          ? CampInfoPage(key: PageStorageKey<String>(tabName))
+                          : CommentPage(key: PageStorageKey<String>(tabName)));
+                }).toList(),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -161,7 +166,6 @@ class CampInfoPage extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          CampInfo(),
           CampInfo(),
           Padding(
             padding: const EdgeInsets.all(8.0),
@@ -319,7 +323,7 @@ class _ImageListState extends State<ImageList> {
     final photoModel = Provider.of<CampPhotoModel>(context);
     final imageUrls = photoModel.imageUrls;
     return Container(
-      height: 200, // restrict image height
+      height: 260, // restrict image height
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
         itemCount: imageUrls.length,

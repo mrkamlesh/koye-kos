@@ -13,6 +13,7 @@ class OpenContainerCamp extends StatelessWidget {
   final Widget closedScreen;
   OpenContainerCamp(this.camp, {@required this.closedScreen});
   // TODO: fix widgets rebuilding during animation, likely cause for poor performance
+  // TODO: OpenContainer looks like shit, change it
 
   @override
   Widget build(BuildContext context) {
