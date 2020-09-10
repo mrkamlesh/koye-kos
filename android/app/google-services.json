@@ -15,6 +15,22 @@
       },
       "oauth_client": [
         {
+          "client_id": "77263031436-htcofqibtmtghcbgotrh32k1stgruos0.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.developments.samu.koye_kos",
+            "certificate_hash": "7d82e476e01d4462299782ee13ee4c83022c3080"
+          }
+        },
+        {
+          "client_id": "77263031436-u37pqudajdli144etctfh81flhasj9p8.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.developments.samu.koye_kos",
+            "certificate_hash": "b43f35de26995433148cdd6024ef60815a4f4d48"
+          }
+        },
+        {
           "client_id": "77263031436-d5039c9vcp4qihjuego1lf9cmjt23gos.apps.googleusercontent.com",
           "client_type": 3
         }
@@ -30,6 +46,13 @@
             {
               "client_id": "77263031436-d5039c9vcp4qihjuego1lf9cmjt23gos.apps.googleusercontent.com",
               "client_type": 3
+            },
+            {
+              "client_id": "77263031436-pjqvehsj6p76rhd0t8ul8t0j7af5to6b.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.developments.samu.koyeKos"
+              }
             }
           ]
         }
