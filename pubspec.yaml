@@ -8,8 +8,8 @@ environment:
   sdk: ">=2.7.0 <3.0.0"
 
 dependencies:
-  flutter:
-    sdk: flutter
+  #flutter:
+  #  sdk: flutter
 
   # Firebase/Google
   firebase_core: ^0.5.0
@@ -20,7 +20,7 @@ dependencies:
   firebase_storage: ^4.0.0
 
   # State
-  provider: ^4.3.1
+  provider: ^4.3.2
 
   # Flutter map
   mapbox_gl: ^0.8.0
@@ -44,17 +44,21 @@ dependencies:
   cupertino_icons: ^0.1.3
 
 dev_dependencies:
-  flutter_test:
-    sdk: flutter
+  #flutter_test:
+  #  sdk: flutter
+
+  build_runner: ^1.10.2
+  build_web_compilers: ^2.11.0
+  build_test: ^0.10.12
 
 # The following section is specific to Flutter.
-flutter:
-  uses-material-design: true
-
-  assets:
-    - assets/symbols/location_red.png
-    - assets/symbols/2.0x/location_red.png
-    - assets/symbols/3.0x/location_red.png
-    - assets/symbols/location_black.png
-    - assets/symbols/2.0x/location_black.png
-    - assets/symbols/3.0x/location_black.png
+#flutter:
+#  uses-material-design: true
+#
+#  assets:
+#    - assets/symbols/location_red.png
+#    - assets/symbols/2.0x/location_red.png
+#    - assets/symbols/3.0x/location_red.png
+#    - assets/symbols/location_black.png
+#    - assets/symbols/2.0x/location_black.png
+#    - assets/symbols/3.0x/location_black.png
