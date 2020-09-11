@@ -17,6 +17,7 @@ class ProfileModel with ChangeNotifier {
   NetworkState _state = NetworkState.Unknown;
 
   ProfileModel({@required this.auth, @required this.firestore}) {
+    Connectivity().checkConnectivity().then(_onConnectivityChanged);
     ss = Connectivity().onConnectivityChanged.listen(_onConnectivityChanged);
   }
 
@@ -28,7 +29,7 @@ class ProfileModel with ChangeNotifier {
     } else {
       _state = NetworkState.Unknown;
     }
-    print('updated network state');
+    print('updated network state $_state');
     notifyListeners();
   }
 

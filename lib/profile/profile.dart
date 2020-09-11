@@ -1,12 +1,9 @@
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:connectivity/connectivity.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:koye_kos/services/db.dart';
 import 'package:provider/provider.dart';
 
-import '../models/user.dart';
-import '../services/auth.dart';
 import 'favorites.dart';
 import 'providers/favorite_provider.dart';
 import 'providers/profile_model.dart';
