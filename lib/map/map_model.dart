@@ -77,7 +77,7 @@ class MapModel extends ChangeNotifier {
   MapSymbol _campToMapSymbol(Camp camp) => MapSymbol(
         options: SymbolOptions(
           geometry: camp.location.toLatLng(),
-          iconImage: 'assets/symbols/location_black.png',
+          iconImage: 'marker-black',
           iconSize: 1,
         ),
         id: camp.id,
@@ -102,7 +102,7 @@ class MapModel extends ChangeNotifier {
     notifyListeners();
     return SymbolOptions(
       geometry: coordinates,
-      iconImage: 'assets/symbols/location_red.png',
+      iconImage: 'marker-red',
       iconSize: 1,
     );
   }
