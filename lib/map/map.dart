@@ -161,8 +161,8 @@ class MapState extends State<Map> with SingleTickerProviderStateMixin {
     _symbolsSubscription =
         context.read<MapModel>().campSymbolStream.listen(_updateSymbols);
 
-    addImageFromAsset('marker-red', 'assets/symbols/location_red.png');
-    addImageFromAsset('marker-black', 'assets/symbols/location_black.png');
+    addImageFromAsset('marker-red', '/symbols/location_red.png');
+    addImageFromAsset('marker-black', '/symbols/location_black.png');
   }
 
   void _updateSymbols(Set<MapSymbol> symbolSet) async {
