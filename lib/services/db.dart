@@ -193,19 +193,19 @@ class FirestoreService {
         .toList());
   }
 
-  Future<double> getCampRating(String campId) {
+  Future<int> getCampRating(String campId) {
     return _firestore
         .collection(FirestorePath.getRatingPath(campId))
         .doc(user.id)
         .get()
         .then((DocumentSnapshot snapshot) {
-      return snapshot.exists ? (snapshot.get('score') as num).toDouble() : 0;
+      return snapshot.exists ? (snapshot.get('score') as num).toInt() : 0;
     });
   }
 
   Future<void> updateRating({
     @required String campId,
-    @required double score,
+    @required int score,
   }) {
     final ratingRef = _firestore
         .collection(FirestorePath.getRatingPath(campId))
@@ -226,7 +226,7 @@ class FirestoreService {
   // Comment -----------
 
   Future<void> addComment(
-      {@required String campId, @required String comment, double score}) {
+      {@required String campId, @required String comment, int score}) {
     Map<String, dynamic> data = {
       'comment': comment,
       'user_name': user.name,

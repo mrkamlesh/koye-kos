@@ -84,7 +84,7 @@ class _CampDetailScreenState extends State<CampDetailScreen>
               forceElevated: innerBoxIsScrolled,
               floating: false,
               pinned: true,
-              expandedHeight: 260,
+              expandedHeight: MediaQuery.of(context).size.height/3,
               backgroundColor: Theme.of(context).primaryColor,
               flexibleSpace: FlexibleSpaceBar(
                 background: ChangeNotifierProxyProvider2<Auth, FirestoreService,
@@ -236,7 +236,7 @@ class UserRatingView extends StatelessWidget {
         return ChangeNotifierProvider(
           create: (context) => CommentModel(
               originalText: campModel.userComment?.commentText,
-              originalScore: score),
+              originalScore: score.toInt()),
           builder: (context, child) => AddCommentScreen(),
         );
       })).then(campModel.onCampCommentResult);
@@ -273,14 +273,14 @@ class UserRatingView extends StatelessWidget {
 
 class UserRatingWidget extends StatelessWidget {
   final Function(double score) onRatedCallback;
-  final double score;
+  final int score;
   final bool greyOnZero;
   UserRatingWidget({this.onRatedCallback, this.score, this.greyOnZero = false});
   @override
   Widget build(BuildContext context) {
     return StarRating(
       key: UniqueKey(),
-      rating: score,
+      rating: score.toDouble(),
       allowHalfRating: false,
       size: 50,
       color: Colors.amber,

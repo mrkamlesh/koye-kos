@@ -9,7 +9,7 @@ class CampComment {
   final String userName;
   final String userPhotoUrl;
   final DateTime date;
-  double score;
+  int score;
   int reports;
 
   CampComment({this.id, @required this.commentText, this.userId, this.userName, this.userPhotoUrl, this.date,
@@ -26,7 +26,7 @@ class CampComment {
       date: (data['date'] as Timestamp).toDate(),
     );
 
-    if (data['score'] != null) comment.score = data['score'] as double;
+    if (data['score'] != null) comment.score = data['score'] as int;
     if (data['reports'] != null) comment.reports = data['reports'] as int;
     return comment;
   }

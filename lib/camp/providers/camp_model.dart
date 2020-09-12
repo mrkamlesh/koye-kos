@@ -1,14 +1,11 @@
 import 'dart:async';
-import 'dart:collection';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:koye_kos/camp/providers/comment_model.dart';
 import 'package:koye_kos/models/camp.dart';
 import 'package:koye_kos/models/comment.dart';
 import 'package:koye_kos/models/image.dart';
-import 'package:koye_kos/models/user.dart';
 import 'package:koye_kos/services/auth.dart';
 import 'package:koye_kos/services/db.dart';
 
@@ -17,7 +14,7 @@ class CampModel with ChangeNotifier {
   FirestoreService firestore;
   Camp camp;
   bool _favorited = false;
-  double _score = 0;
+  int _score = 0;
   List<CampComment> _comments;
   CampComment _userComment;
   StreamSubscription _campSubscription;
@@ -48,7 +45,7 @@ class CampModel with ChangeNotifier {
   }
 
   bool get favorited => _favorited;
-  double get score => _score;
+  int get score => _score;
   Stream<List<CampComment>> get comments =>
       firestore.getCommentsStream(camp.id);
   CampComment get userComment => _userComment;
@@ -73,7 +70,7 @@ class CampModel with ChangeNotifier {
     firestore.deleteCamp(camp.id);
   }
 
-  void setScore(double score) {
+  void setScore(int score) {
     _score = score;
     notifyListeners();
   }

@@ -132,7 +132,7 @@ class CommentWidget extends StatelessWidget {
               children: [
                 if (comment.score != 0)
                   RatingViewSmall(
-                    score: comment.score,
+                    score: comment.score.toDouble(),
                     showDetails: false,
                   ),
                 SizedBox(
