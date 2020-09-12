@@ -52,7 +52,7 @@ class CommentWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     final campModel = Provider.of<CampModel>(context);
     return Container(  // FIXME: does not constrain card
-      width: 300,
+      width: 600,
       child: Card(
         clipBehavior: Clip.antiAliasWithSaveLayer, // for rounded corners
         shape: RoundedRectangleBorder(
@@ -63,7 +63,7 @@ class CommentWidget extends StatelessWidget {
           child: Column(
             children: [
               Container(
-                width: 300,
+                width: 600,
                 child: Row(
                   children: [
                     Expanded(
@@ -133,7 +133,7 @@ class CommentWidget extends StatelessWidget {
                 ),
               ),
               Container(
-                width: 300,
+                width: 600,
                 child: Row(
                   children: [
                     if (comment.score != 0)
@@ -151,7 +151,7 @@ class CommentWidget extends StatelessWidget {
                 ),
               ),
               Container(
-                width: 300,
+                width: 600,
                 child: Padding(
                   padding: const EdgeInsets.symmetric(vertical: 8.0),
                   child: Text('${comment.commentText}'),
