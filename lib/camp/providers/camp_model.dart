@@ -76,7 +76,7 @@ class CampModel with ChangeNotifier {
   }
 
   bool commentReported(String commentId) {
-    return auth.user != null ? auth.user.commentsReported?.contains(commentId) : false;
+    return auth?.user?.commentsReported?.contains(commentId) ?? false;
   }
 
   void onReportPressed(String commentId, {bool reported = true}) {

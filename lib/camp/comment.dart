@@ -51,101 +51,114 @@ class CommentWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final campModel = Provider.of<CampModel>(context);
-    return Card(
-      clipBehavior: Clip.antiAliasWithSaveLayer, // for rounded corners
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(8.0),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 8.0),
-                    child: Container(
-                      height: 40,
-                      child: Row(
-                        children: [
-                          ClipOval(
-                            child: CachedNetworkImage(
-                              imageUrl: comment.userPhotoUrl,
-                            ),
+    return Container(  // FIXME: does not constrain card
+      width: 300,
+      child: Card(
+        clipBehavior: Clip.antiAliasWithSaveLayer, // for rounded corners
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8.0),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8.0),
+          child: Column(
+            children: [
+              Container(
+                width: 300,
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 8.0),
+                        child: Container(
+                          height: 40,
+                          child: Row(
+                            children: [
+                              ClipOval(
+                                child: CachedNetworkImage(
+                                  imageUrl: comment.userPhotoUrl,
+                                ),
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 8),
+                                child: Text('${comment.userName}'),
+                              ),
+                            ],
                           ),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 8),
-                            child: Text('${comment.userName}'),
-                          ),
-                        ],
+                        ),
                       ),
                     ),
-                  ),
+                    if (campModel.isCreator(comment.userId))
+                      IconButton(
+                        icon: Icon(Icons.edit),
+                        onPressed: () => Navigator.push<CampComment>(context,
+                            MaterialPageRoute(builder: (context) {
+                          return ChangeNotifierProvider(
+                            create: (context) => CommentModel(
+                                originalText: comment.commentText,
+                                originalScore: campModel.score),
+                            builder: (context, child) => AddCommentScreen(),
+                          );
+                        })).then(campModel.onCampCommentResult),
+                      )
+                    else
+                      PopupMenuButton<bool>(
+                        onSelected: (reported) =>
+                            context.read<Auth>().isAuthenticated
+                                ? campModel.onReportPressed(comment.id,
+                                    reported: reported)
+                                : showDialog(
+                                    context: context,
+                                    builder: (context) {
+                                      return LogInDialog(
+                                        actionText: 'report a comment',
+                                      );
+                                    },
+                                  ),
+                        itemBuilder: (context) {
+                          return [
+                            if (campModel.commentReported(comment.id))
+                              PopupMenuItem(
+                                child: Text('Remove report'),
+                                value: false,
+                              )
+                            else
+                              PopupMenuItem(
+                                child: Text('Report comment'),
+                                value: true,
+                              )
+                          ];
+                        },
+                      )
+                  ],
                 ),
-                if (campModel.isCreator(comment.userId))
-                  IconButton(
-                    icon: Icon(Icons.edit),
-                    onPressed: () => Navigator.push<CampComment>(context,
-                        MaterialPageRoute(builder: (context) {
-                      return ChangeNotifierProvider(
-                        create: (context) => CommentModel(
-                            originalText: comment.commentText,
-                            originalScore: campModel.score),
-                        builder: (context, child) => AddCommentScreen(),
-                      );
-                    })).then(campModel.onCampCommentResult),
-                  )
-                else
-                  PopupMenuButton<bool>(
-                    onSelected: (reported) =>
-                        context.read<Auth>().isAuthenticated
-                            ? campModel.onReportPressed(comment.id,
-                                reported: reported)
-                            : showDialog(
-                                context: context,
-                                builder: (context) {
-                                  return LogInDialog(
-                                    actionText: 'report a comment',
-                                  );
-                                },
-                              ),
-                    itemBuilder: (context) {
-                      return [
-                        if (campModel.commentReported(comment.id))
-                          PopupMenuItem(
-                            child: Text('Remove report'),
-                            value: false,
-                          )
-                        else
-                          PopupMenuItem(
-                            child: Text('Report comment'),
-                            value: true,
-                          )
-                      ];
-                    },
-                  )
-              ],
-            ),
-            Row(
-              children: [
-                if (comment.score != 0)
-                  RatingViewSmall(
-                    score: comment.score.toDouble(),
-                    showDetails: false,
-                  ),
-                SizedBox(
-                  width: 8,
+              ),
+              Container(
+                width: 300,
+                child: Row(
+                  children: [
+                    if (comment.score != 0)
+                      Expanded(
+                        child: RatingViewSmall(
+                          score: comment.score.toDouble(),
+                          showDetails: false,
+                        ),
+                      ),
+                    SizedBox(
+                      width: 8,
+                    ),
+                    Expanded(child: Text('${DateFormat('dd/MM/yyyy').format(comment.date)}')),
+                  ],
                 ),
-                Text('${DateFormat('dd/MM/yyyy').format(comment.date)}'),
-              ],
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 8.0),
-              child: Text('${comment.commentText}'),
-            ),
-          ],
+              ),
+              Container(
+                width: 300,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8.0),
+                  child: Text('${comment.commentText}'),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
