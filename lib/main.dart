@@ -30,22 +30,23 @@ class _ApplicationState extends State<Application> {
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.done) {
           final auth = Auth();
-          print('auth created');
-          return MultiProvider(
-            providers: [
-              ChangeNotifierProvider<Auth>.value(
-                value: auth,
-              ),
-              ProxyProvider<Auth, FirestoreService>(
-                create: (_) => FirestoreService(user: auth.user),
-                update: (_, auth, firestore) => firestore..setUser(auth.user),
-              )
-            ],
-            builder: (context, child) {
-              return context.watch<Auth>().status == AuthStatus.Unauthenticated
-                  ? LoadingScreen()
-                  : MyApp();
-            },
+          return Material(
+            child: MultiProvider(
+              providers: [
+                ChangeNotifierProvider<Auth>.value(
+                  value: auth,
+                ),
+                ProxyProvider<Auth, FirestoreService>(
+                  create: (_) => FirestoreService(user: auth.user),
+                  update: (_, auth, firestore) => firestore..setUser(auth.user),
+                )
+              ],
+              builder: (context, child) {
+                return context.watch<Auth>().status == AuthStatus.Unauthenticated
+                    ? LoadingScreen()
+                    : MyApp();
+              },
+            ),
           );
         }
         return SplashScreen();
@@ -92,7 +93,6 @@ class LoadingScreen extends StatelessWidget {
     return StreamBuilder<ConnectivityResult>(
         stream: Connectivity().onConnectivityChanged,
         builder: (context, snapshot) {
-          print('------snap: $snapshot');
           if (snapshot.hasData) {
             if (snapshot.data == ConnectivityResult.none) {
               return ConnectivityInfo();
@@ -129,7 +129,7 @@ class SplashScreen extends StatelessWidget {
                 padding: const EdgeInsets.all(8.0),
                 child: Text(
                   'Welcome to Køye Kos!',
-                  style: TextStyle(fontSize: 30),
+                  style: TextStyle(fontSize: 30, color: Colors.white),
                 ),
               ),
               SizedBox(
@@ -157,7 +157,7 @@ class ConnectivityInfo extends StatelessWidget {
             padding: const EdgeInsets.all(8.0),
             child: Text(
               'An internet connection is necessary for first time setup.',
-              style: TextStyle(fontSize: 20),
+              style: TextStyle(fontSize: 20, color: Colors.white),
             ),
           ),
         ),

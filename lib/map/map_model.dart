@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'package:flutter/foundation.dart' show kIsWeb;
+
 
 import 'package:flutter/material.dart';
 import 'package:koye_kos/models/camp.dart';
@@ -77,7 +79,7 @@ class MapModel extends ChangeNotifier {
   MapSymbol _campToMapSymbol(Camp camp) => MapSymbol(
         options: SymbolOptions(
           geometry: camp.location.toLatLng(),
-          iconImage: 'marker-black',
+          iconImage: kIsWeb ? 'marker-black' : 'assets/symbols/location_black.png',
           iconSize: 1,
         ),
         id: camp.id,
@@ -102,7 +104,7 @@ class MapModel extends ChangeNotifier {
     notifyListeners();
     return SymbolOptions(
       geometry: coordinates,
-      iconImage: 'assets/symbols/loaction_red.png',
+      iconImage: kIsWeb ? 'marker-red' : 'assets/symbols/location_red.png',
       iconSize: 1,
     );
   }
