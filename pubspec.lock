@@ -57,13 +57,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.1.25"
-  boolean_selector:
-    dependency: transitive
-    description:
-      name: boolean_selector
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "2.0.0"
   build:
     dependency: transitive
     description:
@@ -113,13 +106,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "6.0.1"
-  build_test:
-    dependency: "direct dev"
-    description:
-      name: build_test
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.10.12+1"
   build_web_compilers:
     dependency: "direct dev"
     description:
@@ -147,7 +133,7 @@ packages:
       name: cached_network_image
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "2.3.1"
+    version: "2.3.2+1"
   characters:
     dependency: transitive
     description:
@@ -260,13 +246,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.1.1"
-  coverage:
-    dependency: transitive
-    description:
-      name: coverage
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.14.1"
   crypto:
     dependency: transitive
     description:
@@ -648,20 +627,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.1.1"
-  node_preamble:
-    dependency: transitive
-    description:
-      name: node_preamble
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "1.4.12"
   octo_image:
     dependency: transitive
     description:
       name: octo_image
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.2.1"
+    version: "0.3.0"
   package_config:
     dependency: transitive
     description:
@@ -669,13 +641,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.9.3"
-  package_resolver:
-    dependency: transitive
-    description:
-      name: package_resolver
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "1.0.10"
   path:
     dependency: transitive
     description:
@@ -816,20 +781,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.7.9"
-  shelf_packages_handler:
-    dependency: transitive
-    description:
-      name: shelf_packages_handler
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "2.0.0"
-  shelf_static:
-    dependency: transitive
-    description:
-      name: shelf_static
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.2.8"
   shelf_web_socket:
     dependency: transitive
     description:
@@ -842,13 +793,6 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.99"
-  source_map_stack_trace:
-    dependency: transitive
-    description:
-      name: source_map_stack_trace
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "2.0.0"
   source_maps:
     dependency: transitive
     description:
@@ -919,27 +863,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.1.0"
-  test:
-    dependency: transitive
-    description:
-      name: test
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "1.15.2"
-  test_api:
-    dependency: transitive
-    description:
-      name: test_api
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.2.17"
-  test_core:
-    dependency: transitive
-    description:
-      name: test_core
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.3.10"
   timing:
     dependency: transitive
     description:
@@ -982,13 +905,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.1.0-nullsafety.2"
-  vm_service:
-    dependency: transitive
-    description:
-      name: vm_service
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "4.2.0"
   watcher:
     dependency: transitive
     description:
@@ -1003,13 +919,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.1.0"
-  webkit_inspection_protocol:
-    dependency: transitive
-    description:
-      name: webkit_inspection_protocol
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.7.3"
   xdg_directories:
     dependency: transitive
     description:
