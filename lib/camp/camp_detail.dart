@@ -1,5 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:extended_nested_scroll_view/extended_nested_scroll_view.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart'
     hide NestedScrollView, NestedScrollViewState;
 import 'package:flutter/widgets.dart'
@@ -30,7 +31,7 @@ class CampDetailScreen extends StatefulWidget {
 class _CampDetailScreenState extends State<CampDetailScreen>
     with SingleTickerProviderStateMixin {
   final GlobalKey<NestedScrollViewState> _key =
-      GlobalKey<NestedScrollViewState>();
+  GlobalKey<NestedScrollViewState>();
   TabController _controller;
   List<String> _tabs = ['Info', 'Comments'];
 
@@ -47,33 +48,36 @@ class _CampDetailScreenState extends State<CampDetailScreen>
     Widget _buildFloatingActionButton() {
       return _controller.index == 1
           ? FloatingActionButton(
-              child: Icon(Icons.add_comment),
-              onPressed: () {
-                if (context.read<Auth>().isAuthenticated)
-                  Navigator.push<CampComment>(context,
-                      MaterialPageRoute(builder: (context) {
-                    return ChangeNotifierProvider(
-                      create: (context) => CommentModel(
-                          originalText: campModel.userComment?.commentText,
-                          originalScore: campModel.score),
-                      builder: (context, child) => AddCommentScreen(),
-                    );
-                  })).then(campModel.onCampCommentResult);
-                else
-                  showDialog(
-                    context: context,
-                    builder: (_) => LogInDialog(actionText: 'add comment'),
+        child: Icon(Icons.add_comment),
+        onPressed: () {
+          if (context.read<Auth>().isAuthenticated)
+            Navigator.push<CampComment>(context,
+                MaterialPageRoute(builder: (context) {
+                  return ChangeNotifierProvider(
+                    create: (context) => CommentModel(
+                        originalText: campModel.userComment?.commentText,
+                        originalScore: campModel.score),
+                    builder: (context, child) => AddCommentScreen(),
                   );
-              },
-            )
+                })).then(campModel.onCampCommentResult);
+          else
+            showDialog(
+              context: context,
+              builder: (_) => LogInDialog(actionText: 'add comment'),
+            );
+        },
+      )
           : SizedBox.shrink();
     }
 
     final double statusBarHeight = MediaQuery.of(context).padding.top;
 
     final double pinnedHeaderHeight =
-        //statusBar height
-        statusBarHeight + kToolbarHeight;
+    //statusBar height
+    statusBarHeight + kToolbarHeight;
+
+    final expandedHeight = MediaQuery.of(context).size.height/2.5;
+    final imageWidth = expandedHeight/3*4;
 
     return Scaffold(
       body: NestedScrollView(
@@ -84,7 +88,7 @@ class _CampDetailScreenState extends State<CampDetailScreen>
               forceElevated: innerBoxIsScrolled,
               floating: false,
               pinned: true,
-              expandedHeight: MediaQuery.of(context).size.height/3,
+              expandedHeight: expandedHeight,
               backgroundColor: Theme.of(context).primaryColor,
               flexibleSpace: FlexibleSpaceBar(
                 background: ChangeNotifierProxyProvider2<Auth, FirestoreService,
@@ -97,7 +101,9 @@ class _CampDetailScreenState extends State<CampDetailScreen>
                   update: (_, auth, firestore, photoModel) => photoModel
                     ..setAuth(auth)
                     ..setFirestore(firestore),
-                  child: ImageList(),
+                  child: Container(
+                      height: expandedHeight,
+                      child: ImageList(imageWidth: imageWidth,)),
                 ),
               ),
             ),
@@ -111,34 +117,37 @@ class _CampDetailScreenState extends State<CampDetailScreen>
           index += _controller.index.toString();
           return Key(index);
         },
-        body: Column(
-          children: [
-            TabBar(
-              controller: _controller,
-              labelColor: Theme.of(context).primaryColor,
-              indicatorColor: Theme.of(context).primaryColor,
-              indicatorWeight: 2.0,
-              isScrollable: false,
-              unselectedLabelColor: Colors.grey,
-              tabs: _tabs
-                  .map((tabName) => Tab(
-                        text: tabName,
-                      ))
-                  .toList(),
-            ),
-            Expanded(
-              child: TabBarView(
+        body: Container(
+          width: kIsWeb ? 600 : 1000,
+          child: Column(
+            children: [
+              TabBar(
                 controller: _controller,
-                children: _tabs.map((String tabName) {
-                  return NestedScrollViewInnerScrollPositionKeyWidget(
-                      Key(tabName),
-                      tabName == 'Info'
-                          ? CampInfoPage(key: PageStorageKey<String>(tabName))
-                          : CommentPage(key: PageStorageKey<String>(tabName)));
-                }).toList(),
+                labelColor: Theme.of(context).primaryColor,
+                indicatorColor: Theme.of(context).primaryColor,
+                indicatorWeight: 2.0,
+                isScrollable: false,
+                unselectedLabelColor: Colors.grey,
+                tabs: _tabs
+                    .map((tabName) => Tab(
+                  text: tabName,
+                ))
+                    .toList(),
               ),
-            ),
-          ],
+              Expanded(
+                child: TabBarView(
+                  controller: _controller,
+                  children: _tabs.map((String tabName) {
+                    return NestedScrollViewInnerScrollPositionKeyWidget(
+                        Key(tabName),
+                        tabName == 'Info'
+                            ? CampInfoPage(key: PageStorageKey<String>(tabName))
+                            : CommentPage(key: PageStorageKey<String>(tabName)));
+                  }).toList(),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
       floatingActionButton: _buildFloatingActionButton(),
@@ -166,7 +175,7 @@ class CampInfoPage extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          CampInfo(),
+          Container(width: 600,child: CampInfo()),
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: UserRatingView(),
@@ -209,6 +218,7 @@ class CampInfo extends StatelessWidget {
           Text(camp.description),
           Divider(
             height: 20,
+            thickness: 1,
           ),
           Text(
             'By: ${camp.creatorName}',
@@ -233,13 +243,13 @@ class UserRatingView extends StatelessWidget {
     void _toCommentPage(double score) {
       Navigator.push<CampComment>(context,
           MaterialPageRoute(builder: (context) {
-        return ChangeNotifierProvider(
-          create: (context) => CommentModel(
-              originalText: campModel.userComment?.commentText,
-              originalScore: score.toInt()),
-          builder: (context, child) => AddCommentScreen(),
-        );
-      })).then(campModel.onCampCommentResult);
+            return ChangeNotifierProvider(
+              create: (context) => CommentModel(
+                  originalText: campModel.userComment?.commentText,
+                  originalScore: score.toInt()),
+              builder: (context, child) => AddCommentScreen(),
+            );
+          })).then(campModel.onCampCommentResult);
     }
 
     // if authenticated; set score, otherwise ask user to log in and then set score based on action taken
@@ -248,11 +258,11 @@ class UserRatingView extends StatelessWidget {
       auth.isAuthenticated
           ? _toCommentPage(score)
           : showDialog(
-              context: context,
-              builder: (_) => LogInDialog(actionText: 'rate a camp'),
-            ).then((_) => auth.isAuthenticated
-              ? _toCommentPage(score)
-              : campModel.setScore(0)); // user did not log in -> reset score
+        context: context,
+        builder: (_) => LogInDialog(actionText: 'rate a camp'),
+      ).then((_) => auth.isAuthenticated
+          ? _toCommentPage(score)
+          : campModel.setScore(0)); // user did not log in -> reset score
     }
 
     return Column(children: [
@@ -285,7 +295,7 @@ class UserRatingWidget extends StatelessWidget {
       size: 50,
       color: Colors.amber,
       borderColor:
-          score == 0 && greyOnZero ? Colors.grey.shade300 : Colors.amber,
+      score == 0 && greyOnZero ? Colors.grey.shade300 : Colors.amber,
       onRated: onRatedCallback,
     );
   }
@@ -322,6 +332,10 @@ class RatingView extends StatelessWidget {
 }
 
 class ImageList extends StatefulWidget {
+  final double imageWidth;
+
+  ImageList({@required this.imageWidth});
+
   @override
   _ImageListState createState() => _ImageListState();
 }
@@ -332,38 +346,35 @@ class _ImageListState extends State<ImageList> {
   Widget build(BuildContext context) {
     final photoModel = Provider.of<CampPhotoModel>(context);
     final imageUrls = photoModel.imageUrls;
-    return Container(
-      height: 260, // restrict image height
-      child: ListView.builder(
-        scrollDirection: Axis.horizontal,
-        itemCount: imageUrls.length,
-        itemBuilder: (context, index) {
-          bool last = imageUrls.length == index + 1;
-          return GestureDetector(
-            child: Container(
-              width: 340,
-              // insert right padding to all but the last list item
-              padding: !last ? EdgeInsets.only(right: 0) : null,
-              child: CampCachedImage(
-                imageUrls[index],
-                color: Colors.white,
-              ),
+    return ListView.builder(
+      scrollDirection: Axis.horizontal,
+      itemCount: imageUrls.length,
+      itemBuilder: (context, index) {
+        bool last = imageUrls.length == index + 1;
+        return GestureDetector(
+          child: Container(
+            width: widget.imageWidth,
+            // insert right padding to all but the last list item
+            padding: !last ? EdgeInsets.only(right: 0) : null,
+            child: CampCachedImage(
+              imageUrls[index],
+              color: Colors.white,
             ),
-            onTap: () {
-              photoModel.onPhotoTap(index);
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => ChangeNotifierProvider<CampPhotoModel>.value(
-                    value: photoModel,
-                    child: PhotoGallery(),
-                  ),
+          ),
+          onTap: () {
+            photoModel.onPhotoTap(index);
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => ChangeNotifierProvider<CampPhotoModel>.value(
+                  value: photoModel,
+                  child: PhotoGallery(),
                 ),
-              );
-            },
-          );
-        },
-      ),
+              ),
+            );
+          },
+        );
+      },
     );
   }
 }
@@ -394,77 +405,75 @@ class _PhotoGalleryState extends State<PhotoGallery> {
         backgroundColor: Colors.transparent,
         elevation: 0,
       ),
-      body: Container(
-        child: Stack(
-          alignment: Alignment.bottomRight,
-          children: <Widget>[
-            PhotoViewGallery.builder(
-              key: galleryKey,
-              pageController: pageController, // TODO: should release?
-              builder: (context, index) {
-                return PhotoViewGalleryPageOptions(
-                  imageProvider:
-                      CachedNetworkImageProvider(photoModel.getUrl(index)),
-                  minScale: PhotoViewComputedScale.contained * 0.8,
-                  maxScale: PhotoViewComputedScale.covered * 1.8,
-                  heroAttributes: PhotoViewHeroAttributes(tag: index),
-                );
-              },
-              itemCount: photoModel.imagesCount,
-              loadingBuilder: (context, event) {
-                return Container(
-                  padding: EdgeInsets.all(8),
-                  child: Center(
-                    child: CircularProgressIndicator(),
-                  ),
-                );
-              },
-            ),
-            Container(
-              color: Colors.black.withOpacity(.4),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  PopupMenuButton<bool>(
-                    child: ConstrainedBox(
-                        constraints:
-                            BoxConstraints(minWidth: 48, minHeight: 48),
-                        child: Icon(
-                          Icons.more_vert,
-                          color: Colors.white,
-                        )),
-                    onSelected: (reported) =>
-                        context.read<Auth>().isAuthenticated
-                            ? photoModel.onReportPressed(pageController.page,
-                                reported: reported)
-                            : showDialog(
-                                context: context,
-                                builder: (context) {
-                                  return LogInDialog(
-                                    actionText: 'report an image',
-                                  );
-                                },
-                              ),
-                    itemBuilder: (context) {
-                      return [
-                        if (photoModel.imageReported(pageController.page))
-                          PopupMenuItem(
-                            child: Text('Remove report'),
-                            value: false,
-                          )
-                        else
-                          PopupMenuItem(
-                            child: Text('Report image'),
-                            value: true,
-                          )
-                      ];
+      body: Stack(
+        alignment: Alignment.bottomRight,
+        children: <Widget>[
+          PhotoViewGallery.builder(
+            key: galleryKey,
+            pageController: pageController, // TODO: should release?
+            builder: (context, index) {
+              return PhotoViewGalleryPageOptions(
+                imageProvider:
+                CachedNetworkImageProvider(photoModel.getUrl(index)),
+                minScale: PhotoViewComputedScale.contained * 0.8,
+                maxScale: PhotoViewComputedScale.covered * 1.8,
+                heroAttributes: PhotoViewHeroAttributes(tag: index),
+              );
+            },
+            itemCount: photoModel.imagesCount,
+            loadingBuilder: (context, event) {
+              return Container(
+                padding: EdgeInsets.all(8),
+                child: Center(
+                  child: CircularProgressIndicator(),
+                ),
+              );
+            },
+          ),
+          Container(
+            color: Colors.black.withOpacity(.4),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                PopupMenuButton<bool>(
+                  child: ConstrainedBox(
+                      constraints:
+                      BoxConstraints(minWidth: 48, minHeight: 48),
+                      child: Icon(
+                        Icons.more_vert,
+                        color: Colors.white,
+                      )),
+                  onSelected: (reported) =>
+                  context.read<Auth>().isAuthenticated
+                      ? photoModel.onReportPressed(pageController.page,
+                      reported: reported)
+                      : showDialog(
+                    context: context,
+                    builder: (context) {
+                      return LogInDialog(
+                        actionText: 'report an image',
+                      );
                     },
                   ),
-                ],
-              ),
-            )
-          ],
-        ),
+                  itemBuilder: (context) {
+                    return [
+                      if (photoModel.imageReported(pageController.page))
+                        PopupMenuItem(
+                          child: Text('Remove report'),
+                          value: false,
+                        )
+                      else
+                        PopupMenuItem(
+                          child: Text('Report image'),
+                          value: true,
+                        )
+                    ];
+                  },
+                ),
+              ],
+            ),
+          )
+        ],
       ),
     );
   }

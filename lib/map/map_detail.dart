@@ -67,7 +67,7 @@ class CampDescription extends StatelessWidget {
           Text(camp.description),
           Row(
             children: [
-              Expanded(child: Divider()),
+              Expanded(child: Divider(thickness: 1,)),
             ],
           ),
           Text('By: ${camp.creatorName ?? 'Anonymous'}'),
