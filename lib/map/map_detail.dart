@@ -19,19 +19,25 @@ import '../camp/star_rating.dart';
 class MarkerBottomSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      child: Card(
-        clipBehavior: Clip.antiAliasWithSaveLayer, // for rounded corners
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8.0),
-        ),
-        elevation: 12,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ImageListSmall(), // Image view
-            CampDescription()
-          ],
+    return Align(
+      alignment: Alignment.bottomCenter,
+      child: Container(
+        width: 600,
+        child: SingleChildScrollView(
+          child: Card(
+            clipBehavior: Clip.antiAliasWithSaveLayer, // for rounded corners
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8.0),
+            ),
+            elevation: 24,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                ImageListSmall(), // Image view
+                CampDescription()
+              ],
+            ),
+          ),
         ),
       ),
     );
@@ -60,7 +66,11 @@ class CampDescription extends StatelessWidget {
             child: CampFeaturesWidget(camp.features),
           ),
           Text(camp.description),
-          Divider(),
+          Row(
+            children: [
+              Expanded(child: Divider()),
+            ],
+          ),
           Text('By: ${camp.creatorName ?? 'Anonymous'}'),
         ],
       ),
@@ -72,7 +82,7 @@ class ImageListSmall extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final List<String> imageUrls =
-        context.select((CampModel campModel) => campModel.camp.thumbnailUrls);
+    context.select((CampModel campModel) => campModel.camp.thumbnailUrls);
     return Container(
       height: 120, // restrict image height
       child: ListView.builder(
@@ -179,80 +189,86 @@ class PointBottomSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final Point<double> point = Provider.of<Point<double>>(context);
-    return Card(
-      semanticContainer: true,
-      clipBehavior: Clip.antiAliasWithSaveLayer,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(8.0),
-      ),
-      elevation: 24,
-      child: InkWell(
-        child: Container(
-          child: ListTile(
-              leading: Icon(Icons.location_on, color: Colors.red),
-              title:
+    return Align(
+      alignment: Alignment.bottomCenter,
+      child: Container(
+        width: 600,
+        child: Card(
+          semanticContainer: true,
+          clipBehavior: Clip.antiAliasWithSaveLayer,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8.0),
+          ),
+          elevation: 24,
+          child: InkWell(
+            child: Container(
+              child: ListTile(
+                  leading: Icon(Icons.location_on, color: Colors.red),
+                  title:
                   Text(point.toReadableString(precision: 4, separator: ', ')),
-              trailing: FlatButton(
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(18.0),
-                  ),
-                  color: Colors.blue,
-                  textColor: Colors.white,
-                  child: Text('Add camp'),
-                  onPressed: () {
-                    if (context.read<Auth>().isAuthenticated)
-                      kIsWeb
-                      ? showDialog(
-                        context: context,
-                        builder: (context) {
-                          return AlertDialog(
-                            title: Text('Web not supported'),
-                              content: Text('Adding camp from web is currently not supported..'),
-                            actions: [
-                              FlatButton(
-                                child: Text('Dismiss'),
-                                onPressed: () {
-                                  Navigator.of(context).pop();
-                                },
-                              )
-                            ],
+                  trailing: FlatButton(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(18.0),
+                      ),
+                      color: Colors.blue,
+                      textColor: Colors.white,
+                      child: Text('Add camp'),
+                      onPressed: () {
+                        if (context.read<Auth>().isAuthenticated)
+                          kIsWeb
+                              ? showDialog(
+                            context: context,
+                            builder: (context) {
+                              return AlertDialog(
+                                title: Text('Web not supported'),
+                                content: Text('Adding camp from web is currently not supported..'),
+                                actions: [
+                                  FlatButton(
+                                    child: Text('Dismiss'),
+                                    onPressed: () {
+                                      Navigator.of(context).pop();
+                                    },
+                                  )
+                                ],
+                              );
+                            },
+                          )
+                              : Navigator.push(
+                              context,
+                              MaterialPageRoute<bool>(
+                                builder: (_) => ChangeNotifierProxyProvider2<Auth,
+                                    FirestoreService, AddModel>(
+                                  create: (context) => AddModel(
+                                    auth: context.read<Auth>(),
+                                    firestore: context.read<FirestoreService>(),
+                                    location: point,
+                                  ),
+                                  update: (_, auth, firestore, addModel) => addModel
+                                    ..setAuth(auth)
+                                    ..setFirestore(firestore),
+                                  child: AddCampScreen(),
+                                ),
+                              )).then((bool campAdded) {
+                            if (campAdded ?? false) {
+                              Navigator.pop(context);
+                              Scaffold.of(context)
+                                ..removeCurrentSnackBar()
+                                ..showSnackBar(
+                                    SnackBar(content: Text('Camp added!')));
+                            }
+                          });
+                        else
+                          showDialog(
+                            context: context,
+                            builder: (context) {
+                              return LogInDialog(
+                                actionText: 'add a camp',
+                              );
+                            },
                           );
-                        },
-                      )
-                      : Navigator.push(
-                          context,
-                          MaterialPageRoute<bool>(
-                            builder: (_) => ChangeNotifierProxyProvider2<Auth,
-                                FirestoreService, AddModel>(
-                              create: (context) => AddModel(
-                                auth: context.read<Auth>(),
-                                firestore: context.read<FirestoreService>(),
-                                location: point,
-                              ),
-                              update: (_, auth, firestore, addModel) => addModel
-                                ..setAuth(auth)
-                                ..setFirestore(firestore),
-                              child: AddCampScreen(),
-                            ),
-                          )).then((bool campAdded) {
-                        if (campAdded ?? false) {
-                          Navigator.pop(context);
-                          Scaffold.of(context)
-                            ..removeCurrentSnackBar()
-                            ..showSnackBar(
-                                SnackBar(content: Text('Camp added!')));
-                        }
-                      });
-                    else
-                      showDialog(
-                        context: context,
-                        builder: (context) {
-                          return LogInDialog(
-                            actionText: 'add a camp',
-                          );
-                        },
-                      );
-                  })),
+                      })),
+            ),
+          ),
         ),
       ),
     );
