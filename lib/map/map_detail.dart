@@ -1,8 +1,12 @@
 import 'dart:math';
+import 'package:flutter/foundation.dart' show kIsWeb;
+
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:koye_kos/camp/providers/camp_model.dart';
+import 'package:koye_kos/camp/providers/add_camp_model.dart';
+import 'package:koye_kos/camp/add_camp.dart';
 import 'package:koye_kos/camp/ui/feature_chips.dart';
 import 'package:koye_kos/services/auth.dart';
 import 'package:koye_kos/services/db.dart';
@@ -197,14 +201,48 @@ class PointBottomSheet extends StatelessWidget {
                   child: Text('Add camp'),
                   onPressed: () {
                     if (context.read<Auth>().isAuthenticated)
-                      showDialog(
+                      kIsWeb
+                      ? showDialog(
                         context: context,
                         builder: (context) {
-                          return LogInDialog(
-                            actionText: 'NOT IMPLEMENTED',
+                          return AlertDialog(
+                            title: Text('Web not supported'),
+                              content: Text('Adding camp from web is currently not supported..'),
+                            actions: [
+                              FlatButton(
+                                child: Text('Dismiss'),
+                                onPressed: () {
+                                  Navigator.of(context).pop();
+                                },
+                              )
+                            ],
                           );
                         },
-                      );
+                      )
+                      : Navigator.push(
+                          context,
+                          MaterialPageRoute<bool>(
+                            builder: (_) => ChangeNotifierProxyProvider2<Auth,
+                                FirestoreService, AddModel>(
+                              create: (context) => AddModel(
+                                auth: context.read<Auth>(),
+                                firestore: context.read<FirestoreService>(),
+                                location: point,
+                              ),
+                              update: (_, auth, firestore, addModel) => addModel
+                                ..setAuth(auth)
+                                ..setFirestore(firestore),
+                              child: AddCampScreen(),
+                            ),
+                          )).then((bool campAdded) {
+                        if (campAdded ?? false) {
+                          Navigator.pop(context);
+                          Scaffold.of(context)
+                            ..removeCurrentSnackBar()
+                            ..showSnackBar(
+                                SnackBar(content: Text('Camp added!')));
+                        }
+                      });
                     else
                       showDialog(
                         context: context,
