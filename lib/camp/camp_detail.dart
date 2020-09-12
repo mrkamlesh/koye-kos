@@ -346,6 +346,7 @@ class _ImageListState extends State<ImageList> {
               padding: !last ? EdgeInsets.only(right: 0) : null,
               child: CampCachedImage(
                 imageUrls[index],
+                color: Colors.white,
               ),
             ),
             onTap: () {

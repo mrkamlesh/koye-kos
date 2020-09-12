@@ -151,7 +151,8 @@ class RatingViewSmall extends StatelessWidget {
 class CampCachedImage extends StatefulWidget {
   final String _imageUrl;
   final Function(ImageProvider) onLoadCallback;
-  CampCachedImage(this._imageUrl, {this.onLoadCallback, Key key}) : super(key: key);
+  final Color color;
+  CampCachedImage(this._imageUrl, {this.onLoadCallback, this.color, Key key}) : super(key: key);
 
   @override
   _CampCachedImageState createState() => _CampCachedImageState();
@@ -174,7 +175,7 @@ class _CampCachedImageState extends State<CampCachedImage>
       placeholder: (context, url) {
         return Container(
           padding: EdgeInsets.all(8),
-          child: CircularProgressIndicator(),
+          child: Center(child: CircularProgressIndicator(backgroundColor: widget.color ?? Theme.of(context).primaryColor,)),
         );
       },
       errorWidget: (context, url, error) => Icon(Icons.error),

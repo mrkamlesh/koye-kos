@@ -102,7 +102,7 @@ class MapModel extends ChangeNotifier {
     notifyListeners();
     return SymbolOptions(
       geometry: coordinates,
-      iconImage: 'marker-red',
+      iconImage: 'assets/symbols/loaction_red.png',
       iconSize: 1,
     );
   }
